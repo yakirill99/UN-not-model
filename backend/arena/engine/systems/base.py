@@ -8,13 +8,13 @@ it in place and returns the events describing what it did. Systems never read
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import ClassVar, Protocol
 
 from numpy.random import Generator
 
 from arena.engine.events import Event
-from arena.engine.orders import OrderBook
+from arena.engine.orders import CountryOrders, OrderBook
 from arena.engine.rng import RngFactory
 from arena.engine.rules import RuleSet
 from arena.engine.state import GameState
@@ -25,6 +25,13 @@ class RoundContext:
     rules: RuleSet
     rng: RngFactory
     round: int
+    approved: dict[str, CountryOrders] = field(default_factory=dict)
+    """Country id -> orders that passed budget/legality checks.
+
+    ``resolve_round`` fills it with the raw orders of every country; the ``budget``
+    system replaces each entry with what the country can actually afford. Systems
+    that execute orders read ``ctx.approved``, never ``orders`` directly.
+    """
 
 
 class System(Protocol):

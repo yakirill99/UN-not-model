@@ -65,6 +65,11 @@ class Country(ArenaModel):
     def total_development(self) -> int:
         return sum(c.development for c in self.alive_cities)
 
+    @property
+    def average_life_level(self) -> int:
+        """Country's main score, in 1/100 of a percent; destroyed cities count as 0."""
+        return sum(c.life_level for c in self.cities) // len(self.cities)
+
 
 class GameState(ArenaModel):
     round: int = Field(ge=1)

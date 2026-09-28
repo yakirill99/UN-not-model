@@ -34,7 +34,12 @@ def resolve_round(
     """Apply every system of ``rules.pipeline`` in order to a copy of ``state``."""
     pipeline = build_pipeline(rules)  # fail before touching anything
     work = state.model_copy(deep=True)
-    ctx = RoundContext(rules=rules, rng=RngFactory(seed, state.round), round=state.round)
+    ctx = RoundContext(
+        rules=rules,
+        rng=RngFactory(seed, state.round),
+        round=state.round,
+        approved={c.id: orders.for_country(c.id) for c in state.countries},
+    )
     events: list[Event] = []
     for system in pipeline:
         events.extend(system.apply(work, orders, ctx))

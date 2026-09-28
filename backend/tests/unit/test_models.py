@@ -10,7 +10,9 @@ from arena.engine.events import (
     CityInvested,
     Event,
     LifeLevelComputed,
+    NuclearStrike,
     OrderRejected,
+    SanctionApplied,
     dump_events,
     load_events,
 )
@@ -137,9 +139,17 @@ def test_events_round_trip_through_discriminated_union() -> None:
         OrderRejected(round=1, actor="a", action="invest", reason="insufficient_budget"),
         CityInvested(round=1, actor="a", target="a1", development_before=65, development_after=80),
         LifeLevelComputed(round=1, target="a1", life_level=5445),
+        NuclearStrike(round=2, actor="b", target="a1", outcome="absorbed"),
+        SanctionApplied(round=2, actor="b", target="a", delta=-5),
     ]
     raw = dump_events(events)
-    assert [r["type"] for r in raw] == ["order_rejected", "city_invested", "life_level_computed"]
+    assert [r["type"] for r in raw] == [
+        "order_rejected",
+        "city_invested",
+        "life_level_computed",
+        "nuclear_strike",
+        "sanction_applied",
+    ]
     assert all(r["schema_version"] == EVENT_SCHEMA_VERSION for r in raw)
     loaded = load_events(raw)
     assert loaded == events

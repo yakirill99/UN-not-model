@@ -4,11 +4,15 @@ Add an import line here for every new system module (ROADMAP 3.10, step 2).
 """
 
 from arena.engine.systems import (  # noqa: F401  (registration)
+    aid,
     budget,
+    build,
     clamp,
     develop,
     income,
     life_level,
+    sanctions,
+    strikes,
 )
 from arena.engine.systems.base import SYSTEMS, BaseSystem, RoundContext, System, register
 

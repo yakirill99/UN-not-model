@@ -1,0 +1,45 @@
+# Competitive start: 240% development per country (60% per city), $1000 budget each.
+id: equal
+title: "Соревновательный старт (равные условия)"
+ecology: 100
+countries:
+  - id: russia
+    name: Россия
+    budget: 1000
+    cities:
+      - {id: moscow, name: Москва, development: 60}
+      - {id: spb, name: Санкт-Петербург, development: 60}
+      - {id: ekaterinburg, name: Екатеринбург, development: 60}
+      - {id: rostov, name: Ростов-на-Дону, development: 60}
+  - id: usa
+    name: США
+    budget: 1000
+    cities:
+      - {id: washington, name: Вашингтон, development: 60}
+      - {id: new_york, name: Нью-Йорк, development: 60}
+      - {id: los_angeles, name: Лос-Анджелес, development: 60}
+      - {id: chicago, name: Чикаго, development: 60}
+  - id: france
+    name: Франция
+    budget: 1000
+    cities:
+      - {id: paris, name: Париж, development: 60}
+      - {id: marseille, name: Марсель, development: 60}
+      - {id: nice, name: Ницца, development: 60}
+      - {id: toulouse, name: Тулуза, development: 60}
+  - id: iran
+    name: Иран
+    budget: 1000
+    cities:
+      - {id: tehran, name: Тегеран, development: 60}
+      - {id: shiraz, name: Шираз, development: 60}
+      - {id: isfahan, name: Исфахан, development: 60}
+      - {id: yazd, name: Йезд, development: 60}
+  - id: dprk
+    name: КНДР
+    budget: 1000
+    cities:
+      - {id: pyongyang, name: Пхеньян, development: 60}
+      - {id: chongjin, name: Чхонджин, development: 60}
+      - {id: nampo, name: Нампхо, development: 60}
+      - {id: kaesong, name: Кэсон, development: 60}

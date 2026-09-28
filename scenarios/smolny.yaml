@@ -1,0 +1,47 @@
+# Historical start from "Координаторская Смольный" (round 1 state).
+# Development in percent, budget in $. See GAME_RULES.md, section 3.
+id: smolny
+title: "Немодель ООН в Смольном (исторический старт)"
+ecology: 100
+countries:
+  - id: russia
+    name: Россия
+    budget: 1445
+    cities:
+      - {id: moscow, name: Москва, development: 125}
+      - {id: spb, name: Санкт-Петербург, development: 60}
+      - {id: ekaterinburg, name: Екатеринбург, development: 200}
+      - {id: rostov, name: Ростов-на-Дону, development: 90}
+  - id: usa
+    name: США
+    budget: 1520
+    cities:
+      - {id: washington, name: Вашингтон, development: 70}
+      - {id: new_york, name: Нью-Йорк, development: 80}
+      - {id: los_angeles, name: Лос-Анджелес, development: 65}
+      - {id: chicago, name: Чикаго, development: 55}
+  - id: france
+    name: Франция
+    budget: 985
+    cities:
+      - {id: paris, name: Париж, development: 105}
+      - {id: marseille, name: Марсель, development: 90}
+      - {id: nice, name: Ницца, development: 80}
+      - {id: toulouse, name: Тулуза, development: 110}
+  - id: iran
+    name: Иран
+    budget: 1055
+    cities:
+      # Tehran: typo in the source sheet (75.0); 50 is restored from its income of 200
+      - {id: tehran, name: Тегеран, development: 50}
+      - {id: shiraz, name: Шираз, development: 25}
+      - {id: isfahan, name: Исфахан, development: 65}
+      - {id: yazd, name: Йезд, development: 65}
+  - id: dprk
+    name: КНДР
+    budget: 865
+    cities:
+      - {id: pyongyang, name: Пхеньян, development: 50}
+      - {id: chongjin, name: Чхонджин, development: 40}
+      - {id: nampo, name: Нампхо, development: 25}
+      - {id: kaesong, name: Кэсон, development: 50}

@@ -1,0 +1,11 @@
+# Normalize line endings (Windows + WSL2): always LF in the repository
+* text=auto eol=lf
+*.sh text eol=lf
+justfile text eol=lf
+
+*.png binary
+*.jpg binary
+*.xlsx binary
+*.docx binary
+*.pptx binary
+*.parquet binary

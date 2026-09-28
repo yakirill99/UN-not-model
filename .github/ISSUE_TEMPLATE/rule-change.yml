@@ -1,0 +1,36 @@
+name: Изменение правил
+description: Предложение по механике или балансу
+title: "[Правила] "
+labels: ["type:rules"]
+body:
+  - type: dropdown
+    id: version
+    attributes:
+      label: Версия правил
+      options: ["v1.x (patch)", "v2.x", "v3.x", "Новая версия"]
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: Как сейчас (раздел документа правил)
+    validations:
+      required: true
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Что предлагается
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Зачем
+      description: Какая проблема — из живой игры, реплея, симуляции или LLM-агентов
+    validations:
+      required: true
+  - type: textarea
+    id: hypothesis
+    attributes:
+      label: Гипотеза баланса и как её проверить
+      placeholder: "Метрика, целевое значение, число симуляций"

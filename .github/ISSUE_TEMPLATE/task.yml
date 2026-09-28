@@ -1,0 +1,34 @@
+name: Задача спринта
+description: Рабочая задача из DEV_PLAN.md
+title: "[Спринт N] "
+labels: ["type:task"]
+body:
+  - type: dropdown
+    id: sprint
+    attributes:
+      label: Спринт
+      options:
+        - "0. Фундамент"
+        - "1. Ядро движка"
+        - "2. Полный движок + реплей"
+        - "3. Симулятор и боты"
+        - "4. Бэкенд"
+        - "5. Фронтенд"
+        - "6. Контейнеры"
+        - "7. Реалтайм и сдача"
+        - "После v1.0"
+    validations:
+      required: true
+  - type: textarea
+    id: goal
+    attributes:
+      label: Что нужно сделать
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Критерий готовности
+      placeholder: "- [ ] ...\n- [ ] ..."
+    validations:
+      required: true

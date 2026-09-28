@@ -1,0 +1,86 @@
+# World Arena — rules v1.0 (base game from "Немодель ООН в Смольном")
+# Source of truth for all numbers of the base rules: docs/rules/GAME_RULES.md
+# with decisions from its section 17. DRAFT: the structure is finalized in sprint 1
+# together with the RuleSet model. No rule number may live in Python code.
+
+version: "1.0.0"
+extends: null
+modules: [core]
+
+# Order of systems in round resolution (GAME_RULES.md, section 12)
+pipeline:
+  - budget          # full cost check, execution by priority, rejected -> events
+  - aid             # transfers to recipient's aid_pending
+  - build           # nuclear technology, shields, bomb production
+  - develop         # city investments and eco programs
+  - strikes         # strikes, shields absorb
+  - sanctions
+  - clamp           # ecology 0..100, development >= 0
+  - life_level
+  - income
+  - laugh
+  - end_of_round    # bombs_pending -> bombs, aid_pending -> budget, reset sanctions
+
+params:
+  rounds: 6
+  ecology: {min: 0, max: 100}
+  # life_level x100 = sum(weight x indicator); indicators in percent (ints)
+  life_weights: {development: 33, ecology: 33, laugh: 33}
+  # income = (k_development x development + k_ecology x ecology) / 100
+  income: {k_development: 100, k_ecology: 150}
+  laugh_bonus: 20
+  budget_priority: [shield, invest, eco_program, nuclear_tech, bomb, aid]
+
+actions:
+  invest:
+    cost: 150
+    effect: {development: 15}
+    target: own_city
+    max_per_city_per_round: null   # section 17, decision 6: no limit
+    ui: {title: "Инвестировать в развитие города", emoji: "🌆"}
+
+  eco_program:
+    cost: 200
+    effect: {ecology: 30}
+    ui: {title: "Запустить экологическую программу", emoji: "♻️"}
+
+  nuclear_tech:
+    cost: 500
+    effect: {ecology: -5}
+    once_per_game: true
+    ui: {title: "Разработать ядерную технологию", emoji: "☢️"}
+
+  bomb:
+    cost: 150
+    effect: {ecology: -5}
+    requires: nuclear_tech
+    max_per_round: 3
+    usable: next_round
+    ui: {title: "Произвести ядерные бомбы", emoji: "💣"}
+
+  strike:
+    cost: 0
+    effect: {ecology: -5}          # section 17, decision 3
+    requires: bomb
+    max_per_round: 3
+    max_per_target_city_per_round: 1
+    anonymous: true
+    ui: {title: "Нанести ядерный удар", emoji: "🚀"}
+
+  shield:
+    cost: 300
+    target: own_city
+    active: same_round
+    ui: {title: "Построить ядерный щит", emoji: "🛡️"}
+
+  sanction:
+    cost: 0
+    effect: {development_all_cities: -5}
+    duration_rounds: 1
+    visible_to_target: true
+    ui: {title: "Наложить экономические санкции", emoji: "❌"}
+
+  aid:
+    min_amount: 1
+    available: next_round
+    ui: {title: "Материальная помощь", emoji: "💸"}

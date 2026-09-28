@@ -1,0 +1,24 @@
+name: Баг
+description: Что-то работает не так, как описано в правилах или ожидается
+title: "[Баг] "
+labels: ["type:bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: Что произошло
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Что ожидалось (со ссылкой на раздел правил, если применимо)
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Как воспроизвести
+      description: Версия правил, сценарий, зерно, приказы или id игры. Идеально — GameLog.
+    validations:
+      required: true

@@ -1,0 +1,8 @@
+# Tool versions for the project. Install everything with: mise install
+# After the first install, pin exact versions instead of "latest".
+[tools]
+python = "3.13"
+uv = "latest"
+node = "22"
+pnpm = "latest"
+just = "latest"

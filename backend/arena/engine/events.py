@@ -64,13 +64,61 @@ class IncomeCredited(Event):
     budget_after: int
 
 
+class AidTransferred(Event):
+    """``actor`` sent ``amount`` to ``target``; it lands in the recipient's aid_pending."""
+
+    type: Literal["aid_transferred"] = "aid_transferred"
+    amount: int = Field(ge=1)
+
+
+class TechDeveloped(Event):
+    type: Literal["tech_developed"] = "tech_developed"
+    tech: str
+
+
+class ShieldBuilt(Event):
+    type: Literal["shield_built"] = "shield_built"
+
+
+class BombsProduced(Event):
+    type: Literal["bombs_produced"] = "bombs_produced"
+    count: int = Field(ge=1)
+    bombs_pending_after: int
+
+
+class NuclearStrike(Event):
+    """A bomb launched by ``actor`` at city ``target``; ``observe`` hides the actor."""
+
+    type: Literal["nuclear_strike"] = "nuclear_strike"
+    outcome: Literal["absorbed", "destroyed", "already_destroyed"]
+
+
+class CityDestroyed(Event):
+    type: Literal["city_destroyed"] = "city_destroyed"
+    cause: str
+
+
+class SanctionApplied(Event):
+    """``actor`` sanctions country ``target``: every alive city loses ``delta`` development."""
+
+    type: Literal["sanction_applied"] = "sanction_applied"
+    delta: int
+
+
 AnyEvent = Annotated[
     OrderRejected
     | BudgetSpent
     | CityInvested
     | EcologyChanged
     | LifeLevelComputed
-    | IncomeCredited,
+    | IncomeCredited
+    | AidTransferred
+    | TechDeveloped
+    | ShieldBuilt
+    | BombsProduced
+    | NuclearStrike
+    | CityDestroyed
+    | SanctionApplied,
     Field(discriminator="type"),
 ]
 

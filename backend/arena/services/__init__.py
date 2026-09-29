@@ -1,1 +1,5 @@
-"""Application services: create game, submit orders, resolve round, playtest (sprint 4)."""
+"""Application services: the only place that combines the engine with the database.
+
+API routers call services; services call the engine and the ORM. Services never
+import FastAPI, so they can be driven from scripts, tests and the WebSocket layer.
+"""

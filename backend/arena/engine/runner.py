@@ -97,8 +97,9 @@ def run_game(
         initial_state=initial,
     )
     state = initial
+    last_events: list[Event] = []
     for _ in range(rounds if rounds is not None else rules.params.rounds):
-        orders = collect_orders(state, rules, agents)
+        orders = collect_orders(state, rules, agents, last_events)
         if host is not None:
             orders = orders.model_copy(update={"host": host(state.round, state)})
         record = play_round(state, orders, rules, seed)
@@ -106,16 +107,23 @@ def run_game(
         if on_round is not None:
             on_round(record)
         state = record.state_after
+        last_events = list(record.events)
     return log
 
 
-def collect_orders(state: GameState, rules: RuleSet, agents: Mapping[str, Agent]) -> OrderBook:
+def collect_orders(
+    state: GameState,
+    rules: RuleSet,
+    agents: Mapping[str, Agent],
+    last_events: list[Event] | None = None,
+) -> OrderBook:
+    """Ask every agent for orders; ``last_events`` becomes the news it sees."""
     orders: dict[str, CountryOrders] = {}
     for country in state.countries:
         agent = agents.get(country.id)
         if agent is None:
             continue
-        obs = observe(state, country.id)
+        obs = observe(state, country.id, last_events or [])
         legal = legal_actions(state, country.id, rules)
         orders[country.id] = agent.act(obs, legal)
     return OrderBook(orders=orders)

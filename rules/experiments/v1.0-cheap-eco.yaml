@@ -1,0 +1,7 @@
+# Experiment: is the ecology program simply too expensive to ever pay off?
+# Same v1.0, ecology program at 100$ instead of 200$. Compare with:
+#   just rules-diff v1.0 experiments/v1.0-cheap-eco 500
+version: "1.0.1"
+extends: v1.0
+actions:
+  eco_program: {cost: 100}

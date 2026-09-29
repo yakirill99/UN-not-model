@@ -1,0 +1,12 @@
+# Golden games: fixed (rules, scenario, seed, lineup). Their final states are frozen
+# in <name>.json next to this file. If the engine or a bot changes on purpose:
+#     just golden-update          (= UPDATE_GOLDEN=1 uv run pytest tests/golden)
+# and review the snapshot diffs in the PR. Lineup order = country order of the scenario.
+smolny_mixed_1:       {rules: v1.0, scenario: smolny, seed: 1,  lineup: mixed}
+smolny_mixed_2:       {rules: v1.0, scenario: smolny, seed: 2,  lineup: mixed}
+equal_mixed_3:        {rules: v1.0, scenario: equal,  seed: 3,  lineup: mixed}
+smolny_all_aggressor: {rules: v1.0, scenario: smolny, seed: 4,  lineup: aggressor}
+equal_all_economist:  {rules: v1.0, scenario: equal,  seed: 5,  lineup: economist}
+smolny_lone_wolf:     {rules: v1.0, scenario: smolny, seed: 6,  lineup: "economist,economist,economist,economist,aggressor"}
+equal_random_7:       {rules: v1.0, scenario: equal,  seed: 7,  lineup: random}
+cheap_eco_mixed_8:    {rules: experiments/v1.0-cheap-eco, scenario: smolny, seed: 8, lineup: mixed}

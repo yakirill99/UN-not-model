@@ -1,0 +1,5 @@
+# Experiment: defence is cheaper than one bomb. Shield 150$ instead of 300$.
+version: "1.0.4"
+extends: v1.0
+actions:
+  shield: {cost: 150}

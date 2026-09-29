@@ -33,6 +33,25 @@ class BotSlot(BaseModel):
 
 
 class CreateGame(BaseModel):
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "rules": "v1.0",
+                    "scenario": "smolny",
+                    "seed": 1,
+                    "title": "Тестовая партия",
+                    "mode": "playtest",
+                    "overrides": {},
+                    "bots": [
+                        {"country_id": "dprk", "bot": "aggressor"},
+                        {"country_id": "iran", "bot": "economist"},
+                    ],
+                }
+            ]
+        }
+    }
+
     rules: str = "v1.0"
     scenario: str = "smolny"
     seed: int = Field(default=0, ge=0)

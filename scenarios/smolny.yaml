@@ -40,6 +40,10 @@ countries:
   - id: dprk
     name: КНДР
     budget: 865
+    # Started with the technology: in year 1 the DPRK produced a bomb without ordering
+    # the technology (form answers; coordinator sheet: 600$ spent = invest + bomb + shield)
+    # and finished the game with the technology, never having developed it.
+    nuclear_tech: true
     cities:
       - {id: pyongyang, name: Пхеньян, development: 50}
       - {id: chongjin, name: Чхонджин, development: 40}

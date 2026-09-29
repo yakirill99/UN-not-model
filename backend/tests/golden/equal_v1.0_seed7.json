@@ -1,0 +1,233 @@
+{
+ "round": 7,
+ "ecology": 100,
+ "countries": [
+  {
+   "id": "russia",
+   "name": "Россия",
+   "budget": 4585,
+   "cities": [
+    {
+     "id": "moscow",
+     "name": "Москва",
+     "development": 0,
+     "shield": false,
+     "destroyed": true,
+     "life_level": 0
+    },
+    {
+     "id": "spb",
+     "name": "Санкт-Петербург",
+     "development": 55,
+     "shield": false,
+     "destroyed": false,
+     "life_level": 5115
+    },
+    {
+     "id": "ekaterinburg",
+     "name": "Екатеринбург",
+     "development": 55,
+     "shield": false,
+     "destroyed": false,
+     "life_level": 5115
+    },
+    {
+     "id": "rostov",
+     "name": "Ростов-на-Дону",
+     "development": 55,
+     "shield": false,
+     "destroyed": false,
+     "life_level": 5115
+    }
+   ],
+   "nuclear_tech": true,
+   "bombs": 0,
+   "bombs_pending": 0,
+   "laugh": 0,
+   "aid_pending": 0,
+   "sanctioned_by": []
+  },
+  {
+   "id": "usa",
+   "name": "США",
+   "budget": 5280,
+   "cities": [
+    {
+     "id": "washington",
+     "name": "Вашингтон",
+     "development": 85,
+     "shield": true,
+     "destroyed": false,
+     "life_level": 6105
+    },
+    {
+     "id": "new_york",
+     "name": "Нью-Йорк",
+     "development": 55,
+     "shield": false,
+     "destroyed": false,
+     "life_level": 5115
+    },
+    {
+     "id": "los_angeles",
+     "name": "Лос-Анджелес",
+     "development": 55,
+     "shield": false,
+     "destroyed": false,
+     "life_level": 5115
+    },
+    {
+     "id": "chicago",
+     "name": "Чикаго",
+     "development": 55,
+     "shield": false,
+     "destroyed": false,
+     "life_level": 5115
+    }
+   ],
+   "nuclear_tech": false,
+   "bombs": 0,
+   "bombs_pending": 0,
+   "laugh": 0,
+   "aid_pending": 0,
+   "sanctioned_by": []
+  },
+  {
+   "id": "france",
+   "name": "Франция",
+   "budget": 4600,
+   "cities": [
+    {
+     "id": "paris",
+     "name": "Париж",
+     "development": 55,
+     "shield": true,
+     "destroyed": false,
+     "life_level": 5115
+    },
+    {
+     "id": "marseille",
+     "name": "Марсель",
+     "development": 55,
+     "shield": false,
+     "destroyed": false,
+     "life_level": 5115
+    },
+    {
+     "id": "nice",
+     "name": "Ницца",
+     "development": 55,
+     "shield": false,
+     "destroyed": false,
+     "life_level": 5115
+    },
+    {
+     "id": "toulouse",
+     "name": "Тулуза",
+     "development": 55,
+     "shield": false,
+     "destroyed": false,
+     "life_level": 5115
+    }
+   ],
+   "nuclear_tech": true,
+   "bombs": 1,
+   "bombs_pending": 0,
+   "laugh": 0,
+   "aid_pending": 0,
+   "sanctioned_by": []
+  },
+  {
+   "id": "iran",
+   "name": "Иран",
+   "budget": 5305,
+   "cities": [
+    {
+     "id": "tehran",
+     "name": "Тегеран",
+     "development": 75,
+     "shield": false,
+     "destroyed": false,
+     "life_level": 6435
+    },
+    {
+     "id": "shiraz",
+     "name": "Шираз",
+     "development": 60,
+     "shield": false,
+     "destroyed": false,
+     "life_level": 5940
+    },
+    {
+     "id": "isfahan",
+     "name": "Исфахан",
+     "development": 60,
+     "shield": false,
+     "destroyed": false,
+     "life_level": 5940
+    },
+    {
+     "id": "yazd",
+     "name": "Йезд",
+     "development": 60,
+     "shield": false,
+     "destroyed": false,
+     "life_level": 5940
+    }
+   ],
+   "nuclear_tech": false,
+   "bombs": 0,
+   "bombs_pending": 0,
+   "laugh": 20,
+   "aid_pending": 0,
+   "sanctioned_by": []
+  },
+  {
+   "id": "dprk",
+   "name": "КНДР",
+   "budget": 5880,
+   "cities": [
+    {
+     "id": "pyongyang",
+     "name": "Пхеньян",
+     "development": 120,
+     "shield": false,
+     "destroyed": false,
+     "life_level": 8580
+    },
+    {
+     "id": "chongjin",
+     "name": "Чхонджин",
+     "development": 60,
+     "shield": false,
+     "destroyed": false,
+     "life_level": 6600
+    },
+    {
+     "id": "nampo",
+     "name": "Нампхо",
+     "development": 60,
+     "shield": false,
+     "destroyed": false,
+     "life_level": 6600
+    },
+    {
+     "id": "kaesong",
+     "name": "Кэсон",
+     "development": 60,
+     "shield": false,
+     "destroyed": false,
+     "life_level": 6600
+    }
+   ],
+   "nuclear_tech": false,
+   "bombs": 0,
+   "bombs_pending": 0,
+   "laugh": 40,
+   "aid_pending": 0,
+   "sanctioned_by": []
+  }
+ ],
+ "modules": {},
+ "state_schema_version": 1
+}

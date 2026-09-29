@@ -40,14 +40,17 @@ class BudgetSystem(BaseSystem):
             units, events_ = self._validate(country, requested, state, ctx.round)
             events.extend(events_)
             for unit in self._by_priority(units):
+                reason = None
                 if unit.cost > country.budget:
+                    reason = "insufficient_budget"
+                if reason:
                     events.append(
                         OrderRejected(
                             round=ctx.round,
                             actor=country.id,
                             target=unit.target,
                             action=unit.action,
-                            reason="insufficient_budget",
+                            reason=reason,
                             detail={"cost": unit.cost, "budget": country.budget},
                         )
                     )
@@ -163,7 +166,7 @@ class BudgetSystem(BaseSystem):
                 units.append(Unit("nuclear_tech", None, rules.cost("nuclear_tech")))
 
         if o.bombs:
-            if not country.nuclear_tech and not o.nuclear_tech:
+            if not country.nuclear_tech:  # decision 15: technology works from the next round
                 reject("bomb", None, "requires_nuclear_tech")
             else:
                 limit = rules.action("bomb").max_per_round

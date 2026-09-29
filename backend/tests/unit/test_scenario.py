@@ -24,7 +24,8 @@ def test_initial_state(scenarios_dir: Path, name: str) -> None:
     assert state.round == 1
     assert state.ecology == 100
     for c in state.countries:
-        assert c.bombs == 0 and not c.nuclear_tech and not c.sanctioned_by
+        assert c.bombs == 0 and not c.sanctioned_by
+        assert c.nuclear_tech == (name == "smolny" and c.id == "dprk")
         assert all(not city.destroyed and not city.shield for city in c.cities)
 
 

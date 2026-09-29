@@ -9,8 +9,9 @@ from arena.engine.actions import ActionSpace
 from arena.engine.events import AnyEvent
 from arena.engine.observe import Observation, visible_events
 from arena.engine.orders import CountryOrders
+from arena.engine.runner import Divergence, GameLog
 from arena.engine.state import GameState
-from arena.services import games, rounds
+from arena.services import export, games, rounds
 from arena.services.games import CreateGame, GameInfo
 
 router = APIRouter(prefix="/games", tags=["games"])
@@ -84,6 +85,18 @@ async def events(
 @router.get("/{game_id}/state", summary="Full game state (host)")
 async def state(game_id: uuid.UUID, _: HostPrincipal, session: SessionDep) -> GameState:
     return await games.load_state(session, game_id)
+
+
+@router.get("/{game_id}/log", summary="Full GameLog for replay and analytics (host)")
+async def game_log(game_id: uuid.UUID, _: HostPrincipal, session: SessionDep) -> GameLog:
+    return await export.export_log(session, game_id)
+
+
+@router.get("/{game_id}/replay", summary="Replay the log with the engine; [] = no divergence")
+async def game_replay(
+    game_id: uuid.UUID, _: HostPrincipal, session: SessionDep
+) -> list[Divergence]:
+    return await export.replay_game(session, game_id)
 
 
 @router.post(

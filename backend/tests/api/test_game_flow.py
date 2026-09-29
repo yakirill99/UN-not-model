@@ -129,6 +129,11 @@ async def test_orders_validation_and_full_game(client: AsyncClient) -> None:
     assert (await client.put(f"/api/games/{gid}/orders", headers=U, json={})).status_code == 409
     final = (await client.get(f"/api/games/{gid}/state", headers=H)).json()
     assert final["round"] == 7
+    # the whole game exported from the database replays without divergence
+    log = (await client.get(f"/api/games/{gid}/log", headers=H)).json()
+    assert len(log["rounds"]) == 6 and log["rounds"][0]["orders"]["host"]["laugh_winner"] == "usa"
+    assert (await client.get(f"/api/games/{gid}/replay", headers=H)).json() == []
+    assert (await client.get(f"/api/games/{gid}/log", headers=U)).status_code == 403
 
 
 async def test_rules_endpoints(client: AsyncClient) -> None:

@@ -105,3 +105,7 @@ migrate:
 # Autogenerate a migration from the models; review it before committing
 migration message:
     cd backend && uv run alembic revision --autogenerate -m "{{message}}"
+
+# Create a demo game in the local database and print the codes
+seed-demo *args:
+    cd backend && uv run python -m arena.seed_demo {{args}}

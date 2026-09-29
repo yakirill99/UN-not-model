@@ -87,3 +87,21 @@ rules-diff a="v1.0" b="experiments/v1.0-cheap-eco" n="500" scenario="smolny":
 golden-update:
     cd backend && UPDATE_GOLDEN=1 uv run pytest -q tests/golden
     cd backend && uv run pytest -q tests/golden
+
+# --- backend (sprint 4) -------------------------------------------------------
+# Run the API with autoreload on http://localhost:8000/docs
+dev:
+    cd backend && uv run uvicorn arena.main:app --reload --port 8000
+
+# Local Postgres from compose.yaml
+db-up:
+    docker compose up -d --wait db
+db-down:
+    docker compose down
+
+# Apply migrations to ARENA_DATABASE_URL
+migrate:
+    cd backend && uv run alembic upgrade head
+# Autogenerate a migration from the models; review it before committing
+migration message:
+    cd backend && uv run alembic revision --autogenerate -m "{{message}}"

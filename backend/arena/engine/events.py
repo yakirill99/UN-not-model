@@ -105,6 +105,24 @@ class SanctionApplied(Event):
     delta: int
 
 
+class LaughAwarded(Event):
+    """The host named ``target`` the funniest team of the round."""
+
+    type: Literal["laugh_awarded"] = "laugh_awarded"
+    bonus: int
+    laugh_after: int
+
+
+class RoundEnded(Event):
+    """Per-country wrap-up: pending bombs and aid released, sanctions reset."""
+
+    type: Literal["round_ended"] = "round_ended"
+    bombs_released: int
+    aid_credited: int
+    sanctions_lifted: int
+    budget_after: int
+
+
 AnyEvent = Annotated[
     OrderRejected
     | BudgetSpent
@@ -118,7 +136,9 @@ AnyEvent = Annotated[
     | BombsProduced
     | NuclearStrike
     | CityDestroyed
-    | SanctionApplied,
+    | SanctionApplied
+    | LaughAwarded
+    | RoundEnded,
     Field(discriminator="type"),
 ]
 

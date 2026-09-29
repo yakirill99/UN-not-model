@@ -43,9 +43,9 @@ def test_bombs_go_to_pending(run: Run, rules: RuleSet, state: GameState) -> None
     assert [e.cause for e in ev if isinstance(e, EcologyChanged)] == ["bomb_production"]
 
 
-def test_tech_and_bombs_in_one_round(run: Run) -> None:
+def test_tech_and_bombs_in_one_round_gives_only_tech(run: Run) -> None:
     s, _ = run(P, russia=CountryOrders(nuclear_tech=True, bombs=3))
     r = s.country("russia")
-    assert r.nuclear_tech and r.bombs_pending == 3
-    assert r.budget == 1000 - 500 - 450
-    assert s.ecology == 100 - 5 - 15
+    assert r.nuclear_tech and r.bombs_pending == 0
+    assert r.budget == 1000 - 500
+    assert s.ecology == 100 - 5

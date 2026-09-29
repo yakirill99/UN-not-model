@@ -43,8 +43,6 @@ class BudgetSystem(BaseSystem):
                 reason = None
                 if unit.cost > country.budget:
                     reason = "insufficient_budget"
-                elif unit.action == "bomb" and not (country.nuclear_tech or approved.nuclear_tech):
-                    reason = "requires_nuclear_tech"  # tech ordered this round but not paid for
                 if reason:
                     events.append(
                         OrderRejected(
@@ -168,7 +166,7 @@ class BudgetSystem(BaseSystem):
                 units.append(Unit("nuclear_tech", None, rules.cost("nuclear_tech")))
 
         if o.bombs:
-            if not country.nuclear_tech and not o.nuclear_tech:
+            if not country.nuclear_tech:  # decision 15: technology works from the next round
                 reject("bomb", None, "requires_nuclear_tech")
             else:
                 limit = rules.action("bomb").max_per_round

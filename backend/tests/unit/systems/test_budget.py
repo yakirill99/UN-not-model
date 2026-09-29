@@ -58,12 +58,17 @@ def test_foreign_and_destroyed_city_rejected(run: Run, state: GameState) -> None
     }
 
 
-def test_nuclear_prerequisites_and_limits(run: Run) -> None:
+def test_nuclear_prerequisites_and_limits(run: Run, state: GameState) -> None:
     _, ev = run(P, russia=CountryOrders(bombs=2))
     assert _rejections(ev) == [("bomb", None, "requires_nuclear_tech")]
-    # tech ordered in the same round unlocks production; limit 3 per round
-    s, ev = run(P, russia=CountryOrders(nuclear_tech=True, bombs=5))
-    assert s.country("russia").budget == 1000 - 500 - 3 * 150
+    # tech ordered in the same round does NOT unlock production (decision 15, Smolny practice)
+    s, ev = run(P, russia=CountryOrders(nuclear_tech=True, bombs=1))
+    assert s.country("russia").budget == 500
+    assert _rejections(ev) == [("bomb", None, "requires_nuclear_tech")]
+    # with tech from an earlier round: limit 3 per round
+    state.country("russia").nuclear_tech = True
+    s, ev = run(P, russia=CountryOrders(bombs=5))
+    assert s.country("russia").budget == 1000 - 3 * 150
     assert _rejections(ev) == [("bomb", None, "limit_exceeded")]
 
 
@@ -72,10 +77,10 @@ def test_bombs_rejected_when_tech_ordered_but_unpaid(run: Run, state: GameState)
     state.country("iran").budget = 150
     s, ev = run(P, iran=CountryOrders(nuclear_tech=True, bombs=1))
     assert s.country("iran").budget == 150
-    assert _rejections(ev) == [
+    assert set(_rejections(ev)) == {
         ("nuclear_tech", None, "insufficient_budget"),
         ("bomb", None, "requires_nuclear_tech"),
-    ]
+    }
 
 
 def test_aid_validation(run: Run) -> None:

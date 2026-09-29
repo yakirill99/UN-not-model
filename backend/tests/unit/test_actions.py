@@ -30,9 +30,7 @@ def test_targets_and_availability_at_start() -> None:
     assert a["strike"].available is False and a["strike"].reason == "no_bombs"
     assert "moscow" not in (a["strike"].targets or [])
     assert a["sanction"].targets == ["usa", "france", "iran", "dprk"]
-    assert (
-        a["bomb"].available and a["bomb"].requires == "nuclear_tech"
-    )  # tech affordable this round
+    assert not a["bomb"].available and a["bomb"].reason == "requires_nuclear_tech"
     assert a["nuclear_tech"].available
 
 

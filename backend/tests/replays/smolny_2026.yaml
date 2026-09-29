@@ -1,0 +1,35 @@
+# Orders of the real game "Немодель ООН в Смольном", 28 March 2026, years 1-3,
+# digitised from the Google-form answers ("Мировая Арена (Ответы).xlsx").
+# Format: round -> country -> CountryOrders fields (see arena/engine/orders.py).
+#
+# Interpretation decisions (details in docs/rules/smolny-replay-report.md):
+#  D1  When a country submitted the form twice in one year, the LATER submission
+#      replaces the earlier one. Evidence: the coordinator's totals "потрачено денег"
+#      for the USA (1550$) and France (1800$) match exactly under replacement and are
+#      impossible under merging.
+#  D2  "Чикаго - 300$" = two investments in Chicago (rules, decision 6).
+#  D3  "По 15 долларов каждому" = 15$ to each of the four other countries.
+#  D4  Free-text refusals ("Нет", "-", "Не запускать", "Никакого") = no order.
+#  D5  Years 4+ have no form answers (handled orally at the table) and are not replayed.
+1:
+  dprk:    {invest: [chongjin], bombs: 1, shields: [kaesong]}
+  russia:  {invest: [rostov, ekaterinburg], shields: [ekaterinburg]}
+  iran:    {invest: [tehran, isfahan, yazd], eco_programs: 1, sanctions: [usa]}
+  usa:     {invest: [new_york], nuclear_tech: true, bombs: 1}   # bomb rejected: tech is new this year
+  france:  {invest: [toulouse, paris], eco_programs: 1, nuclear_tech: true}   # 1000$ on a 985$ budget
+2:
+  usa:     {invest: [chicago, chicago, los_angeles], bombs: 3, sanctions: [france]}   # 18:04 replaces 17:50 (D1)
+  dprk:    {invest: [nampo], sanctions: [france]}
+  russia:  {invest: [rostov, spb], nuclear_tech: true, shields: [spb]}
+  iran:
+    invest: [tehran, shiraz, isfahan, yazd]
+    eco_programs: 1
+    shields: [shiraz]
+    aid: {russia: 15, usa: 15, france: 15, dprk: 15}
+  france:  {bombs: 2, shields: [paris], aid: {iran: 200}, sanctions: [dprk]}   # 18:13 replaces 17:55 (D1)
+3:
+  russia:  {invest: [moscow, rostov], eco_programs: 1, bombs: 2, shields: [rostov], sanctions: [usa]}
+  iran:    {invest: [shiraz, isfahan, yazd], eco_programs: 1, shields: [isfahan, yazd], sanctions: [dprk]}   # 18:26 replaces 18:13 (D1)
+  dprk:    {invest: [nampo], bombs: 3, strikes: [tehran], shields: [nampo], sanctions: [usa, russia, iran]}
+  usa:     {strikes: [tehran]}      # "Никакого 150" read as: no investment (D4)
+  # france: no answer in year 3

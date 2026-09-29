@@ -5,7 +5,7 @@
   {
    "id": "russia",
    "name": "Россия",
-   "budget": 4043,
+   "budget": 4585,
    "cities": [
     {
      "id": "moscow",
@@ -50,13 +50,13 @@
   {
    "id": "usa",
    "name": "США",
-   "budget": 5188,
+   "budget": 5280,
    "cities": [
     {
      "id": "washington",
      "name": "Вашингтон",
      "development": 85,
-     "shield": false,
+     "shield": true,
      "destroyed": false,
      "life_level": 6105
     },
@@ -95,13 +95,13 @@
   {
    "id": "france",
    "name": "Франция",
-   "budget": 4508,
+   "budget": 4600,
    "cities": [
     {
      "id": "paris",
      "name": "Париж",
      "development": 55,
-     "shield": false,
+     "shield": true,
      "destroyed": false,
      "life_level": 5115
     },
@@ -140,15 +140,15 @@
   {
    "id": "iran",
    "name": "Иран",
-   "budget": 4126,
+   "budget": 5305,
    "cities": [
     {
      "id": "tehran",
      "name": "Тегеран",
-     "development": 0,
+     "development": 75,
      "shield": false,
-     "destroyed": true,
-     "life_level": 0
+     "destroyed": false,
+     "life_level": 6435
     },
     {
      "id": "shiraz",
@@ -185,7 +185,7 @@
   {
    "id": "dprk",
    "name": "КНДР",
-   "budget": 5788,
+   "budget": 5880,
    "cities": [
     {
      "id": "pyongyang",

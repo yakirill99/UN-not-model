@@ -1,1 +1,1 @@
-"""FastAPI routers and schemas (sprint 4)."""
+"""HTTP layer: routers, dependencies, error mapping. Thin: every rule lives in services."""

@@ -9,12 +9,15 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, Request
+from fastapi import Depends, FastAPI
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from arena import __version__
+from arena.api import auth, games, rules
+from arena.api.deps import get_session
+from arena.api.errors import install_error_handlers
 from arena.db import Database
 from arena.settings import Settings, get_settings
 
@@ -51,14 +54,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             return JSONResponse({"status": "unavailable", "detail": type(exc).__name__}, 503)
         return JSONResponse({"status": "ready"})
 
+    install_error_handlers(app)
+    for r in (auth.router, games.router, rules.router):
+        app.include_router(r, prefix="/api")
     return app
-
-
-async def get_session(request: Request) -> AsyncIterator[AsyncSession]:
-    """FastAPI dependency: one AsyncSession per request."""
-    db: Database = request.app.state.db
-    async for session in db.session():
-        yield session
 
 
 app = create_app()

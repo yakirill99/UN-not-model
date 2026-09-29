@@ -78,3 +78,7 @@ hooks:
 # just sim [n] [scenario] [rules] [lineup]   e.g. just sim 200 equal v1.0 aggressor
 sim n="1000" scenario="smolny" rules="v1.0" lineup="mixed":
     cd backend && uv run python -m arena.sim --rules {{rules}} --scenario {{scenario}} --games {{n}} --lineup {{lineup}}
+
+# just rules-diff [a] [b] [n]   e.g. just rules-diff v1.0 experiments/v1.0-cheap-eco 500
+rules-diff a="v1.0" b="experiments/v1.0-cheap-eco" n="500" scenario="smolny":
+    cd backend && uv run python -m arena.sim.compare --a {{a}} --b {{b}} --games {{n}} --scenario {{scenario}}

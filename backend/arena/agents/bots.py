@@ -103,32 +103,42 @@ class Planner:
 # --- helpers ------------------------------------------------------------------
 
 
-def _leader(obs: Observation) -> ForeignCountryView | None:
+def _shuffled[T](items: list[T], rng: Generator) -> list[T]:
+    """A random order, so that a stable sort afterwards breaks ties at random.
+
+    Without this every bot would prefer whatever comes first in the scenario file,
+    which on a symmetric start turns list order into a hidden advantage.
+    """
+    return [items[i] for i in rng.permutation(len(items))] if items else []
+
+
+def _leader(obs: Observation, rng: Generator) -> ForeignCountryView | None:
     alive = [o for o in obs.others if any(not c.destroyed for c in o.cities)]
-    return max(alive, key=lambda o: o.average_life_level) if alive else None
+    ranked = sorted(_shuffled(alive, rng), key=lambda o: -o.average_life_level)
+    return ranked[0] if ranked else None
 
 
-def _best_cities(country: ForeignCountryView, n: int) -> list[str]:
+def _best_cities(country: ForeignCountryView, n: int, rng: Generator) -> list[str]:
     alive = [c for c in country.cities if not c.destroyed]
-    return [c.id for c in sorted(alive, key=lambda c: -c.life_level)[:n]]
+    return [c.id for c in sorted(_shuffled(alive, rng), key=lambda c: -c.life_level)[:n]]
 
 
-def _weakest_own_cities(obs: Observation) -> list[str]:
+def _weakest_own_cities(obs: Observation, rng: Generator) -> list[str]:
     alive = [c for c in obs.me.cities if not c.destroyed]
-    return [c.id for c in sorted(alive, key=lambda c: c.development)]
+    return [c.id for c in sorted(_shuffled(alive, rng), key=lambda c: c.development)]
 
 
-def _unshielded_own(obs: Observation) -> list[str]:
-    return [c.id for c in obs.me.cities if not c.destroyed and not c.shield]
+def _unshielded_own(obs: Observation, rng: Generator) -> list[str]:
+    return _shuffled([c.id for c in obs.me.cities if not c.destroyed and not c.shield], rng)
 
 
 def _world_is_violent(obs: Observation) -> bool:
     return any(e.type in ("nuclear_strike", "city_destroyed") for e in obs.news)
 
 
-def _invest_spread(p: Planner, obs: Observation) -> None:
+def _invest_spread(p: Planner, obs: Observation, rng: Generator) -> None:
     """Round-robin investments from the weakest city up, until the money runs out."""
-    cities = _weakest_own_cities(obs)
+    cities = _weakest_own_cities(obs, rng)
     while cities and p.can("invest"):
         if not any(p.invest(city) for city in cities):
             break
@@ -146,11 +156,15 @@ def _arm(p: Planner, obs: Observation) -> None:
 # --- bots ---------------------------------------------------------------------
 
 
-class RandomBot:
-    """Random legal actions within the budget. The null model for balance tests."""
+class SeededBot:
+    """Base: every bot owns a generator, used at least to break ties fairly."""
 
     def __init__(self, seed: int = 0) -> None:
         self.rng = Generator(PCG64(seed))
+
+
+class RandomBot(SeededBot):
+    """Random legal actions within the budget. The null model for balance tests."""
 
     def act(self, obs: Observation, legal: ActionSpace) -> CountryOrders:
         p = Planner(legal)
@@ -181,22 +195,23 @@ class RandomBot:
         return p.orders
 
 
-class EconomistBot:
+class EconomistBot(SeededBot):
     """Invests everything in development; shields cities once the world turns violent."""
 
     def act(self, obs: Observation, legal: ActionSpace) -> CountryOrders:
         p = Planner(legal)
         if _world_is_violent(obs):
-            for city in _unshielded_own(obs)[:2]:
+            for city in _unshielded_own(obs, self.rng)[:2]:
                 p.shield(city)
-        _invest_spread(p, obs)
+        _invest_spread(p, obs, self.rng)
         return p.orders
 
 
-class EcologistBot:
+class EcologistBot(SeededBot):
     """Ecology programs while ecology < threshold, the rest into development."""
 
-    def __init__(self, threshold: int = 70, max_programs: int = 2) -> None:
+    def __init__(self, seed: int = 0, threshold: int = 70, max_programs: int = 2) -> None:
+        super().__init__(seed)
         self.threshold = threshold
         self.max_programs = max_programs
 
@@ -205,35 +220,36 @@ class EcologistBot:
         if obs.ecology < self.threshold:
             for _ in range(self.max_programs):
                 p.eco_program()
-        _invest_spread(p, obs)
+        _invest_spread(p, obs, self.rng)
         return p.orders
 
 
-class AggressorBot:
+class AggressorBot(SeededBot):
     """Technology -> bombs -> strikes on the life-level leader; sanctions it meanwhile."""
 
     def act(self, obs: Observation, legal: ActionSpace) -> CountryOrders:
         p = Planner(legal)
-        leader = _leader(obs)
+        leader = _leader(obs, self.rng)
         if leader is not None:
             p.sanction(leader.id)
-            for city in _best_cities(leader, obs.me.bombs):
+            for city in _best_cities(leader, obs.me.bombs, self.rng):
                 p.strike(city)
         _arm(p, obs)
-        for city in _unshielded_own(obs)[:1]:
+        for city in _unshielded_own(obs, self.rng)[:1]:
             p.shield(city)
-        _invest_spread(p, obs)
+        _invest_spread(p, obs, self.rng)
         return p.orders
 
 
-class AvengerBot:
+class AvengerBot(SeededBot):
     """Peaceful economist until sanctioned or struck; then answers in kind, and worse.
 
     The bot remembers who sanctioned it (public to the victim). A strike is anonymous,
     so it blames the most recent sanctioner, or the leader if nobody has shown hostility.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, seed: int = 0) -> None:
+        super().__init__(seed)
         self.grudges: list[str] = []
         self.struck = False
 
@@ -250,17 +266,17 @@ class AvengerBot:
         if self.struck:
             others = {o.id: o for o in obs.others}
             suspect = next((others[g] for g in reversed(self.grudges) if g in others), None)
-            target = suspect or _leader(obs)
+            target = suspect or _leader(obs, self.rng)
             if target is not None:
-                for city in _best_cities(target, obs.me.bombs):
+                for city in _best_cities(target, obs.me.bombs, self.rng):
                     p.strike(city)
             _arm(p, obs)
-            for city in _unshielded_own(obs)[:2]:
+            for city in _unshielded_own(obs, self.rng)[:2]:
                 p.shield(city)
         elif _world_is_violent(obs):
-            for city in _unshielded_own(obs)[:1]:
+            for city in _unshielded_own(obs, self.rng)[:1]:
                 p.shield(city)
-        _invest_spread(p, obs)
+        _invest_spread(p, obs, self.rng)
         return p.orders
 
 
@@ -271,10 +287,10 @@ class IdleBot:
 
 BOTS: dict[str, Callable[[int], Agent]] = {
     "random": RandomBot,
-    "economist": lambda _seed: EconomistBot(),
-    "ecologist": lambda _seed: EcologistBot(),
-    "aggressor": lambda _seed: AggressorBot(),
-    "avenger": lambda _seed: AvengerBot(),
+    "economist": EconomistBot,
+    "ecologist": EcologistBot,
+    "aggressor": AggressorBot,
+    "avenger": AvengerBot,
     "idle": lambda _seed: IdleBot(),
 }
 

@@ -1,0 +1,5 @@
+# Experiment: does a pricier bomb slow the arms race? 300$ instead of 150$.
+version: "1.0.2"
+extends: v1.0
+actions:
+  bomb: {cost: 300}

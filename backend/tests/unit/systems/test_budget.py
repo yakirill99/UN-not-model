@@ -67,6 +67,17 @@ def test_nuclear_prerequisites_and_limits(run: Run) -> None:
     assert _rejections(ev) == [("bomb", None, "limit_exceeded")]
 
 
+def test_bombs_rejected_when_tech_ordered_but_unpaid(run: Run, state: GameState) -> None:
+    """Found by hypothesis: tech (500) rejected for money, bomb (150) must not slip through."""
+    state.country("iran").budget = 150
+    s, ev = run(P, iran=CountryOrders(nuclear_tech=True, bombs=1))
+    assert s.country("iran").budget == 150
+    assert _rejections(ev) == [
+        ("nuclear_tech", None, "insufficient_budget"),
+        ("bomb", None, "requires_nuclear_tech"),
+    ]
+
+
 def test_aid_validation(run: Run) -> None:
     s, ev = run(P, russia=CountryOrders(aid={"russia": 10, "mars": 10, "usa": 300}))
     assert s.country("russia").budget == 700

@@ -7,11 +7,16 @@ from httpx import ASGITransport, AsyncClient
 
 from arena.main import create_app
 from arena.settings import Settings
+from tests.conftest import TEST_JWT_SECRET
 
 
 @pytest.fixture
 def settings() -> Settings:
-    return Settings(env="test", database_url="sqlite+aiosqlite://", jwt_secret="test-secret-123")
+    return Settings(
+        env="test",
+        database_url="sqlite+aiosqlite://",
+        jwt_secret=TEST_JWT_SECRET,
+    )
 
 
 @pytest.fixture

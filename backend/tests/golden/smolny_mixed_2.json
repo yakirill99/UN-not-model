@@ -1,0 +1,255 @@
+{
+ "digest": {
+  "lineup": {
+   "dprk": "avenger",
+   "france": "ecologist",
+   "iran": "aggressor",
+   "russia": "economist",
+   "usa": "random"
+  },
+  "winner": "dprk",
+  "final_life": {
+   "dprk": 5610,
+   "iran": 5073,
+   "usa": 4290,
+   "russia": 3217,
+   "france": 2557
+  },
+  "final_ecology": 100,
+  "cities_destroyed": 8,
+  "strikes": 12
+ },
+ "final_state": {
+  "round": 7,
+  "ecology": 100,
+  "countries": [
+   {
+    "id": "russia",
+    "name": "Россия",
+    "budget": 512,
+    "cities": [
+     {
+      "id": "moscow",
+      "name": "Москва",
+      "development": 290,
+      "shield": true,
+      "destroyed": false,
+      "life_level": 12870
+     },
+     {
+      "id": "spb",
+      "name": "Санкт-Петербург",
+      "development": 0,
+      "shield": false,
+      "destroyed": true,
+      "life_level": 0
+     },
+     {
+      "id": "ekaterinburg",
+      "name": "Екатеринбург",
+      "development": 0,
+      "shield": false,
+      "destroyed": true,
+      "life_level": 0
+     },
+     {
+      "id": "rostov",
+      "name": "Ростов-на-Дону",
+      "development": 0,
+      "shield": false,
+      "destroyed": true,
+      "life_level": 0
+     }
+    ],
+    "nuclear_tech": false,
+    "bombs": 0,
+    "bombs_pending": 0,
+    "laugh": 0,
+    "aid_pending": 0,
+    "sanctioned_by": []
+   },
+   {
+    "id": "usa",
+    "name": "США",
+    "budget": 2825,
+    "cities": [
+     {
+      "id": "washington",
+      "name": "Вашингтон",
+      "development": 80,
+      "shield": false,
+      "destroyed": false,
+      "life_level": 5940
+     },
+     {
+      "id": "new_york",
+      "name": "Нью-Йорк",
+      "development": 75,
+      "shield": false,
+      "destroyed": false,
+      "life_level": 5775
+     },
+     {
+      "id": "los_angeles",
+      "name": "Лос-Анджелес",
+      "development": 0,
+      "shield": false,
+      "destroyed": true,
+      "life_level": 0
+     },
+     {
+      "id": "chicago",
+      "name": "Чикаго",
+      "development": 65,
+      "shield": true,
+      "destroyed": false,
+      "life_level": 5445
+     }
+    ],
+    "nuclear_tech": true,
+    "bombs": 1,
+    "bombs_pending": 0,
+    "laugh": 0,
+    "aid_pending": 0,
+    "sanctioned_by": []
+   },
+   {
+    "id": "france",
+    "name": "Франция",
+    "budget": 488,
+    "cities": [
+     {
+      "id": "paris",
+      "name": "Париж",
+      "development": 0,
+      "shield": false,
+      "destroyed": true,
+      "life_level": 0
+     },
+     {
+      "id": "marseille",
+      "name": "Марсель",
+      "development": 0,
+      "shield": false,
+      "destroyed": true,
+      "life_level": 0
+     },
+     {
+      "id": "nice",
+      "name": "Ницца",
+      "development": 0,
+      "shield": false,
+      "destroyed": true,
+      "life_level": 0
+     },
+     {
+      "id": "toulouse",
+      "name": "Тулуза",
+      "development": 210,
+      "shield": false,
+      "destroyed": false,
+      "life_level": 10230
+     }
+    ],
+    "nuclear_tech": false,
+    "bombs": 0,
+    "bombs_pending": 0,
+    "laugh": 0,
+    "aid_pending": 0,
+    "sanctioned_by": []
+   },
+   {
+    "id": "iran",
+    "name": "Иран",
+    "budget": 900,
+    "cities": [
+     {
+      "id": "tehran",
+      "name": "Тегеран",
+      "development": 45,
+      "shield": true,
+      "destroyed": false,
+      "life_level": 4785
+     },
+     {
+      "id": "shiraz",
+      "name": "Шираз",
+      "development": 50,
+      "shield": true,
+      "destroyed": false,
+      "life_level": 4950
+     },
+     {
+      "id": "isfahan",
+      "name": "Исфахан",
+      "development": 60,
+      "shield": true,
+      "destroyed": false,
+      "life_level": 5280
+     },
+     {
+      "id": "yazd",
+      "name": "Йезд",
+      "development": 60,
+      "shield": true,
+      "destroyed": false,
+      "life_level": 5280
+     }
+    ],
+    "nuclear_tech": true,
+    "bombs": 3,
+    "bombs_pending": 0,
+    "laugh": 0,
+    "aid_pending": 0,
+    "sanctioned_by": []
+   },
+   {
+    "id": "dprk",
+    "name": "КНДР",
+    "budget": 903,
+    "cities": [
+     {
+      "id": "pyongyang",
+      "name": "Пхеньян",
+      "development": 135,
+      "shield": false,
+      "destroyed": false,
+      "life_level": 7755
+     },
+     {
+      "id": "chongjin",
+      "name": "Чхонджин",
+      "development": 125,
+      "shield": false,
+      "destroyed": false,
+      "life_level": 7425
+     },
+     {
+      "id": "nampo",
+      "name": "Нампхо",
+      "development": 0,
+      "shield": false,
+      "destroyed": true,
+      "life_level": 0
+     },
+     {
+      "id": "kaesong",
+      "name": "Кэсон",
+      "development": 120,
+      "shield": true,
+      "destroyed": false,
+      "life_level": 7260
+     }
+    ],
+    "nuclear_tech": true,
+    "bombs": 3,
+    "bombs_pending": 0,
+    "laugh": 0,
+    "aid_pending": 0,
+    "sanctioned_by": []
+   }
+  ],
+  "modules": {},
+  "state_schema_version": 1
+ }
+}

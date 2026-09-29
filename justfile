@@ -82,3 +82,8 @@ sim n="1000" scenario="smolny" rules="v1.0" lineup="mixed":
 # just rules-diff [a] [b] [n]   e.g. just rules-diff v1.0 experiments/v1.0-cheap-eco 500
 rules-diff a="v1.0" b="experiments/v1.0-cheap-eco" n="500" scenario="smolny":
     cd backend && uv run python -m arena.sim.compare --a {{a}} --b {{b}} --games {{n}} --scenario {{scenario}}
+
+# Regenerate golden snapshots after an intended change of rules, engine or bots; review the diff
+golden-update:
+    cd backend && UPDATE_GOLDEN=1 uv run pytest -q tests/golden
+    cd backend && uv run pytest -q tests/golden

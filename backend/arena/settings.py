@@ -17,7 +17,7 @@ class Settings(BaseSettings):
         default="postgresql+asyncpg://arena:arena@localhost:5432/arena",
         description="SQLAlchemy async URL; sqlite+aiosqlite:///... for tests",
     )
-    jwt_secret: str = Field(default="dev-secret-change-me", min_length=8)
+    jwt_secret: str = Field(default="dev-only-secret-change-me-before-prod-0000", min_length=32)
     jwt_ttl_hours: int = 12
     rules_dir: str = Field(default="../rules", description="Relative to the backend directory")
     scenarios_dir: str = "../scenarios"

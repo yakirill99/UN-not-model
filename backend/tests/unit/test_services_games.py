@@ -18,8 +18,13 @@ from arena.services.games import (
     rules_of,
 )
 from arena.settings import Settings
+from tests.conftest import TEST_JWT_SECRET
 
-SETTINGS = Settings(env="test", database_url="sqlite+aiosqlite://", jwt_secret="test-secret-123")
+SETTINGS = Settings(
+    env="test",
+    database_url="sqlite+aiosqlite://",
+    jwt_secret=TEST_JWT_SECRET,
+)
 
 
 @pytest.fixture
@@ -108,7 +113,10 @@ def test_jwt_round_trip_and_tamper() -> None:
     with pytest.raises(Forbidden):
         decode_token(token + "x", SETTINGS)
     with pytest.raises(Forbidden):
-        decode_token(token, SETTINGS.model_copy(update={"jwt_secret": "another-secret-1"}))
+        decode_token(
+            token,
+            SETTINGS.model_copy(update={"jwt_secret": "y" * 32}),
+        )
     with pytest.raises(Forbidden):
         Principal(game_id=p.game_id, role="host").require_country()
 

@@ -71,7 +71,7 @@ def legal_actions(state: GameState, country_id: str, rules: RuleSet) -> ActionSp
                     o.available, o.reason = False, "already_owned"
             case "bomb":
                 o.max_count = spec.max_per_round
-                if not me.nuclear_tech and me.budget < rules.cost("nuclear_tech"):
+                if not me.nuclear_tech:
                     o.available, o.reason = False, "requires_nuclear_tech"
             case "strike":
                 o.targets = foreign_alive

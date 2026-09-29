@@ -26,8 +26,9 @@ def _game() -> GameLog:
     agents: dict[str, Agent] = {
         "russia": ScriptedAgent(
             {
-                1: CountryOrders(nuclear_tech=True, bombs=2),
-                2: CountryOrders(strikes=["paris", "nice"], invest=["moscow"]),
+                1: CountryOrders(nuclear_tech=True),
+                2: CountryOrders(bombs=2, invest=["moscow"]),
+                3: CountryOrders(strikes=["paris", "nice"]),
             }
         ),
         "france": ScriptedAgent(

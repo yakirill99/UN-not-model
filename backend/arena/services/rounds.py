@@ -200,6 +200,17 @@ async def resolve_round(
     )
     orders = await _collect_orders(session, game, state, players, rules_of(game))
     orders = orders.model_copy(update={"host": HostInput(laugh_winner=rnd.laugh_winner)})
+    # Persist the bots' orders too: the journal must let anyone replay the game exactly.
+    for p in players:
+        if p.kind != "human" and p.country_id in orders.orders:
+            session.add(
+                Order(
+                    game_id=game_id,
+                    round_number=rnd.number,
+                    country_id=p.country_id,
+                    payload=orders.orders[p.country_id].model_dump(mode="json"),
+                )
+            )
 
     game.phase = "resolving"
     rnd.status = "resolving"

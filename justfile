@@ -73,3 +73,7 @@ hooks:
 #     docker compose exec arena python -m arena.scripts.seed_demo
 # logs:
 #     docker compose logs -f arena
+
+# --- simulations (sprint 3) --------------------------------------------------
+sim rules="v1.0" scenario="smolny" n="1000" lineup="mixed":
+    cd backend && uv run python -m arena.sim --rules {{rules}} --scenario {{scenario}} --games {{n}} --lineup {{lineup}}

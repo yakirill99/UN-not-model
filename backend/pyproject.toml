@@ -11,6 +11,10 @@ dependencies = [
 ]
 
 [dependency-groups]
+analytics = [
+    "jupyterlab>=4.6.4",
+    "matplotlib>=3.11.2",
+]
 dev = [
     "hypothesis>=6.100",
     "mypy>=1.11",

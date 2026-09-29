@@ -1,0 +1,5 @@
+# Experiment: a strike hurts the world more. -15 ecology per strike instead of -5.
+version: "1.0.3"
+extends: v1.0
+actions:
+  strike: {effect: {ecology: -15}}

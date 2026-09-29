@@ -75,5 +75,6 @@ hooks:
 #     docker compose logs -f arena
 
 # --- simulations (sprint 3) --------------------------------------------------
-sim rules="v1.0" scenario="smolny" n="1000" lineup="mixed":
+# just sim [n] [scenario] [rules] [lineup]   e.g. just sim 200 equal v1.0 aggressor
+sim n="1000" scenario="smolny" rules="v1.0" lineup="mixed":
     cd backend && uv run python -m arena.sim --rules {{rules}} --scenario {{scenario}} --games {{n}} --lineup {{lineup}}

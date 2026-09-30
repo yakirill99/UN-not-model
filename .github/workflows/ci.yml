@@ -39,3 +39,34 @@ jobs:
 
       - name: Tests
         run: uv run pytest --cov --cov-report=term-missing
+
+  frontend:
+    name: Frontend — lint, types, build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: frontend/package.json  # version from its packageManager field
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install dependencies (lockfile must be up to date)
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint and format
+        run: pnpm lint
+
+      - name: Types and build
+        run: pnpm build
+
+      - name: Generated API types are current
+        run: pnpm openapi && git diff --exit-code -- src/api/schema.d.ts

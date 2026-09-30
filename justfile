@@ -17,6 +17,10 @@ tools:
 sync:
     cd backend && uv sync
 
+# Install frontend dependencies
+web-sync:
+    cd frontend && pnpm install --frozen-lockfile
+
 # --- Quality -------------------------------------------------------------
 
 # Run backend tests (fast suite)
@@ -36,7 +40,7 @@ typecheck:
     cd backend && uv run mypy arena
 
 # Everything CI runs
-check: lint typecheck test
+check: lint typecheck test web-lint web-build
 
 # Run all pre-commit hooks on all files
 hooks:
@@ -113,3 +117,21 @@ seed-demo *args:
 # End-to-end smoke against a running server (just dev in another terminal)
 smoke base="http://localhost:8000" *args:
     cd backend && uv run python -m arena.smoke --base {{base}} {{args}}
+
+# --- frontend (sprint 5) ------------------------------------------------------
+# Vite dev server on http://localhost:5173 (and http://<ip>:5173 for phones); /api -> :8000
+web:
+    cd frontend && pnpm dev
+
+# oxlint + prettier --check
+web-lint:
+    cd frontend && pnpm lint
+
+# tsc -b + vite build -> frontend/dist
+web-build:
+    cd frontend && pnpm build
+
+# Regenerate the OpenAPI snapshot and the TS types after any API change
+openapi:
+    cd backend && uv run python -m arena.openapi
+    cd frontend && pnpm openapi

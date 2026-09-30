@@ -1,0 +1,3378 @@
+{
+  "components": {
+    "schemas": {
+      "ActionOption": {
+        "additionalProperties": false,
+        "properties": {
+          "available": {
+            "default": true,
+            "title": "Available",
+            "type": "boolean"
+          },
+          "cost": {
+            "default": 0,
+            "title": "Cost",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "max_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Max units this round, if limited",
+            "title": "Max Count"
+          },
+          "max_per_target": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Per Target"
+          },
+          "min_amount": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Amount"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Why unavailable, if not available",
+            "title": "Reason"
+          },
+          "requires": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requires"
+          },
+          "targets": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Allowed target ids, if targeted",
+            "title": "Targets"
+          },
+          "ui": {
+            "$ref": "#/components/schemas/UiSpec"
+          }
+        },
+        "required": [
+          "id",
+          "ui"
+        ],
+        "title": "ActionOption",
+        "type": "object"
+      },
+      "ActionSpace": {
+        "additionalProperties": false,
+        "properties": {
+          "actions": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ActionOption"
+            },
+            "title": "Actions",
+            "type": "object"
+          },
+          "budget": {
+            "title": "Budget",
+            "type": "integer"
+          },
+          "country_id": {
+            "title": "Country Id",
+            "type": "string"
+          },
+          "round": {
+            "title": "Round",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "round",
+          "country_id",
+          "budget",
+          "actions"
+        ],
+        "title": "ActionSpace",
+        "type": "object"
+      },
+      "ActionSpec": {
+        "additionalProperties": false,
+        "description": "One player action. Fields that do not apply to an action stay at their default.",
+        "properties": {
+          "active": {
+            "anyOf": [
+              {
+                "enum": [
+                  "same_round",
+                  "next_round"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active"
+          },
+          "anonymous": {
+            "default": false,
+            "title": "Anonymous",
+            "type": "boolean"
+          },
+          "available": {
+            "anyOf": [
+              {
+                "enum": [
+                  "same_round",
+                  "next_round"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Available"
+          },
+          "cost": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Cost",
+            "type": "integer"
+          },
+          "duration_rounds": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Rounds"
+          },
+          "effect": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Effect",
+            "type": "object"
+          },
+          "max_per_city_per_round": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Per City Per Round"
+          },
+          "max_per_round": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Per Round"
+          },
+          "max_per_target_city_per_round": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Per Target City Per Round"
+          },
+          "min_amount": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Amount"
+          },
+          "once_per_game": {
+            "default": false,
+            "title": "Once Per Game",
+            "type": "boolean"
+          },
+          "requires": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Prerequisite: action id or resource",
+            "title": "Requires"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "enum": [
+                  "own_city",
+                  "foreign_city",
+                  "own_country",
+                  "foreign_country"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target"
+          },
+          "ui": {
+            "$ref": "#/components/schemas/UiSpec"
+          },
+          "usable": {
+            "anyOf": [
+              {
+                "enum": [
+                  "same_round",
+                  "next_round"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Usable"
+          },
+          "visible_to_target": {
+            "default": false,
+            "title": "Visible To Target",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ui"
+        ],
+        "title": "ActionSpec",
+        "type": "object"
+      },
+      "AidTransferred": {
+        "additionalProperties": false,
+        "description": "``actor`` sent ``amount`` to ``target``; it lands in the recipient's aid_pending.",
+        "properties": {
+          "actor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country id that caused the event",
+            "title": "Actor"
+          },
+          "amount": {
+            "minimum": 1.0,
+            "title": "Amount",
+            "type": "integer"
+          },
+          "round": {
+            "minimum": 1.0,
+            "title": "Round",
+            "type": "integer"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country or city id affected",
+            "title": "Target"
+          },
+          "type": {
+            "const": "aid_transferred",
+            "default": "aid_transferred",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "round",
+          "amount"
+        ],
+        "title": "AidTransferred",
+        "type": "object"
+      },
+      "BombsProduced": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country id that caused the event",
+            "title": "Actor"
+          },
+          "bombs_pending_after": {
+            "title": "Bombs Pending After",
+            "type": "integer"
+          },
+          "count": {
+            "minimum": 1.0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "round": {
+            "minimum": 1.0,
+            "title": "Round",
+            "type": "integer"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country or city id affected",
+            "title": "Target"
+          },
+          "type": {
+            "const": "bombs_produced",
+            "default": "bombs_produced",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "round",
+          "count",
+          "bombs_pending_after"
+        ],
+        "title": "BombsProduced",
+        "type": "object"
+      },
+      "BotSlot": {
+        "properties": {
+          "bot": {
+            "title": "Bot",
+            "type": "string"
+          },
+          "country_id": {
+            "title": "Country Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "country_id",
+          "bot"
+        ],
+        "title": "BotSlot",
+        "type": "object"
+      },
+      "BudgetSpent": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "actor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country id that caused the event",
+            "title": "Actor"
+          },
+          "amount": {
+            "minimum": 0.0,
+            "title": "Amount",
+            "type": "integer"
+          },
+          "budget_after": {
+            "title": "Budget After",
+            "type": "integer"
+          },
+          "round": {
+            "minimum": 1.0,
+            "title": "Round",
+            "type": "integer"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country or city id affected",
+            "title": "Target"
+          },
+          "type": {
+            "const": "budget_spent",
+            "default": "budget_spent",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "round",
+          "action",
+          "amount",
+          "budget_after"
+        ],
+        "title": "BudgetSpent",
+        "type": "object"
+      },
+      "City": {
+        "additionalProperties": false,
+        "properties": {
+          "destroyed": {
+            "default": false,
+            "title": "Destroyed",
+            "type": "boolean"
+          },
+          "development": {
+            "description": "Development in percent",
+            "minimum": 0.0,
+            "title": "Development",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "life_level": {
+            "default": 0,
+            "description": "Life level in 1/100 of a percent",
+            "minimum": 0.0,
+            "title": "Life Level",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "shield": {
+            "default": false,
+            "title": "Shield",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "development"
+        ],
+        "title": "City",
+        "type": "object"
+      },
+      "CityDestroyed": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country id that caused the event",
+            "title": "Actor"
+          },
+          "cause": {
+            "title": "Cause",
+            "type": "string"
+          },
+          "round": {
+            "minimum": 1.0,
+            "title": "Round",
+            "type": "integer"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country or city id affected",
+            "title": "Target"
+          },
+          "type": {
+            "const": "city_destroyed",
+            "default": "city_destroyed",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "round",
+          "cause"
+        ],
+        "title": "CityDestroyed",
+        "type": "object"
+      },
+      "CityInvested": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country id that caused the event",
+            "title": "Actor"
+          },
+          "development_after": {
+            "title": "Development After",
+            "type": "integer"
+          },
+          "development_before": {
+            "title": "Development Before",
+            "type": "integer"
+          },
+          "round": {
+            "minimum": 1.0,
+            "title": "Round",
+            "type": "integer"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country or city id affected",
+            "title": "Target"
+          },
+          "type": {
+            "const": "city_invested",
+            "default": "city_invested",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "round",
+          "development_before",
+          "development_after"
+        ],
+        "title": "CityInvested",
+        "type": "object"
+      },
+      "Country": {
+        "additionalProperties": false,
+        "properties": {
+          "aid_pending": {
+            "default": 0,
+            "description": "Aid received, credited next round",
+            "minimum": 0.0,
+            "title": "Aid Pending",
+            "type": "integer"
+          },
+          "bombs": {
+            "default": 0,
+            "description": "Bombs ready to use this round",
+            "minimum": 0.0,
+            "title": "Bombs",
+            "type": "integer"
+          },
+          "bombs_pending": {
+            "default": 0,
+            "description": "Produced this round, usable next",
+            "minimum": 0.0,
+            "title": "Bombs Pending",
+            "type": "integer"
+          },
+          "budget": {
+            "minimum": 0.0,
+            "title": "Budget",
+            "type": "integer"
+          },
+          "cities": {
+            "items": {
+              "$ref": "#/components/schemas/City"
+            },
+            "minItems": 1,
+            "title": "Cities",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "laugh": {
+            "default": 0,
+            "description": "Laugh coefficient, percentage points",
+            "minimum": 0.0,
+            "title": "Laugh",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "nuclear_tech": {
+            "default": false,
+            "title": "Nuclear Tech",
+            "type": "boolean"
+          },
+          "sanctioned_by": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Sanctioned By",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "budget",
+          "cities"
+        ],
+        "title": "Country",
+        "type": "object"
+      },
+      "CountryOrders": {
+        "additionalProperties": false,
+        "properties": {
+          "aid": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "description": "Country id -> amount",
+            "title": "Aid",
+            "type": "object"
+          },
+          "bombs": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Bombs",
+            "type": "integer"
+          },
+          "eco_programs": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Eco Programs",
+            "type": "integer"
+          },
+          "invest": {
+            "description": "Own city ids; repeat an id to invest several times",
+            "items": {
+              "type": "string"
+            },
+            "title": "Invest",
+            "type": "array"
+          },
+          "nuclear_tech": {
+            "default": false,
+            "title": "Nuclear Tech",
+            "type": "boolean"
+          },
+          "sanctions": {
+            "description": "Country ids",
+            "items": {
+              "type": "string"
+            },
+            "title": "Sanctions",
+            "type": "array"
+          },
+          "shields": {
+            "description": "Own city ids",
+            "items": {
+              "type": "string"
+            },
+            "title": "Shields",
+            "type": "array"
+          },
+          "strikes": {
+            "description": "Foreign city ids",
+            "items": {
+              "type": "string"
+            },
+            "title": "Strikes",
+            "type": "array"
+          }
+        },
+        "title": "CountryOrders",
+        "type": "object"
+      },
+      "CreateGame": {
+        "examples": [
+          {
+            "bots": [
+              {
+                "bot": "aggressor",
+                "country_id": "dprk"
+              },
+              {
+                "bot": "economist",
+                "country_id": "iran"
+              }
+            ],
+            "mode": "playtest",
+            "overrides": {},
+            "rules": "v1.0",
+            "scenario": "smolny",
+            "seed": 1,
+            "title": "Тестовая партия"
+          }
+        ],
+        "properties": {
+          "bots": {
+            "items": {
+              "$ref": "#/components/schemas/BotSlot"
+            },
+            "title": "Bots",
+            "type": "array"
+          },
+          "mode": {
+            "default": "live",
+            "pattern": "^(live|playtest)$",
+            "title": "Mode",
+            "type": "string"
+          },
+          "overrides": {
+            "additionalProperties": true,
+            "description": "Deep-merged over the rules",
+            "title": "Overrides",
+            "type": "object"
+          },
+          "rules": {
+            "default": "v1.0",
+            "title": "Rules",
+            "type": "string"
+          },
+          "scenario": {
+            "default": "smolny",
+            "title": "Scenario",
+            "type": "string"
+          },
+          "seed": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Seed",
+            "type": "integer"
+          },
+          "title": {
+            "default": "",
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "title": "CreateGame",
+        "type": "object"
+      },
+      "Divergence": {
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "recorded": {
+            "title": "Recorded"
+          },
+          "replayed": {
+            "title": "Replayed"
+          },
+          "round": {
+            "title": "Round",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "round",
+          "path",
+          "recorded",
+          "replayed"
+        ],
+        "title": "Divergence",
+        "type": "object"
+      },
+      "EcologyChanged": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country id that caused the event",
+            "title": "Actor"
+          },
+          "cause": {
+            "title": "Cause",
+            "type": "string"
+          },
+          "delta": {
+            "title": "Delta",
+            "type": "integer"
+          },
+          "ecology_after": {
+            "title": "Ecology After",
+            "type": "integer"
+          },
+          "round": {
+            "minimum": 1.0,
+            "title": "Round",
+            "type": "integer"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country or city id affected",
+            "title": "Target"
+          },
+          "type": {
+            "const": "ecology_changed",
+            "default": "ecology_changed",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "round",
+          "cause",
+          "delta",
+          "ecology_after"
+        ],
+        "title": "EcologyChanged",
+        "type": "object"
+      },
+      "ForeignCityView": {
+        "additionalProperties": false,
+        "properties": {
+          "destroyed": {
+            "title": "Destroyed",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "life_level": {
+            "title": "Life Level",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "destroyed",
+          "life_level"
+        ],
+        "title": "ForeignCityView",
+        "type": "object"
+      },
+      "ForeignCountryView": {
+        "additionalProperties": false,
+        "properties": {
+          "average_life_level": {
+            "title": "Average Life Level",
+            "type": "integer"
+          },
+          "cities": {
+            "items": {
+              "$ref": "#/components/schemas/ForeignCityView"
+            },
+            "title": "Cities",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "laugh": {
+            "title": "Laugh",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "cities",
+          "laugh",
+          "average_life_level"
+        ],
+        "title": "ForeignCountryView",
+        "type": "object"
+      },
+      "GameInfo": {
+        "properties": {
+          "current_round": {
+            "title": "Current Round",
+            "type": "integer"
+          },
+          "host_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Host Code"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "mode": {
+            "title": "Mode",
+            "type": "string"
+          },
+          "phase": {
+            "title": "Phase",
+            "type": "string"
+          },
+          "players": {
+            "items": {
+              "$ref": "#/components/schemas/PlayerInfo"
+            },
+            "title": "Players",
+            "type": "array"
+          },
+          "rounds_total": {
+            "title": "Rounds Total",
+            "type": "integer"
+          },
+          "rules_version": {
+            "title": "Rules Version",
+            "type": "string"
+          },
+          "scenario_id": {
+            "title": "Scenario Id",
+            "type": "string"
+          },
+          "seed": {
+            "title": "Seed",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "mode",
+          "status",
+          "rules_version",
+          "scenario_id",
+          "seed",
+          "current_round",
+          "rounds_total",
+          "phase",
+          "players"
+        ],
+        "title": "GameInfo",
+        "type": "object"
+      },
+      "GameLog": {
+        "additionalProperties": false,
+        "properties": {
+          "initial_state": {
+            "$ref": "#/components/schemas/GameState"
+          },
+          "log_schema_version": {
+            "default": 1,
+            "title": "Log Schema Version",
+            "type": "integer"
+          },
+          "rounds": {
+            "items": {
+              "$ref": "#/components/schemas/RoundRecord"
+            },
+            "title": "Rounds",
+            "type": "array"
+          },
+          "rules_snapshot": {
+            "$ref": "#/components/schemas/RuleSet",
+            "description": "Full rules after extends, for reproducibility"
+          },
+          "rules_version": {
+            "title": "Rules Version",
+            "type": "string"
+          },
+          "scenario_id": {
+            "title": "Scenario Id",
+            "type": "string"
+          },
+          "seed": {
+            "title": "Seed",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "rules_version",
+          "rules_snapshot",
+          "scenario_id",
+          "seed",
+          "initial_state"
+        ],
+        "title": "GameLog",
+        "type": "object"
+      },
+      "GameState": {
+        "additionalProperties": false,
+        "properties": {
+          "countries": {
+            "items": {
+              "$ref": "#/components/schemas/Country"
+            },
+            "minItems": 1,
+            "title": "Countries",
+            "type": "array"
+          },
+          "ecology": {
+            "description": "World ecology in percent",
+            "title": "Ecology",
+            "type": "integer"
+          },
+          "modules": {
+            "additionalProperties": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "description": "State of v2/v3 modules keyed by module id",
+            "title": "Modules",
+            "type": "object"
+          },
+          "round": {
+            "minimum": 1.0,
+            "title": "Round",
+            "type": "integer"
+          },
+          "state_schema_version": {
+            "default": 1,
+            "title": "State Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "round",
+          "ecology",
+          "countries"
+        ],
+        "title": "GameState",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HostInput": {
+        "additionalProperties": false,
+        "properties": {
+          "laugh_winner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country id chosen by the host",
+            "title": "Laugh Winner"
+          }
+        },
+        "title": "HostInput",
+        "type": "object"
+      },
+      "IncomeCoefficients": {
+        "additionalProperties": false,
+        "description": "income = (k_development x development + k_ecology x ecology) / 100.",
+        "properties": {
+          "k_development": {
+            "minimum": 0.0,
+            "title": "K Development",
+            "type": "integer"
+          },
+          "k_ecology": {
+            "minimum": 0.0,
+            "title": "K Ecology",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "k_development",
+          "k_ecology"
+        ],
+        "title": "IncomeCoefficients",
+        "type": "object"
+      },
+      "IncomeCredited": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country id that caused the event",
+            "title": "Actor"
+          },
+          "amount": {
+            "minimum": 0.0,
+            "title": "Amount",
+            "type": "integer"
+          },
+          "budget_after": {
+            "title": "Budget After",
+            "type": "integer"
+          },
+          "round": {
+            "minimum": 1.0,
+            "title": "Round",
+            "type": "integer"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country or city id affected",
+            "title": "Target"
+          },
+          "type": {
+            "const": "income_credited",
+            "default": "income_credited",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "round",
+          "amount",
+          "budget_after"
+        ],
+        "title": "IncomeCredited",
+        "type": "object"
+      },
+      "JoinRequest": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "title": "JoinRequest",
+        "type": "object"
+      },
+      "JoinResponse": {
+        "properties": {
+          "principal": {
+            "$ref": "#/components/schemas/Principal"
+          },
+          "token": {
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "principal",
+          "token"
+        ],
+        "title": "JoinResponse",
+        "type": "object"
+      },
+      "LaughAwarded": {
+        "additionalProperties": false,
+        "description": "The host named ``target`` the funniest team of the round.",
+        "properties": {
+          "actor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country id that caused the event",
+            "title": "Actor"
+          },
+          "bonus": {
+            "title": "Bonus",
+            "type": "integer"
+          },
+          "laugh_after": {
+            "title": "Laugh After",
+            "type": "integer"
+          },
+          "round": {
+            "minimum": 1.0,
+            "title": "Round",
+            "type": "integer"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country or city id affected",
+            "title": "Target"
+          },
+          "type": {
+            "const": "laugh_awarded",
+            "default": "laugh_awarded",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "round",
+          "bonus",
+          "laugh_after"
+        ],
+        "title": "LaughAwarded",
+        "type": "object"
+      },
+      "LifeLevelComputed": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country id that caused the event",
+            "title": "Actor"
+          },
+          "life_level": {
+            "description": "1/100 of a percent",
+            "minimum": 0.0,
+            "title": "Life Level",
+            "type": "integer"
+          },
+          "round": {
+            "minimum": 1.0,
+            "title": "Round",
+            "type": "integer"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country or city id affected",
+            "title": "Target"
+          },
+          "type": {
+            "const": "life_level_computed",
+            "default": "life_level_computed",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "round",
+          "life_level"
+        ],
+        "title": "LifeLevelComputed",
+        "type": "object"
+      },
+      "LifeWeights": {
+        "additionalProperties": false,
+        "description": "life_level x100 = development x w_d + ecology x w_e + laugh x w_l (all in percent).",
+        "properties": {
+          "development": {
+            "minimum": 0.0,
+            "title": "Development",
+            "type": "integer"
+          },
+          "ecology": {
+            "minimum": 0.0,
+            "title": "Ecology",
+            "type": "integer"
+          },
+          "laugh": {
+            "minimum": 0.0,
+            "title": "Laugh",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "development",
+          "ecology",
+          "laugh"
+        ],
+        "title": "LifeWeights",
+        "type": "object"
+      },
+      "NuclearStrike": {
+        "additionalProperties": false,
+        "description": "A bomb launched by ``actor`` at city ``target``; ``observe`` hides the actor.",
+        "properties": {
+          "actor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country id that caused the event",
+            "title": "Actor"
+          },
+          "outcome": {
+            "enum": [
+              "absorbed",
+              "destroyed",
+              "already_destroyed"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          },
+          "round": {
+            "minimum": 1.0,
+            "title": "Round",
+            "type": "integer"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country or city id affected",
+            "title": "Target"
+          },
+          "type": {
+            "const": "nuclear_strike",
+            "default": "nuclear_strike",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "round",
+          "outcome"
+        ],
+        "title": "NuclearStrike",
+        "type": "object"
+      },
+      "Observation": {
+        "additionalProperties": false,
+        "properties": {
+          "ecology": {
+            "title": "Ecology",
+            "type": "integer"
+          },
+          "me": {
+            "$ref": "#/components/schemas/OwnCountryView"
+          },
+          "news": {
+            "description": "Events visible to this country",
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "aid_transferred": "#/components/schemas/AidTransferred",
+                  "bombs_produced": "#/components/schemas/BombsProduced",
+                  "budget_spent": "#/components/schemas/BudgetSpent",
+                  "city_destroyed": "#/components/schemas/CityDestroyed",
+                  "city_invested": "#/components/schemas/CityInvested",
+                  "ecology_changed": "#/components/schemas/EcologyChanged",
+                  "income_credited": "#/components/schemas/IncomeCredited",
+                  "laugh_awarded": "#/components/schemas/LaughAwarded",
+                  "life_level_computed": "#/components/schemas/LifeLevelComputed",
+                  "nuclear_strike": "#/components/schemas/NuclearStrike",
+                  "order_rejected": "#/components/schemas/OrderRejected",
+                  "round_ended": "#/components/schemas/RoundEnded",
+                  "sanction_applied": "#/components/schemas/SanctionApplied",
+                  "shield_built": "#/components/schemas/ShieldBuilt",
+                  "tech_developed": "#/components/schemas/TechDeveloped"
+                },
+                "propertyName": "type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/OrderRejected"
+                },
+                {
+                  "$ref": "#/components/schemas/BudgetSpent"
+                },
+                {
+                  "$ref": "#/components/schemas/CityInvested"
+                },
+                {
+                  "$ref": "#/components/schemas/EcologyChanged"
+                },
+                {
+                  "$ref": "#/components/schemas/LifeLevelComputed"
+                },
+                {
+                  "$ref": "#/components/schemas/IncomeCredited"
+                },
+                {
+                  "$ref": "#/components/schemas/AidTransferred"
+                },
+                {
+                  "$ref": "#/components/schemas/TechDeveloped"
+                },
+                {
+                  "$ref": "#/components/schemas/ShieldBuilt"
+                },
+                {
+                  "$ref": "#/components/schemas/BombsProduced"
+                },
+                {
+                  "$ref": "#/components/schemas/NuclearStrike"
+                },
+                {
+                  "$ref": "#/components/schemas/CityDestroyed"
+                },
+                {
+                  "$ref": "#/components/schemas/SanctionApplied"
+                },
+                {
+                  "$ref": "#/components/schemas/LaughAwarded"
+                },
+                {
+                  "$ref": "#/components/schemas/RoundEnded"
+                }
+              ]
+            },
+            "title": "News",
+            "type": "array"
+          },
+          "others": {
+            "items": {
+              "$ref": "#/components/schemas/ForeignCountryView"
+            },
+            "title": "Others",
+            "type": "array"
+          },
+          "round": {
+            "title": "Round",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "round",
+          "ecology",
+          "me",
+          "others"
+        ],
+        "title": "Observation",
+        "type": "object"
+      },
+      "OrderBook": {
+        "additionalProperties": false,
+        "properties": {
+          "host": {
+            "$ref": "#/components/schemas/HostInput"
+          },
+          "orders": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/CountryOrders"
+            },
+            "description": "Country id -> orders",
+            "title": "Orders",
+            "type": "object"
+          }
+        },
+        "title": "OrderBook",
+        "type": "object"
+      },
+      "OrderRejected": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "actor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country id that caused the event",
+            "title": "Actor"
+          },
+          "detail": {
+            "additionalProperties": true,
+            "title": "Detail",
+            "type": "object"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "round": {
+            "minimum": 1.0,
+            "title": "Round",
+            "type": "integer"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country or city id affected",
+            "title": "Target"
+          },
+          "type": {
+            "const": "order_rejected",
+            "default": "order_rejected",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "round",
+          "action",
+          "reason"
+        ],
+        "title": "OrderRejected",
+        "type": "object"
+      },
+      "OwnCityView": {
+        "additionalProperties": false,
+        "properties": {
+          "destroyed": {
+            "title": "Destroyed",
+            "type": "boolean"
+          },
+          "development": {
+            "title": "Development",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "life_level": {
+            "title": "Life Level",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "shield": {
+            "title": "Shield",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "development",
+          "shield",
+          "destroyed",
+          "life_level"
+        ],
+        "title": "OwnCityView",
+        "type": "object"
+      },
+      "OwnCountryView": {
+        "additionalProperties": false,
+        "properties": {
+          "aid_pending": {
+            "title": "Aid Pending",
+            "type": "integer"
+          },
+          "average_life_level": {
+            "title": "Average Life Level",
+            "type": "integer"
+          },
+          "bombs": {
+            "title": "Bombs",
+            "type": "integer"
+          },
+          "bombs_pending": {
+            "title": "Bombs Pending",
+            "type": "integer"
+          },
+          "budget": {
+            "title": "Budget",
+            "type": "integer"
+          },
+          "cities": {
+            "items": {
+              "$ref": "#/components/schemas/OwnCityView"
+            },
+            "title": "Cities",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "laugh": {
+            "title": "Laugh",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "nuclear_tech": {
+            "title": "Nuclear Tech",
+            "type": "boolean"
+          },
+          "sanctioned_by": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Sanctioned By",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "budget",
+          "cities",
+          "nuclear_tech",
+          "bombs",
+          "bombs_pending",
+          "laugh",
+          "aid_pending",
+          "sanctioned_by",
+          "average_life_level"
+        ],
+        "title": "OwnCountryView",
+        "type": "object"
+      },
+      "Params": {
+        "additionalProperties": false,
+        "properties": {
+          "budget_priority": {
+            "description": "Action ids in the order the budget is spent",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Budget Priority",
+            "type": "array"
+          },
+          "ecology": {
+            "$ref": "#/components/schemas/Range"
+          },
+          "income": {
+            "$ref": "#/components/schemas/IncomeCoefficients"
+          },
+          "laugh_bonus": {
+            "description": "Percentage points added to the laugh winner",
+            "minimum": 0.0,
+            "title": "Laugh Bonus",
+            "type": "integer"
+          },
+          "life_weights": {
+            "$ref": "#/components/schemas/LifeWeights"
+          },
+          "rounds": {
+            "minimum": 1.0,
+            "title": "Rounds",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "rounds",
+          "ecology",
+          "life_weights",
+          "income",
+          "laugh_bonus",
+          "budget_priority"
+        ],
+        "title": "Params",
+        "type": "object"
+      },
+      "PlayerInfo": {
+        "properties": {
+          "country_id": {
+            "title": "Country Id",
+            "type": "string"
+          },
+          "join_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Join Code"
+          },
+          "joined": {
+            "title": "Joined",
+            "type": "boolean"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "country_id",
+          "name",
+          "kind",
+          "joined"
+        ],
+        "title": "PlayerInfo",
+        "type": "object"
+      },
+      "Principal": {
+        "description": "Who is calling: decoded from the JWT.",
+        "properties": {
+          "country_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country Id"
+          },
+          "game_id": {
+            "format": "uuid",
+            "title": "Game Id",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "host",
+              "player"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "game_id",
+          "role"
+        ],
+        "title": "Principal",
+        "type": "object"
+      },
+      "Range": {
+        "additionalProperties": false,
+        "properties": {
+          "max": {
+            "title": "Max",
+            "type": "integer"
+          },
+          "min": {
+            "title": "Min",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "min",
+          "max"
+        ],
+        "title": "Range",
+        "type": "object"
+      },
+      "RoundEnded": {
+        "additionalProperties": false,
+        "description": "Per-country wrap-up: pending bombs and aid released, sanctions reset.",
+        "properties": {
+          "actor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country id that caused the event",
+            "title": "Actor"
+          },
+          "aid_credited": {
+            "title": "Aid Credited",
+            "type": "integer"
+          },
+          "bombs_released": {
+            "title": "Bombs Released",
+            "type": "integer"
+          },
+          "budget_after": {
+            "title": "Budget After",
+            "type": "integer"
+          },
+          "round": {
+            "minimum": 1.0,
+            "title": "Round",
+            "type": "integer"
+          },
+          "sanctions_lifted": {
+            "title": "Sanctions Lifted",
+            "type": "integer"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country or city id affected",
+            "title": "Target"
+          },
+          "type": {
+            "const": "round_ended",
+            "default": "round_ended",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "round",
+          "bombs_released",
+          "aid_credited",
+          "sanctions_lifted",
+          "budget_after"
+        ],
+        "title": "RoundEnded",
+        "type": "object"
+      },
+      "RoundRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "events": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "aid_transferred": "#/components/schemas/AidTransferred",
+                  "bombs_produced": "#/components/schemas/BombsProduced",
+                  "budget_spent": "#/components/schemas/BudgetSpent",
+                  "city_destroyed": "#/components/schemas/CityDestroyed",
+                  "city_invested": "#/components/schemas/CityInvested",
+                  "ecology_changed": "#/components/schemas/EcologyChanged",
+                  "income_credited": "#/components/schemas/IncomeCredited",
+                  "laugh_awarded": "#/components/schemas/LaughAwarded",
+                  "life_level_computed": "#/components/schemas/LifeLevelComputed",
+                  "nuclear_strike": "#/components/schemas/NuclearStrike",
+                  "order_rejected": "#/components/schemas/OrderRejected",
+                  "round_ended": "#/components/schemas/RoundEnded",
+                  "sanction_applied": "#/components/schemas/SanctionApplied",
+                  "shield_built": "#/components/schemas/ShieldBuilt",
+                  "tech_developed": "#/components/schemas/TechDeveloped"
+                },
+                "propertyName": "type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/OrderRejected"
+                },
+                {
+                  "$ref": "#/components/schemas/BudgetSpent"
+                },
+                {
+                  "$ref": "#/components/schemas/CityInvested"
+                },
+                {
+                  "$ref": "#/components/schemas/EcologyChanged"
+                },
+                {
+                  "$ref": "#/components/schemas/LifeLevelComputed"
+                },
+                {
+                  "$ref": "#/components/schemas/IncomeCredited"
+                },
+                {
+                  "$ref": "#/components/schemas/AidTransferred"
+                },
+                {
+                  "$ref": "#/components/schemas/TechDeveloped"
+                },
+                {
+                  "$ref": "#/components/schemas/ShieldBuilt"
+                },
+                {
+                  "$ref": "#/components/schemas/BombsProduced"
+                },
+                {
+                  "$ref": "#/components/schemas/NuclearStrike"
+                },
+                {
+                  "$ref": "#/components/schemas/CityDestroyed"
+                },
+                {
+                  "$ref": "#/components/schemas/SanctionApplied"
+                },
+                {
+                  "$ref": "#/components/schemas/LaughAwarded"
+                },
+                {
+                  "$ref": "#/components/schemas/RoundEnded"
+                }
+              ]
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "orders": {
+            "$ref": "#/components/schemas/OrderBook"
+          },
+          "round": {
+            "title": "Round",
+            "type": "integer"
+          },
+          "state_after": {
+            "$ref": "#/components/schemas/GameState"
+          }
+        },
+        "required": [
+          "round",
+          "orders",
+          "events",
+          "state_after"
+        ],
+        "title": "RoundRecord",
+        "type": "object"
+      },
+      "RoundResult": {
+        "properties": {
+          "events": {
+            "title": "Events",
+            "type": "integer"
+          },
+          "finished": {
+            "title": "Finished",
+            "type": "boolean"
+          },
+          "next_round": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Round"
+          },
+          "round": {
+            "title": "Round",
+            "type": "integer"
+          },
+          "standings": {
+            "items": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Standings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "round",
+          "events",
+          "next_round",
+          "finished",
+          "standings"
+        ],
+        "title": "RoundResult",
+        "type": "object"
+      },
+      "RoundStatus": {
+        "properties": {
+          "laugh_winner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Laugh Winner"
+          },
+          "phase": {
+            "title": "Phase",
+            "type": "string"
+          },
+          "round": {
+            "title": "Round",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "submitted": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "title": "Submitted",
+            "type": "object"
+          }
+        },
+        "required": [
+          "round",
+          "phase",
+          "status",
+          "submitted",
+          "laugh_winner"
+        ],
+        "title": "RoundStatus",
+        "type": "object"
+      },
+      "RuleSet": {
+        "additionalProperties": false,
+        "properties": {
+          "actions": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ActionSpec"
+            },
+            "title": "Actions",
+            "type": "object"
+          },
+          "extends": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extends"
+          },
+          "modules": {
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Modules",
+            "type": "array"
+          },
+          "params": {
+            "$ref": "#/components/schemas/Params"
+          },
+          "pipeline": {
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Pipeline",
+            "type": "array"
+          },
+          "version": {
+            "pattern": "^\\d+\\.\\d+\\.\\d+$",
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "modules",
+          "pipeline",
+          "params",
+          "actions"
+        ],
+        "title": "RuleSet",
+        "type": "object"
+      },
+      "SanctionApplied": {
+        "additionalProperties": false,
+        "description": "``actor`` sanctions country ``target``: every alive city loses ``delta`` development.",
+        "properties": {
+          "actor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country id that caused the event",
+            "title": "Actor"
+          },
+          "delta": {
+            "title": "Delta",
+            "type": "integer"
+          },
+          "round": {
+            "minimum": 1.0,
+            "title": "Round",
+            "type": "integer"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country or city id affected",
+            "title": "Target"
+          },
+          "type": {
+            "const": "sanction_applied",
+            "default": "sanction_applied",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "round",
+          "delta"
+        ],
+        "title": "SanctionApplied",
+        "type": "object"
+      },
+      "ShieldBuilt": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country id that caused the event",
+            "title": "Actor"
+          },
+          "round": {
+            "minimum": 1.0,
+            "title": "Round",
+            "type": "integer"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country or city id affected",
+            "title": "Target"
+          },
+          "type": {
+            "const": "shield_built",
+            "default": "shield_built",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "round"
+        ],
+        "title": "ShieldBuilt",
+        "type": "object"
+      },
+      "TechDeveloped": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country id that caused the event",
+            "title": "Actor"
+          },
+          "round": {
+            "minimum": 1.0,
+            "title": "Round",
+            "type": "integer"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country or city id affected",
+            "title": "Target"
+          },
+          "tech": {
+            "title": "Tech",
+            "type": "string"
+          },
+          "type": {
+            "const": "tech_developed",
+            "default": "tech_developed",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "round",
+          "tech"
+        ],
+        "title": "TechDeveloped",
+        "type": "object"
+      },
+      "UiSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "default": "",
+            "title": "Description",
+            "type": "string"
+          },
+          "emoji": {
+            "default": "",
+            "title": "Emoji",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "title": "UiSpec",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "World Arena API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/auth/join": {
+      "post": {
+        "operationId": "join_api_auth_join_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JoinRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JoinResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Exchange an access code for a session",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "operationId": "logout_api_auth_logout_post",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Logout",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "operationId": "me_api_auth_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Principal"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Who am I",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/games": {
+      "post": {
+        "operationId": "create_api_games_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGame"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameInfo"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create a game (returns host and team codes)",
+        "tags": [
+          "games"
+        ]
+      }
+    },
+    "/api/games/{game_id}": {
+      "get": {
+        "operationId": "info_api_games__game_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "game_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Game Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameInfo"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Game overview; codes only for the host",
+        "tags": [
+          "games"
+        ]
+      }
+    },
+    "/api/games/{game_id}/action-space": {
+      "get": {
+        "operationId": "action_space_api_games__game_id__action_space_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "game_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Game Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionSpace"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "What my country may do this round",
+        "tags": [
+          "games"
+        ]
+      }
+    },
+    "/api/games/{game_id}/events": {
+      "get": {
+        "operationId": "events_api_games__game_id__events_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "game_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Game Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "round",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "title": "Round",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "discriminator": {
+                      "mapping": {
+                        "aid_transferred": "#/components/schemas/AidTransferred",
+                        "bombs_produced": "#/components/schemas/BombsProduced",
+                        "budget_spent": "#/components/schemas/BudgetSpent",
+                        "city_destroyed": "#/components/schemas/CityDestroyed",
+                        "city_invested": "#/components/schemas/CityInvested",
+                        "ecology_changed": "#/components/schemas/EcologyChanged",
+                        "income_credited": "#/components/schemas/IncomeCredited",
+                        "laugh_awarded": "#/components/schemas/LaughAwarded",
+                        "life_level_computed": "#/components/schemas/LifeLevelComputed",
+                        "nuclear_strike": "#/components/schemas/NuclearStrike",
+                        "order_rejected": "#/components/schemas/OrderRejected",
+                        "round_ended": "#/components/schemas/RoundEnded",
+                        "sanction_applied": "#/components/schemas/SanctionApplied",
+                        "shield_built": "#/components/schemas/ShieldBuilt",
+                        "tech_developed": "#/components/schemas/TechDeveloped"
+                      },
+                      "propertyName": "type"
+                    },
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/OrderRejected"
+                      },
+                      {
+                        "$ref": "#/components/schemas/BudgetSpent"
+                      },
+                      {
+                        "$ref": "#/components/schemas/CityInvested"
+                      },
+                      {
+                        "$ref": "#/components/schemas/EcologyChanged"
+                      },
+                      {
+                        "$ref": "#/components/schemas/LifeLevelComputed"
+                      },
+                      {
+                        "$ref": "#/components/schemas/IncomeCredited"
+                      },
+                      {
+                        "$ref": "#/components/schemas/AidTransferred"
+                      },
+                      {
+                        "$ref": "#/components/schemas/TechDeveloped"
+                      },
+                      {
+                        "$ref": "#/components/schemas/ShieldBuilt"
+                      },
+                      {
+                        "$ref": "#/components/schemas/BombsProduced"
+                      },
+                      {
+                        "$ref": "#/components/schemas/NuclearStrike"
+                      },
+                      {
+                        "$ref": "#/components/schemas/CityDestroyed"
+                      },
+                      {
+                        "$ref": "#/components/schemas/SanctionApplied"
+                      },
+                      {
+                        "$ref": "#/components/schemas/LaughAwarded"
+                      },
+                      {
+                        "$ref": "#/components/schemas/RoundEnded"
+                      }
+                    ]
+                  },
+                  "title": "Response Events Api Games  Game Id  Events Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Events of a round, filtered by what I may see",
+        "tags": [
+          "games"
+        ]
+      }
+    },
+    "/api/games/{game_id}/log": {
+      "get": {
+        "operationId": "game_log_api_games__game_id__log_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "game_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Game Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameLog"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Full GameLog for replay and analytics (host)",
+        "tags": [
+          "games"
+        ]
+      }
+    },
+    "/api/games/{game_id}/observation": {
+      "get": {
+        "operationId": "observation_api_games__game_id__observation_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "game_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Game Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Observation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "What my country sees",
+        "tags": [
+          "games"
+        ]
+      }
+    },
+    "/api/games/{game_id}/orders": {
+      "put": {
+        "operationId": "submit_api_games__game_id__orders_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "game_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Game Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CountryOrders"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Submit (or replace) my orders",
+        "tags": [
+          "games"
+        ]
+      }
+    },
+    "/api/games/{game_id}/replay": {
+      "get": {
+        "operationId": "game_replay_api_games__game_id__replay_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "game_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Game Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Divergence"
+                  },
+                  "title": "Response Game Replay Api Games  Game Id  Replay Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Replay the log with the engine; [] = no divergence",
+        "tags": [
+          "games"
+        ]
+      }
+    },
+    "/api/games/{game_id}/round": {
+      "get": {
+        "operationId": "round_status_api_games__game_id__round_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "game_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Game Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoundStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Round status",
+        "tags": [
+          "games"
+        ]
+      }
+    },
+    "/api/games/{game_id}/rounds/{number}/laugh": {
+      "post": {
+        "operationId": "laugh_api_games__game_id__rounds__number__laugh_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "game_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Game Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "title": "Number",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "country_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Country Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Pick the funniest team (host)",
+        "tags": [
+          "games"
+        ]
+      }
+    },
+    "/api/games/{game_id}/rounds/{number}/resolve": {
+      "post": {
+        "operationId": "resolve_api_games__game_id__rounds__number__resolve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "game_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Game Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "title": "Number",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoundResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Resolve round `number` (host)",
+        "tags": [
+          "games"
+        ]
+      }
+    },
+    "/api/games/{game_id}/state": {
+      "get": {
+        "operationId": "state_api_games__game_id__state_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "game_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Game Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameState"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Full game state (host)",
+        "tags": [
+          "games"
+        ]
+      }
+    },
+    "/api/rules": {
+      "get": {
+        "operationId": "list_rules_api_rules_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "title": "Response List Rules Api Rules Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Available rules versions",
+        "tags": [
+          "rules"
+        ]
+      }
+    },
+    "/api/rules/schema": {
+      "get": {
+        "operationId": "schema_api_rules_schema_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Schema Api Rules Schema Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "JSON Schema of a rules file",
+        "tags": [
+          "rules"
+        ]
+      }
+    },
+    "/api/rules/{version}": {
+      "get": {
+        "operationId": "get_rules_api_rules__version__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "title": "Version",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuleSet"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Rules after extends, as the engine sees them",
+        "tags": [
+          "rules"
+        ]
+      }
+    },
+    "/healthz": {
+      "get": {
+        "operationId": "healthz_healthz_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Healthz Healthz Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Process is alive",
+        "tags": [
+          "ops"
+        ]
+      }
+    },
+    "/readyz": {
+      "get": {
+        "operationId": "readyz_readyz_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Database reachable",
+        "tags": [
+          "ops"
+        ]
+      }
+    }
+  }
+}

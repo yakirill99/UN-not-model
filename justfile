@@ -109,3 +109,7 @@ migration message:
 # Create a demo game in the local database and print the codes
 seed-demo *args:
     cd backend && uv run python -m arena.seed_demo {{args}}
+
+# End-to-end smoke against a running server (just dev in another terminal)
+smoke base="http://localhost:8000" *args:
+    cd backend && uv run python -m arena.smoke --base {{base}} {{args}}

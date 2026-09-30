@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+TEST_JWT_SECRET = "x" * 32  # obviously fake: zero entropy, keeps gitleaks quiet
 
 
 @pytest.fixture(scope="session")

@@ -7,14 +7,14 @@ dependencies = [
     "aiosqlite>=0.22.1",
     "alembic>=1.20.0",
     "asyncpg>=0.31.0",
-    "fastapi>=0.141.1",
+    "fastapi>=0.142.2",
     "numpy>=2.1",
     "polars>=1.44.2",
     "pydantic>=2.9",
     "pydantic-settings>=2.15.0",
     "pyjwt>=2.15.1",
     "pyyaml>=6.0",
-    "sqlalchemy[asyncio]>=2.1.1",
+    "sqlalchemy[asyncio]>=2.1.2",
     "uvicorn[standard]>=0.54.0",
 ]
 
@@ -26,11 +26,11 @@ analytics = [
 dev = [
     "httpx>=0.28.1",
     "hypothesis>=6.100",
-    "mypy>=1.11",
+    "mypy>=2.4.0",
     "pytest>=8.3",
     "pytest-asyncio>=1.4.0",
     "pytest-cov>=5.0",
-    "ruff>=0.6",
+    "ruff>=0.16.10",
     "testcontainers[postgres]>=4.15.0",
     "types-pyyaml>=6.0",
 ]

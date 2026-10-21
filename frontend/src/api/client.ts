@@ -18,6 +18,7 @@ export type Principal = Schemas['Principal']
 export type GameInfo = Schemas['GameInfo']
 export type Observation = Schemas['Observation']
 export type ActionSpace = Schemas['ActionSpace']
+export type ActionOption = Schemas['ActionOption']
 export type CountryOrders = Schemas['CountryOrders']
 export type RoundStatus = Schemas['RoundStatus']
 export type RoundResult = Schemas['RoundResult']
@@ -32,4 +33,20 @@ export function errorMessage(error: unknown): string {
     if (typeof detail === 'string') return detail
   }
   return 'Ошибка запроса'
+}
+
+/**
+ * `errors[]` of a rejected PUT /orders. The API adds this array next to `detail`
+ * (see api/errors.py), but it is absent from the OpenAPI document, so it has to be
+ * recovered by hand. Anything else shapes into `[]` and the caller falls back to
+ * `errorMessage`.
+ */
+export function orderErrors(error: unknown): OrderError[] {
+  if (!error || typeof error !== 'object' || !('errors' in error)) return []
+  const raw = (error as { errors: unknown }).errors
+  if (!Array.isArray(raw)) return []
+  return raw.filter(
+    (e): e is OrderError =>
+      !!e && typeof e === 'object' && typeof e.action === 'string' && typeof e.reason === 'string',
+  )
 }

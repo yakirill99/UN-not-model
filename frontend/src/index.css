@@ -131,3 +131,57 @@ fieldset {
   letter-spacing: 0.08em;
   user-select: all;
 }
+.warn {
+  color: #d97706;
+}
+h2 {
+  font-size: 1.05rem;
+  margin: 0;
+}
+.cities {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.95rem;
+}
+.cities th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--muted);
+  font-size: 0.85rem;
+  padding: 0.25rem;
+}
+.cities td {
+  padding: 0.35rem 0.25rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--fg) 10%, transparent);
+}
+.cities tr.destroyed td {
+  opacity: 0.55;
+}
+.facts {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.95rem;
+}
+.facts li {
+  margin: 0.15rem 0;
+}
+.other {
+  border-top: 1px solid color-mix(in srgb, var(--fg) 10%, transparent);
+  padding-top: 0.5rem;
+}
+.other:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+.other p {
+  margin: 0.15rem 0 0;
+  font-size: 0.9rem;
+}
+.news {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.95rem;
+}
+.news li {
+  margin: 0.25rem 0;
+}

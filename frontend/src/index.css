@@ -185,3 +185,57 @@ h2 {
 .news li {
   margin: 0.25rem 0;
 }
+.action {
+  border-top: 1px solid color-mix(in srgb, var(--fg) 10%, transparent);
+  padding-top: 0.6rem;
+}
+.action.off {
+  opacity: 0.55;
+}
+.action-head {
+  font-size: 0.95rem;
+}
+.action p.bad {
+  margin: 0.3rem 0 0;
+  font-size: 0.9rem;
+}
+.targets {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.95rem;
+}
+label.row.inline {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+label.row.inline input[type='number'] {
+  width: 6rem;
+  text-align: right;
+}
+label.row.inline input[type='checkbox'] {
+  width: 1.4rem;
+  height: 1.4rem;
+  min-height: 0;
+}
+.counter {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.counter button {
+  min-height: 2.25rem;
+  min-width: 2.25rem;
+  padding: 0.2rem 0.5rem;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+.counter output {
+  min-width: 1.5rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}

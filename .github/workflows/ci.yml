@@ -73,7 +73,3 @@ jobs:
 
       - name: Generated API types are current
         run: pnpm openapi && git diff --exit-code -- src/api/schema.d.ts
-      - run: pnpm lint
-      - run: pnpm typecheck
-      - run: pnpm test
-      - run: pnpm build

@@ -118,29 +118,28 @@ seed-demo *args:
 smoke base="http://localhost:8000" *args:
     cd backend && uv run python -m arena.smoke --base {{base}} {{args}}
 
-# --- frontend ---------------------------------------------------------------
-
-# Install frontend dependencies
-web-install:
-    cd frontend && pnpm install
-
-# Dev server (requires backend on :8000)
+# --- frontend (sprint 5) ------------------------------------------------------
+# Vite dev server on http://localhost:5173 (and http://<ip>:5173 for phones); /api -> :8000
 web:
     cd frontend && pnpm dev
 
-# Build frontend
+# oxlint + prettier --check
+web-lint:
+    cd frontend && pnpm lint
+
+# tsc -b + vite build -> frontend/dist
 web-build:
     cd frontend && pnpm build
 
-# Lint + typecheck frontend
-web-lint:
-    cd frontend && pnpm lint
-    cd frontend && pnpm typecheck
-
-# Test frontend
+# vitest (jsdom), without coverage
 web-test:
     cd frontend && pnpm test
 
-# Coverage report
+# vitest + v8 coverage; thresholds in frontend/vite.config.ts, report in frontend/coverage/
 web-coverage:
     cd frontend && pnpm coverage
+
+# Regenerate the OpenAPI snapshot and the TS types after any API change
+openapi:
+    cd backend && uv run python -m arena.openapi
+    cd frontend && pnpm openapi

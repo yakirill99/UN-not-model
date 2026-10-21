@@ -40,3 +40,6 @@ age.key
 .idea/
 .DS_Store
 Thumbs.db
+
+# vitest coverage report
+frontend/coverage/

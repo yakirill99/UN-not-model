@@ -65,8 +65,15 @@ jobs:
       - name: Lint and format
         run: pnpm lint
 
+      - name: Tests with coverage (thresholds in vite.config.ts)
+        run: pnpm coverage
+
       - name: Types and build
         run: pnpm build
 
       - name: Generated API types are current
         run: pnpm openapi && git diff --exit-code -- src/api/schema.d.ts
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build

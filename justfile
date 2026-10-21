@@ -40,7 +40,7 @@ typecheck:
     cd backend && uv run mypy arena
 
 # Everything CI runs
-check: lint typecheck test web-lint web-build
+check: lint typecheck test web-lint web-coverage web-build
 
 # Run all pre-commit hooks on all files
 hooks:
@@ -130,6 +130,14 @@ web-lint:
 # tsc -b + vite build -> frontend/dist
 web-build:
     cd frontend && pnpm build
+
+# vitest (jsdom), without coverage
+web-test:
+    cd frontend && pnpm test
+
+# vitest + v8 coverage; thresholds in frontend/vite.config.ts, report in frontend/coverage/
+web-coverage:
+    cd frontend && pnpm coverage
 
 # Regenerate the OpenAPI snapshot and the TS types after any API change
 openapi:

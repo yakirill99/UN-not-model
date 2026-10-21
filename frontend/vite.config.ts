@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
@@ -10,11 +11,24 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    strictPort: true,
     proxy: Object.fromEntries(
       ['/api', '/healthz', '/readyz', '/openapi.json', '/docs'].map((p) => [
         p,
         { target: api, changeOrigin: true },
       ]),
     ),
+  },
+  test: {
+    environment: 'jsdom',
+    include: ['src/**/*.test.{ts,tsx}'],
+    setupFiles: ['src/test/setup.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html'],
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: ['src/api/schema.d.ts', 'src/main.tsx', 'src/test/**', '**/*.test.*'],
+      thresholds: { lines: 99, statements: 99, functions: 99, branches: 95 },
+    },
   },
 })

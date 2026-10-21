@@ -65,6 +65,9 @@ jobs:
       - name: Lint and format
         run: pnpm lint
 
+      - name: Tests with coverage (thresholds in vite.config.ts)
+        run: pnpm coverage
+
       - name: Types and build
         run: pnpm build
 

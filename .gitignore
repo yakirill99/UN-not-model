@@ -43,3 +43,4 @@ Thumbs.db
 
 # vitest coverage report
 frontend/coverage/
+!.env.prod.example

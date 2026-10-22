@@ -1,34 +1,33 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { Route } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { api, type GameInfo } from '../api/client'
+import { api } from '../api/client'
+import { gameInfo, hostStatus } from '../test/host'
 import { fakeSession, HOST, renderWithSession } from '../test/session'
 import HostPage from './HostPage'
 
-vi.mock('../api/client', () => ({ api: { GET: vi.fn() } }))
+vi.mock('../api/client', () => ({
+  api: { GET: vi.fn(), POST: vi.fn() },
+  errorMessage: (e: { detail?: string } | undefined) => e?.detail ?? 'Ошибка запроса',
+}))
 const GET = vi.mocked(api.GET)
 
-const GAME: GameInfo = {
-  id: 'g1',
-  title: 'Демо-партия',
-  current_round: 1,
-  rounds_total: 6,
-  scenario_id: 'smolny',
-  rules_version: '1.0.0',
-  mode: 'live',
-  phase: 'orders',
-  status: 'active',
-  seed: 1,
-  host_code: 'HOST-DZRS3A',
-  players: [
-    { country_id: 'russia', name: 'Россия', kind: 'human', join_code: 'RUS-L75WVG', joined: true },
-    { country_id: 'usa', name: 'США', kind: 'human', join_code: 'USA-N4FTJ7', joined: false },
-    { country_id: 'dprk', name: 'КНДР', kind: 'bot', join_code: 'DPR-D3WS38', joined: false },
-  ],
+/** The page fires the game info and the round status in parallel — answer by path. */
+function answer(responses: { game?: unknown; status?: unknown; gameError?: unknown } = {}) {
+  GET.mockImplementation((path: string) => {
+    if (path.endsWith('/round')) {
+      return Promise.resolve({ data: responses.status ?? hostStatus() }) as never
+    }
+    return Promise.resolve({
+      data: responses.gameError ? undefined : (responses.game ?? gameInfo()),
+      error: responses.gameError,
+    }) as never
+  })
 }
 
-function renderAt(at: string) {
-  renderWithSession(<Route path="/host/:gameId" element={<HostPage />} />, {
+function renderPage(at = '/host/g1') {
+  return renderWithSession(<Route path="/host/:gameId" element={<HostPage />} />, {
     at,
     session: fakeSession({ principal: HOST }),
   })
@@ -37,38 +36,101 @@ function renderAt(at: string) {
 describe('HostPage', () => {
   beforeEach(() => vi.resetAllMocks())
 
-  it('loads the game and lists player codes, hiding bot codes', async () => {
-    GET.mockResolvedValue({ data: GAME } as never)
-    renderAt('/host/g1')
-
+  it('loads the game and the round status together', async () => {
+    answer()
+    renderPage()
     expect(await screen.findByRole('heading', { name: 'Демо-партия' })).toBeTruthy()
-    expect(GET).toHaveBeenCalledWith('/api/games/{game_id}', {
-      params: { path: { game_id: 'g1' } },
-    })
-    expect(screen.getByText(/Раунд 1 из 6/)).toBeTruthy()
+    const paths = GET.mock.calls.map((c) => c[0])
+    expect(paths).toContain('/api/games/{game_id}')
+    expect(paths).toContain('/api/games/{game_id}/round')
+  })
+
+  it('shows the scenario, the codes and the resolve button on one screen', async () => {
+    answer()
+    renderPage()
+    expect(await screen.findByText(/smolny, правила 1.0.0/)).toBeTruthy()
     expect(screen.getByText('RUS-L75WVG')).toBeTruthy()
-    expect(screen.getByText('вошли')).toBeTruthy()
-    expect(screen.getByText('ещё не вошли')).toBeTruthy()
-    expect(screen.getByText('бот')).toBeTruthy()
-    expect(screen.queryByText('DPR-D3WS38')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Подвести итоги раунда 1' })).toBeTruthy()
   })
 
   it('falls back to a generic title for an untitled game', async () => {
-    GET.mockResolvedValue({ data: { ...GAME, title: '' } } as never)
-    renderAt('/host/g1')
-    expect(await screen.findByText(/Раунд 1 из 6/)).toBeTruthy()
-    expect(screen.getByRole('heading', { name: 'Панель ведущего' })).toBeTruthy()
+    answer({ game: gameInfo({ title: '' }) })
+    renderPage()
+    expect(await screen.findByRole('heading', { name: 'Панель ведущего' })).toBeTruthy()
   })
 
-  it('shows only the header when the game is not available', async () => {
-    GET.mockResolvedValue({ data: undefined } as never)
-    renderAt('/host/g1')
-    await vi.waitFor(() => expect(GET).toHaveBeenCalled())
+  it('keeps the codes readable when the round status is missing', async () => {
+    GET.mockImplementation((path: string) => {
+      if (path.endsWith('/round')) {
+        return Promise.resolve({ data: undefined, error: { detail: 'no round yet' } }) as never
+      }
+      return Promise.resolve({ data: gameInfo() }) as never
+    })
+    renderPage()
+    expect(await screen.findByText('RUS-L75WVG')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /Подвести итоги/ })).toBeNull()
+  })
+
+  it('reloads both requests on demand', async () => {
+    answer()
+    renderPage()
+    await screen.findByRole('heading', { name: 'Демо-партия' })
+    GET.mockClear()
+    await userEvent.click(screen.getByRole('button', { name: 'Обновить' }))
+    await waitFor(() => expect(GET).toHaveBeenCalledTimes(2))
+  })
+
+  it('disables the refresh button while a reload is in flight', async () => {
+    answer()
+    renderPage()
+    await screen.findByRole('heading', { name: 'Демо-партия' })
+
+    let resolve!: (v: unknown) => void
+    GET.mockImplementation((path: string) => {
+      if (path.endsWith('/round')) return Promise.resolve({ data: hostStatus() }) as never
+      return new Promise((r) => (resolve = r)) as never
+    })
+    await userEvent.click(screen.getByRole('button', { name: 'Обновить' }))
+    expect(screen.getByRole('button', { name: 'Обновляем…' })).toHaveProperty('disabled', true)
+
+    resolve({ data: gameInfo() })
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Обновить' })).toBeTruthy())
+  })
+
+  it('refreshes the panel after the round is resolved', async () => {
+    answer()
+    vi.mocked(api.POST).mockResolvedValue({
+      data: { round: 1, events: 5, next_round: 2, finished: false, standings: [] },
+    } as never)
+    renderPage()
+    await screen.findByRole('button', { name: 'Подвести итоги раунда 1' })
+    GET.mockClear()
+    await userEvent.click(screen.getByRole('button', { name: 'Подвести итоги раунда 1' }))
+    await waitFor(() => expect(GET).toHaveBeenCalledTimes(2))
+  })
+
+  it('reports a failed load and shows only the header', async () => {
+    answer({ gameError: { detail: 'game not found' } })
+    renderPage()
+    expect((await screen.findByRole('alert')).textContent).toBe('game not found')
     expect(screen.getByRole('heading', { name: 'Панель ведущего' })).toBeTruthy()
-    expect(screen.queryByRole('table')).toBeNull()
+    expect(screen.queryByText('RUS-L75WVG')).toBeNull()
+  })
+
+  it('clears the error once a reload succeeds', async () => {
+    answer({ gameError: { detail: 'boom' } })
+    const { unmount } = renderPage()
+    await screen.findByRole('alert')
+
+    unmount()
+    answer()
+    renderPage()
+    await screen.findByRole('heading', { name: 'Демо-партия' })
+    expect(screen.queryByRole('alert')).toBeNull()
   })
 
   it('does not call the API without a game id', () => {
+    answer()
     renderWithSession(<Route path="/" element={<HostPage />} />, {
       session: fakeSession({ principal: HOST }),
     })

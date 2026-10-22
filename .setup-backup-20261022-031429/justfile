@@ -1,0 +1,145 @@
+# World Arena — project commands. Run `just` to see the list.
+set shell := ["bash", "-euo", "pipefail", "-c"]
+set dotenv-load
+
+default:
+    @just --list
+
+# --- Setup ---------------------------------------------------------------
+
+# Install pinned tools (python, uv, node, pnpm, just) and git hooks
+tools:
+    mise install
+    uv tool install pre-commit
+    pre-commit install
+
+# Install backend dependencies
+sync:
+    cd backend && uv sync
+
+# Install frontend dependencies
+web-sync:
+    cd frontend && pnpm install --frozen-lockfile
+
+# --- Quality -------------------------------------------------------------
+
+# Run backend tests (fast suite)
+test *args:
+    cd backend && uv run pytest {{args}}
+
+# Lint and check formatting
+lint:
+    cd backend && uv run ruff check . && uv run ruff format --check .
+
+# Auto-format and fix lint issues
+fmt:
+    cd backend && uv run ruff format . && uv run ruff check --fix .
+
+# Static type checking
+typecheck:
+    cd backend && uv run mypy arena
+
+# Everything CI runs
+check: lint typecheck test web-lint web-coverage web-build
+
+# Run all pre-commit hooks on all files
+hooks:
+    pre-commit run --all-files
+
+# --- Engine, simulation, rules (sprints 2-3) ------------------------------
+# Uncomment as the corresponding modules appear.
+
+# play scenario="smolny":
+#     cd backend && uv run python -m arena.engine.play --scenario {{scenario}}
+
+# sim rules="v1.0" scenario="smolny" n="1000":
+#     cd backend && uv run python -m arena.sim --rules {{rules}} --scenario {{scenario}} --games {{n}}
+
+# replay game rules:
+#     cd backend && uv run python -m arena.runner.replay --game {{game}} --rules {{rules}}
+
+# rules-diff a b n="500":
+#     cd backend && uv run python -m arena.sim.compare --a {{a}} --b {{b}} --games {{n}}
+
+# rules-docs:
+#     cd backend && uv run python -m arena.engine.rules --export-docs ../docs/rules/generated
+
+# golden-update:
+#     cd backend && uv run pytest tests/golden --update-golden
+
+# --- Stack (sprint 6) -----------------------------------------------------
+
+# up:
+#     docker compose up -d --build
+# down:
+#     docker compose down
+# seed:
+#     docker compose exec arena python -m arena.scripts.seed_demo
+# logs:
+#     docker compose logs -f arena
+
+# --- simulations (sprint 3) --------------------------------------------------
+# just sim [n] [scenario] [rules] [lineup]   e.g. just sim 200 equal v1.0 aggressor
+sim n="1000" scenario="smolny" rules="v1.0" lineup="mixed":
+    cd backend && uv run python -m arena.sim --rules {{rules}} --scenario {{scenario}} --games {{n}} --lineup {{lineup}}
+
+# just rules-diff [a] [b] [n]   e.g. just rules-diff v1.0 experiments/v1.0-cheap-eco 500
+rules-diff a="v1.0" b="experiments/v1.0-cheap-eco" n="500" scenario="smolny":
+    cd backend && uv run python -m arena.sim.compare --a {{a}} --b {{b}} --games {{n}} --scenario {{scenario}}
+
+# Regenerate golden snapshots after an intended change of rules, engine or bots; review the diff
+golden-update:
+    cd backend && UPDATE_GOLDEN=1 uv run pytest -q tests/golden
+    cd backend && uv run pytest -q tests/golden
+
+# --- backend (sprint 4) -------------------------------------------------------
+# Run the API with autoreload on http://localhost:8000/docs
+dev:
+    cd backend && uv run uvicorn arena.main:app --reload --port 8000
+
+# Local Postgres from compose.yaml
+db-up:
+    docker compose up -d --wait db
+db-down:
+    docker compose down
+
+# Apply migrations to ARENA_DATABASE_URL
+migrate:
+    cd backend && uv run alembic upgrade head
+# Autogenerate a migration from the models; review it before committing
+migration message:
+    cd backend && uv run alembic revision --autogenerate -m "{{message}}"
+
+# Create a demo game in the local database and print the codes
+seed-demo *args:
+    cd backend && uv run python -m arena.seed_demo {{args}}
+
+# End-to-end smoke against a running server (just dev in another terminal)
+smoke base="http://localhost:8000" *args:
+    cd backend && uv run python -m arena.smoke --base {{base}} {{args}}
+
+# --- frontend (sprint 5) ------------------------------------------------------
+# Vite dev server on http://localhost:5173 (and http://<ip>:5173 for phones); /api -> :8000
+web:
+    cd frontend && pnpm dev
+
+# oxlint + prettier --check
+web-lint:
+    cd frontend && pnpm lint
+
+# tsc -b + vite build -> frontend/dist
+web-build:
+    cd frontend && pnpm build
+
+# vitest (jsdom), without coverage
+web-test:
+    cd frontend && pnpm test
+
+# vitest + v8 coverage; thresholds in frontend/vite.config.ts, report in frontend/coverage/
+web-coverage:
+    cd frontend && pnpm coverage
+
+# Regenerate the OpenAPI snapshot and the TS types after any API change
+openapi:
+    cd backend && uv run python -m arena.openapi
+    cd frontend && pnpm openapi

@@ -143,3 +143,28 @@ web-coverage:
 openapi:
     cd backend && uv run python -m arena.openapi
     cd frontend && pnpm openapi
+
+# --- production (docker compose + туннель) -----------------------------------
+PROD := "-f compose.prod.yaml --env-file .env.prod"
+
+# Собрать и поднять db+api+web; nginx слушает ARENA_HTTP_PORT (8080)
+prod-up:
+    docker compose {{PROD}} up -d --build
+    docker compose {{PROD}} exec api alembic upgrade head
+    @echo "готово: http://localhost:8080/readyz"
+
+# Остановить (данные остаются в томе pgdata)
+prod-down:
+    docker compose {{PROD}} down
+
+# Логи API
+prod-logs:
+    docker compose {{PROD}} logs -f api
+
+# Демо-партия с кодами на проде
+prod-seed *args:
+    docker compose {{PROD}} exec api python -m arena.seed_demo {{args}}
+
+# Коды всех созданных партий
+prod-codes:
+    docker compose {{PROD}} exec db psql -U arena -d arena -c "select title, host_code, current_round, phase from games order by created_at desc limit 10;"

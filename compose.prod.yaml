@@ -1,0 +1,67 @@
+# World Arena in production (a laptop behind a Tuna tunnel counts as production).
+#
+#   cp .env.prod.example .env.prod   # then put a real secret in it
+#   docker compose -f compose.prod.yaml --env-file .env.prod up -d --build
+#   docker compose -f compose.prod.yaml --env-file .env.prod exec api alembic upgrade head
+#
+# Only nginx publishes a port. The API and the database are reachable only inside the
+# compose network, so the tunnel cannot expose them by accident.
+# Отдельное имя проекта: dev-стек в compose.yaml называется world-arena (по имени
+# каталога) и владеет томом pgdata, инициализированным dev-паролем. При общем имени
+# POSTGRES_PASSWORD из .env.prod молча игнорируется — Postgres не трогает готовый том.
+name: world-arena-prod
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-arena}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.prod}
+      POSTGRES_DB: ${POSTGRES_DB:-arena}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-arena} -d ${POSTGRES_DB:-arena}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    environment:
+      # prod marks the session cookie Secure (HTTPS only) — right behind Tuna.
+      # Set ARENA_ENV=dev in .env.prod only to test over plain http://.
+      ARENA_ENV: ${ARENA_ENV:-prod}
+      ARENA_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-arena}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-arena}
+      # Sessions are signed with this; changing it logs everyone out.
+      ARENA_JWT_SECRET: ${ARENA_JWT_SECRET:?set ARENA_JWT_SECRET in .env.prod}
+      ARENA_JWT_TTL_HOURS: ${ARENA_JWT_TTL_HOURS:-12}
+      ARENA_RULES_DIR: /app/rules
+      ARENA_SCENARIOS_DIR: /app/scenarios
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/readyz')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  web:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${ARENA_HTTP_PORT:-8080}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  pgdata:

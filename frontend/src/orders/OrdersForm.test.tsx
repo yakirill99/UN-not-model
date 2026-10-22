@@ -340,3 +340,124 @@ describe('OrdersForm', () => {
     expect(screen.getByLabelText(/Сколько бомб/).getAttribute('max')).toBeNull()
   })
 })
+
+describe('OrdersForm when the action space changes under it', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+    PUT.mockResolvedValue({ data: undefined, error: undefined } as never)
+  })
+
+  const alreadyOwned = () =>
+    actionSpace({
+      actions: {
+        ...actionSpace().actions,
+        nuclear_tech: option({
+          ...actionSpace().actions.nuclear_tech,
+          available: false,
+          reason: 'already_owned',
+        }),
+      },
+    })
+
+  // The reported bug: the technology was developed last round, its checkbox is hidden,
+  // and the tick left in the draft kept charging 500$ so orders could never be sent.
+  it('drops a technology the player developed, so orders can be sent again', async () => {
+    const { rerender } = render(
+      <OrdersForm gameId="g1" space={actionSpace()} observation={OBS} onSubmitted={vi.fn()} />,
+    )
+    await userEvent.click(screen.getByLabelText('Разработать в этом раунде'))
+    expect(screen.getByText(/Потрачено 500 \$ из/)).toBeTruthy()
+
+    rerender(
+      <OrdersForm gameId="g1" space={alreadyOwned()} observation={OBS} onSubmitted={vi.fn()} />,
+    )
+
+    expect(screen.getByText(/Потрачено 0 \$ из/)).toBeTruthy()
+    expect(screen.getByText('уже есть')).toBeTruthy()
+    expect(submitButton()).toHaveProperty('disabled', true)
+
+    // And a fresh pick is sendable: the draft is empty, not stuck.
+    const shield = screen.getByText(/Построить ядерный щит/).closest('section')!
+    await userEvent.click(within(shield).getByLabelText('Москва'))
+    expect(submitButton()).toHaveProperty('disabled', false)
+  })
+
+  it('sends nothing the rules dropped', async () => {
+    const { rerender } = render(
+      <OrdersForm gameId="g1" space={actionSpace()} observation={OBS} onSubmitted={vi.fn()} />,
+    )
+    await userEvent.click(screen.getByLabelText('Разработать в этом раунде'))
+    const shield = screen.getByText(/Построить ядерный щит/).closest('section')!
+    await userEvent.click(within(shield).getByLabelText('Москва'))
+
+    rerender(
+      <OrdersForm gameId="g1" space={alreadyOwned()} observation={OBS} onSubmitted={vi.fn()} />,
+    )
+    await userEvent.click(submitButton())
+
+    expect(body()).toMatchObject({ nuclear_tech: false, shields: ['moscow'] })
+  })
+
+  it('drops bombs the engine stops offering', async () => {
+    const withBombs = actionSpace({
+      actions: {
+        ...actionSpace().actions,
+        bomb: option({ ...actionSpace().actions.bomb, available: true, reason: null }),
+      },
+    })
+    const { rerender } = render(
+      <OrdersForm gameId="g1" space={withBombs} observation={OBS} onSubmitted={vi.fn()} />,
+    )
+    fireEvent.change(screen.getByLabelText(/Сколько бомб/), { target: { value: '2' } })
+    expect(screen.getByText(/Потрачено 300 \$ из/)).toBeTruthy()
+
+    rerender(
+      <OrdersForm gameId="g1" space={actionSpace()} observation={OBS} onSubmitted={vi.fn()} />,
+    )
+
+    expect(screen.getByText(/Потрачено 0 \$ из/)).toBeTruthy()
+    expect(screen.getByText('нужна ядерная технология')).toBeTruthy()
+  })
+
+  it('drops a target that is gone from the new targets list', async () => {
+    const { rerender } = render(
+      <OrdersForm gameId="g1" space={actionSpace()} observation={OBS} onSubmitted={vi.fn()} />,
+    )
+    await userEvent.click(screen.getAllByRole('button', { name: 'Добавить Петербург' })[0])
+    expect(screen.getByText(/Потрачено 150 \$ из/)).toBeTruthy()
+
+    rerender(
+      <OrdersForm
+        gameId="g1"
+        space={actionSpace({
+          actions: {
+            ...actionSpace().actions,
+            invest: option({ ...actionSpace().actions.invest, targets: ['moscow'] }),
+          },
+        })}
+        observation={OBS}
+        onSubmitted={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByText(/Потрачено 0 \$ из/)).toBeTruthy()
+  })
+
+  it('keeps the draft when the new space allows it', async () => {
+    const { rerender } = render(
+      <OrdersForm gameId="g1" space={actionSpace()} observation={OBS} onSubmitted={vi.fn()} />,
+    )
+    await userEvent.click(screen.getAllByRole('button', { name: 'Добавить Москва' })[0])
+
+    rerender(
+      <OrdersForm
+        gameId="g1"
+        space={actionSpace({ budget: 2000 })}
+        observation={OBS}
+        onSubmitted={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByText(/Потрачено 150 \$ из/)).toBeTruthy()
+  })
+})

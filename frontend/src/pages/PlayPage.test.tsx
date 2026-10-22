@@ -194,3 +194,41 @@ describe('PlayPage', () => {
     expect(await screen.findByText('Пока ничего не произошло.')).toBeTruthy()
   })
 })
+
+describe('PlayPage when the round turns', () => {
+  beforeEach(() => vi.resetAllMocks())
+
+  /** Serve round `first`, then round `second` from the next reload onwards. */
+  function answerRounds(first: number, second: number) {
+    let round = first
+    GET.mockImplementation((path: string) => {
+      if (path.endsWith('/observation')) {
+        return Promise.resolve({ data: { ...OBS, round } }) as never
+      }
+      if (path.endsWith('/action-space')) {
+        return Promise.resolve({ data: actionSpace({ round }) }) as never
+      }
+      // The status is fetched last in each batch: flip the round after it.
+      const status = { data: roundStatus({ round }) }
+      round = second
+      return Promise.resolve(status) as never
+    })
+  }
+
+  it('starts a new form with an empty draft when the round advances', async () => {
+    answerRounds(1, 2)
+    renderPage()
+    await screen.findByRole('button', { name: 'Отправить приказы' })
+
+    await userEvent.click(screen.getAllByRole('button', { name: 'Добавить Москва' })[0])
+    expect(screen.getByText(/Потрачено 150 \$ из/)).toBeTruthy()
+
+    // The next poll sees round 2.
+    await userEvent.click(screen.getByRole('button', { name: 'Обновить' }))
+
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: 'Приказы на раунд 2' })).toBeTruthy(),
+    )
+    expect(screen.getByText(/Потрачено 0 \$ из/)).toBeTruthy()
+  })
+})

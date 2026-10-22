@@ -82,7 +82,9 @@ export default function PlayPage() {
                   Приказы на этот раунд уже приняты. Новая отправка заменит предыдущую.
                 </p>
               )}
+              {/* A new round is a new form: remounting drops the previous draft. */}
               <OrdersForm
+                key={space.round}
                 gameId={gameId!}
                 space={space}
                 observation={obs}

@@ -50,6 +50,62 @@ export function toBody(draft: Draft): CountryOrders {
   return draft
 }
 
+/**
+ * Drop from a draft everything the current action space no longer allows.
+ *
+ * The form outlives a single action space: submitting reloads it, and the round may
+ * turn while the page stays open. A leftover from the previous state — a technology
+ * already developed, a shield already standing, a city destroyed — is *invisible*,
+ * because the form hides the controls of an unavailable action. Yet it still counts
+ * towards the budget and makes PUT /orders fail with a reason the player cannot act
+ * on. Pruning keeps the draft honest: what is not offered cannot be ordered.
+ *
+ * Returns the same object when there is nothing to drop, so React can skip a render.
+ */
+export function pruneDraft(draft: Draft, space: ActionSpace): Draft {
+  const live = (id: string): boolean => space.actions[id]?.available ?? false
+  const legal = (id: string, picked: string[]): string[] => {
+    if (!live(id)) return []
+    const targets = space.actions[id].targets
+    return targets == null ? picked : picked.filter((t) => targets.includes(t))
+  }
+
+  const aid = live('aid')
+    ? Object.fromEntries(
+        Object.entries(draft.aid).filter(([id]) => space.actions.aid.targets?.includes(id) ?? true),
+      )
+    : {}
+
+  const next: Draft = {
+    invest: legal('invest', draft.invest),
+    eco_programs: live('eco_program') ? draft.eco_programs : 0,
+    nuclear_tech: live('nuclear_tech') && draft.nuclear_tech,
+    bombs: live('bomb') ? draft.bombs : 0,
+    strikes: legal('strike', draft.strikes),
+    shields: legal('shield', draft.shields),
+    sanctions: legal('sanction', draft.sanctions),
+    aid,
+  }
+
+  return same(draft, next) ? draft : next
+}
+
+function same(a: Draft, b: Draft): boolean {
+  const list = (x: string[], y: string[]) => x.length === y.length && x.every((v, i) => v === y[i])
+  const keys = Object.keys(a.aid)
+  return (
+    list(a.invest, b.invest) &&
+    a.eco_programs === b.eco_programs &&
+    a.nuclear_tech === b.nuclear_tech &&
+    a.bombs === b.bombs &&
+    list(a.strikes, b.strikes) &&
+    list(a.shields, b.shields) &&
+    list(a.sanctions, b.sanctions) &&
+    keys.length === Object.keys(b.aid).length &&
+    keys.every((k) => a.aid[k] === b.aid[k])
+  )
+}
+
 export function costOf(space: ActionSpace, id: string): number {
   return space.actions[id]?.cost ?? 0
 }

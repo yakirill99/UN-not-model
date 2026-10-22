@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { api, errorMessage, orderErrors, type ActionSpace, type Observation } from '../api/client'
 import { money } from '../country/format'
 import {
   countLeft,
   emptyDraft,
   isEmpty,
+  pruneDraft,
   reasonText,
   toBody,
   totalCost,
@@ -21,6 +22,11 @@ import { ActionHeader, AidFields, TargetCounters, TargetToggles } from './Picker
  * much it costs and which targets are legal (engine/actions.py). The form only
  * previews the budget and keeps the player inside the limits; the authoritative
  * check happens again in PUT /orders, whose `errors[]` is shown per action.
+ *
+ * The draft is pruned whenever the action space changes. PlayPage also remounts the
+ * form on a new round (`key={space.round}`), but a space can change within one round
+ * too — after a submission is reloaded — and a stale pick would then be charged for
+ * while its control is hidden, leaving the player unable to submit at all.
  */
 export default function OrdersForm({
   gameId,
@@ -34,6 +40,9 @@ export default function OrdersForm({
   onSubmitted: () => void
 }) {
   const [draft, setDraft] = useState<Draft>(emptyDraft)
+
+  // What the rules no longer allow cannot stay in the draft (see pruneDraft).
+  useEffect(() => setDraft((d) => pruneDraft(d, space)), [space])
   const [errors, setErrors] = useState<Record<string, string[]>>({})
   const [message, setMessage] = useState<string | null>(null)
   const [done, setDone] = useState(false)

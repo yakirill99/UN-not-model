@@ -239,3 +239,118 @@ label.row.inline input[type='checkbox'] {
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
+
+/* --- host dashboard: charts and the public feed (#74) ----------------------- */
+
+.chart {
+  width: 100%;
+  height: auto;
+  max-height: 11rem;
+}
+.chart .axis {
+  stroke: color-mix(in srgb, var(--fg) 20%, transparent);
+  stroke-width: 1;
+}
+.chart .line {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.chart .tick {
+  fill: var(--muted);
+  font-size: 0.5rem;
+}
+/* Below 40 % the planet is in trouble — shade the zone instead of explaining it. */
+.chart .zone-bad {
+  fill: #ef476f;
+  opacity: 0.08;
+}
+
+.legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.25rem;
+}
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.legend strong {
+  margin-left: auto;
+}
+.swatch {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 2px;
+  flex: none;
+}
+
+.bars {
+  display: grid;
+  gap: 0.35rem;
+}
+.bar-row {
+  display: grid;
+  grid-template-columns: 7rem 1fr 2rem;
+  align-items: center;
+  gap: 0.5rem;
+}
+.bar-track {
+  background: color-mix(in srgb, var(--fg) 12%, transparent);
+  border-radius: 3px;
+  height: 0.6rem;
+  overflow: hidden;
+}
+.bar-fill {
+  display: block;
+  height: 100%;
+}
+.bar-value {
+  text-align: right;
+  color: var(--muted);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.chip {
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--fg) 20%, transparent);
+  border-radius: 999px;
+  padding: 0.2rem 0.7rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  cursor: pointer;
+}
+.chip.on {
+  border-color: color-mix(in srgb, var(--fg) 55%, transparent);
+  color: var(--fg);
+}
+
+.feed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.3rem;
+  max-height: 22rem;
+  overflow-y: auto;
+}
+.feed li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+.feed-icon {
+  flex: none;
+}
+.feed-round {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  flex: none;
+}

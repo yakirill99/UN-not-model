@@ -17,6 +17,10 @@ tools:
 sync:
     cd backend && uv sync
 
+# Install frontend dependencies
+web-sync:
+    cd frontend && pnpm install --frozen-lockfile
+
 # --- Quality -------------------------------------------------------------
 
 # Run backend tests (fast suite)
@@ -36,7 +40,7 @@ typecheck:
     cd backend && uv run mypy arena
 
 # Everything CI runs
-check: lint typecheck test
+check: lint typecheck test web-lint web-coverage web-build
 
 # Run all pre-commit hooks on all files
 hooks:
@@ -113,3 +117,54 @@ seed-demo *args:
 # End-to-end smoke against a running server (just dev in another terminal)
 smoke base="http://localhost:8000" *args:
     cd backend && uv run python -m arena.smoke --base {{base}} {{args}}
+
+# --- frontend (sprint 5) ------------------------------------------------------
+# Vite dev server on http://localhost:5173 (and http://<ip>:5173 for phones); /api -> :8000
+web:
+    cd frontend && pnpm dev
+
+# oxlint + prettier --check
+web-lint:
+    cd frontend && pnpm lint
+
+# tsc -b + vite build -> frontend/dist
+web-build:
+    cd frontend && pnpm build
+
+# vitest (jsdom), without coverage
+web-test:
+    cd frontend && pnpm test
+
+# vitest + v8 coverage; thresholds in frontend/vite.config.ts, report in frontend/coverage/
+web-coverage:
+    cd frontend && pnpm coverage
+
+# Regenerate the OpenAPI snapshot and the TS types after any API change
+openapi:
+    cd backend && uv run python -m arena.openapi
+    cd frontend && pnpm openapi
+
+# --- production (docker compose + туннель) -----------------------------------
+PROD := "-f compose.prod.yaml --env-file .env.prod"
+
+# Собрать и поднять db+api+web; nginx слушает ARENA_HTTP_PORT (8080)
+prod-up:
+    docker compose {{PROD}} up -d --build
+    docker compose {{PROD}} exec api alembic upgrade head
+    @echo "готово: http://localhost:8080/readyz"
+
+# Остановить (данные остаются в томе pgdata)
+prod-down:
+    docker compose {{PROD}} down
+
+# Логи API
+prod-logs:
+    docker compose {{PROD}} logs -f api
+
+# Демо-партия с кодами на проде
+prod-seed *args:
+    docker compose {{PROD}} exec api python -m arena.seed_demo {{args}}
+
+# Коды всех созданных партий
+prod-codes:
+    docker compose {{PROD}} exec db psql -U arena -d arena -c "select title, host_code, current_round, phase from games order by created_at desc limit 10;"

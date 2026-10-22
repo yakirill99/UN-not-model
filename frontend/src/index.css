@@ -1,0 +1,241 @@
+:root {
+  color-scheme: light dark;
+  --bg: #f6f7f9;
+  --fg: #1b2a41;
+  --muted: #6b7280;
+  --card: #ffffff;
+  --ok: #16a34a;
+  --bad: #dc2626;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  line-height: 1.5;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f172a;
+    --fg: #e5e7eb;
+    --muted: #9ca3af;
+    --card: #1e293b;
+  }
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+}
+.app {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+.card {
+  background: var(--card);
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+}
+.muted {
+  color: var(--muted);
+}
+.ok {
+  color: var(--ok);
+}
+.bad {
+  color: var(--bad);
+}
+code {
+  font-size: 0.9em;
+}
+.narrow {
+  max-width: 26rem;
+}
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.header h1 {
+  margin: 0;
+}
+.header p {
+  margin: 0;
+}
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+}
+input,
+select,
+button {
+  font: inherit;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--fg) 25%, transparent);
+  background: var(--card);
+  color: var(--fg);
+  min-height: 2.75rem; /* thumb-sized on phones */
+}
+input[autocapitalize='characters'] {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-family: ui-monospace, monospace;
+}
+button {
+  background: var(--fg);
+  color: var(--bg);
+  border: none;
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+button.ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid color-mix(in srgb, var(--fg) 25%, transparent);
+}
+fieldset {
+  border: 1px solid color-mix(in srgb, var(--fg) 15%, transparent);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+.codes {
+  border-collapse: collapse;
+  width: 100%;
+}
+.codes td {
+  padding: 0.35rem 0.25rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--fg) 10%, transparent);
+}
+.code {
+  font-family: ui-monospace, monospace;
+  font-size: 1.05em;
+  letter-spacing: 0.08em;
+  user-select: all;
+}
+.warn {
+  color: #d97706;
+}
+h2 {
+  font-size: 1.05rem;
+  margin: 0;
+}
+.cities {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.95rem;
+}
+.cities th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--muted);
+  font-size: 0.85rem;
+  padding: 0.25rem;
+}
+.cities td {
+  padding: 0.35rem 0.25rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--fg) 10%, transparent);
+}
+.cities tr.destroyed td {
+  opacity: 0.55;
+}
+.facts {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.95rem;
+}
+.facts li {
+  margin: 0.15rem 0;
+}
+.other {
+  border-top: 1px solid color-mix(in srgb, var(--fg) 10%, transparent);
+  padding-top: 0.5rem;
+}
+.other:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+.other p {
+  margin: 0.15rem 0 0;
+  font-size: 0.9rem;
+}
+.news {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.95rem;
+}
+.news li {
+  margin: 0.25rem 0;
+}
+.action {
+  border-top: 1px solid color-mix(in srgb, var(--fg) 10%, transparent);
+  padding-top: 0.6rem;
+}
+.action.off {
+  opacity: 0.55;
+}
+.action-head {
+  font-size: 0.95rem;
+}
+.action p.bad {
+  margin: 0.3rem 0 0;
+  font-size: 0.9rem;
+}
+.targets {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.95rem;
+}
+label.row.inline {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+label.row.inline input[type='number'] {
+  width: 6rem;
+  text-align: right;
+}
+label.row.inline input[type='checkbox'] {
+  width: 1.4rem;
+  height: 1.4rem;
+  min-height: 0;
+}
+.counter {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.counter button {
+  min-height: 2.25rem;
+  min-width: 2.25rem;
+  padding: 0.2rem 0.5rem;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+.counter output {
+  min-width: 1.5rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}

@@ -7,10 +7,11 @@ import {
   type Observation,
   type RoundStatus,
 } from '../api/client'
+import Changes from '../country/Changes'
 import MyCountry from '../country/MyCountry'
 import News from '../country/News'
 import Others from '../country/Others'
-import { ecologyTone, percent } from '../country/format'
+import StatusStrip from '../country/StatusStrip'
 import OrdersForm from '../orders/OrdersForm'
 import Header from './Header'
 
@@ -63,15 +64,20 @@ export default function PlayPage() {
 
       {obs && (
         <div className="stack">
-          <div className="row">
-            <span className="muted">
-              Экология мира:{' '}
-              <strong className={ecologyTone(obs.ecology)}>{percent(obs.ecology)}</strong>
-            </span>
-            <button className="ghost" onClick={() => void load()} disabled={busy}>
-              {busy ? 'Обновляем…' : 'Обновить'}
-            </button>
-          </div>
+          {/* Sticky summary + the refresh: «как мы вообще?» without scrolling. */}
+          <StatusStrip
+            me={obs.me}
+            ecology={obs.ecology}
+            others={obs.others}
+            action={
+              <button className="ghost" onClick={() => void load()} disabled={busy}>
+                {busy ? 'Обновляем…' : 'Обновить'}
+              </button>
+            }
+          />
+
+          {/* What the last resolved round changed, worst first (#6). */}
+          <Changes news={obs.news ?? []} />
 
           <MyCountry me={obs.me} />
 
@@ -99,7 +105,7 @@ export default function PlayPage() {
             </p>
           )}
 
-          <Others others={obs.others} />
+          <Others others={obs.others} me={obs.me} />
           <News news={obs.news ?? []} />
         </div>
       )}

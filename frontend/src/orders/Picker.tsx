@@ -82,6 +82,68 @@ export function TargetCounters({
   )
 }
 
+/**
+ * Numeric field for a single count: a thumb-sized − / + around the number input.
+ * The input stays a spinbutton (arrows, paste, external keyboards), the buttons
+ * cover the phone case from the playtest feedback («цифры вводить неудобно»).
+ * `max == null` means the rules set no per-round limit.
+ */
+export function NumberStepper({
+  label,
+  noun,
+  value,
+  max,
+  onChange,
+  disabled,
+}: {
+  /** Accessible label of the number input itself («Сколько бомб»). */
+  label: string
+  /** Accusative noun for the ± buttons («бомбу») — kept separate so label
+   *  queries (getByLabelText) match only the input. */
+  noun: string
+  value: number
+  max: number | null
+  onChange: (next: number) => void
+  disabled?: boolean
+}) {
+  const clamp = (n: number) => {
+    if (Number.isNaN(n)) return 0
+    return max == null ? Math.max(0, n) : Math.min(Math.max(0, n), max)
+  }
+  return (
+    <span className="counter">
+      <button
+        type="button"
+        className="ghost"
+        aria-label={`Убрать ${noun}`}
+        disabled={disabled || value <= 0}
+        onClick={() => onChange(clamp(value - 1))}
+      >
+        −
+      </button>
+      <input
+        type="number"
+        min={0}
+        max={max ?? undefined}
+        step={1}
+        value={value}
+        aria-label={label}
+        disabled={disabled}
+        onChange={(e) => onChange(clamp(Number(e.target.value)))}
+      />
+      <button
+        type="button"
+        className="ghost"
+        aria-label={`Добавить ${noun}`}
+        disabled={disabled || (max != null && value >= max)}
+        onClick={() => onChange(clamp(value + 1))}
+      >
+        +
+      </button>
+    </span>
+  )
+}
+
 /** One-per-target picker: shields and sanctions are either on or off per target. */
 export function TargetToggles({
   option,

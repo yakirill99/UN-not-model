@@ -13,7 +13,7 @@ import {
   type Draft,
 } from './core'
 import { nameOf, type Names } from './names'
-import { ActionHeader, AidFields, TargetCounters, TargetToggles } from './Picker'
+import { ActionHeader, AidFields, NumberStepper, TargetCounters, TargetToggles } from './Picker'
 
 /**
  * The order form for one round.
@@ -135,17 +135,17 @@ export default function OrdersForm({
 
       {block(
         'eco_program',
-        <label className="row inline">
-          <span>Сколько программ</span>
-          <input
-            type="number"
-            min={0}
-            step={1}
+        <div className="row inline">
+          <span>Программы: {draft.eco_programs}</span>
+          <NumberStepper
+            label="Сколько программ"
+            noun="программу"
             value={draft.eco_programs}
+            max={space.actions.eco_program.max_count ?? null}
             disabled={busy}
-            onChange={(e) => patch({ eco_programs: Math.max(0, Number(e.target.value) || 0) })}
+            onChange={(eco_programs) => patch({ eco_programs })}
           />
-        </label>,
+        </div>,
       )}
 
       {block(
@@ -163,23 +163,22 @@ export default function OrdersForm({
 
       {block(
         'bomb',
-        <label className="row inline">
+        <div className="row inline">
           <span>
-            Сколько бомб
-            {space.actions.bomb.max_count != null && (
-              <span className="muted"> (не больше {space.actions.bomb.max_count})</span>
-            )}
+            Бомбы: {draft.bombs}
+            {space.actions.bomb.max_count != null
+              ? ` из ${space.actions.bomb.max_count}`
+              : ' · лимита нет'}
           </span>
-          <input
-            type="number"
-            min={0}
-            max={space.actions.bomb.max_count ?? undefined}
-            step={1}
+          <NumberStepper
+            label="Сколько бомб"
+            noun="бомбу"
             value={draft.bombs}
+            max={space.actions.bomb.max_count ?? null}
             disabled={busy}
-            onChange={(e) => patch({ bombs: Math.max(0, Number(e.target.value) || 0) })}
+            onChange={(bombs) => patch({ bombs })}
           />
-        </label>,
+        </div>,
       )}
 
       {block('strike', counters('strike', 'strikes'))}

@@ -231,7 +231,7 @@ describe('OrdersForm', () => {
         },
       }),
     )
-    expect(screen.getByText('(не больше 3)')).toBeTruthy()
+    expect(screen.getByText(/Бомбы: 0 из 3/)).toBeTruthy()
   })
 
   it('skips an action the rules do not define at all', () => {
@@ -336,8 +336,26 @@ describe('OrdersForm', () => {
         },
       }),
     )
-    expect(screen.queryByText(/не больше/)).toBeNull()
+    expect(screen.getByText(/лимита нет/)).toBeTruthy()
     expect(screen.getByLabelText(/Сколько бомб/).getAttribute('max')).toBeNull()
+  })
+
+  it('stops the bomb stepper at the per-round cap', () => {
+    setup(
+      actionSpace({
+        actions: {
+          ...actionSpace().actions,
+          bomb: option({ ...actionSpace().actions.bomb, available: true, reason: null }),
+        },
+      }),
+    )
+    const plus = screen.getByRole('button', { name: 'Добавить бомбу' })
+    fireEvent.click(plus)
+    fireEvent.click(plus)
+    fireEvent.click(plus)
+    expect(screen.getByText(/Бомбы: 3 из 3/)).toBeTruthy()
+    expect(plus).toHaveProperty('disabled', true)
+    expect(screen.getByText(/Потрачено 450 \$ из/)).toBeTruthy()
   })
 })
 
@@ -459,5 +477,41 @@ describe('OrdersForm when the action space changes under it', () => {
     )
 
     expect(screen.getByText(/Потрачено 150 \$ из/)).toBeTruthy()
+  })
+
+  it('clamps the bomb draft when the cap drops under it', () => {
+    const wide = actionSpace({
+      actions: {
+        ...actionSpace().actions,
+        bomb: option({ ...actionSpace().actions.bomb, available: true, reason: null }),
+      },
+    })
+    const { rerender } = render(
+      <OrdersForm gameId="g1" space={wide} observation={OBS} onSubmitted={vi.fn()} />,
+    )
+    fireEvent.change(screen.getByLabelText(/Сколько бомб/), { target: { value: '3' } })
+    expect(screen.getByText(/Потрачено 450 \$ из/)).toBeTruthy()
+
+    rerender(
+      <OrdersForm
+        gameId="g1"
+        space={actionSpace({
+          actions: {
+            ...actionSpace().actions,
+            bomb: option({
+              ...actionSpace().actions.bomb,
+              available: true,
+              reason: null,
+              max_count: 1,
+            }),
+          },
+        })}
+        observation={OBS}
+        onSubmitted={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByText(/Потрачено 150 \$ из/)).toBeTruthy()
+    expect(screen.getByText(/Бомбы: 1 из 1/)).toBeTruthy()
   })
 })

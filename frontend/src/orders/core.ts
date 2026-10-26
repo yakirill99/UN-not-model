@@ -76,11 +76,19 @@ export function pruneDraft(draft: Draft, space: ActionSpace): Draft {
       )
     : {}
 
+  // A count may also become too high: the cap depends on the round (last-round bombs),
+  // and the space can change while the draft is open. Keep it inside max_count.
+  const capped = (v: number, id: string): number => {
+    if (!live(id)) return 0
+    const max = space.actions[id].max_count
+    return max == null ? v : Math.min(v, max)
+  }
+
   const next: Draft = {
     invest: legal('invest', draft.invest),
-    eco_programs: live('eco_program') ? draft.eco_programs : 0,
+    eco_programs: capped(draft.eco_programs, 'eco_program'),
     nuclear_tech: live('nuclear_tech') && draft.nuclear_tech,
-    bombs: live('bomb') ? draft.bombs : 0,
+    bombs: capped(draft.bombs, 'bomb'),
     strikes: legal('strike', draft.strikes),
     shields: legal('shield', draft.shields),
     sanctions: legal('sanction', draft.sanctions),

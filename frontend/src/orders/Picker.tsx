@@ -83,9 +83,9 @@ export function TargetCounters({
 }
 
 /**
- * Numeric field for a single count: a thumb-sized − / + around the number input.
- * The input stays a spinbutton (arrows, paste, external keyboards), the buttons
- * cover the phone case from the playtest feedback («цифры вводить неудобно»).
+ * Numeric field for a single count: a thumb-sized − / + around the number,
+ * exactly like TargetCounters («инвестировать в города»): buttons only — no
+ * typing, no native spin arrows, no on-screen keyboard on phones.
  * `max == null` means the rules set no per-round limit.
  */
 export function NumberStepper({
@@ -96,10 +96,10 @@ export function NumberStepper({
   onChange,
   disabled,
 }: {
-  /** Accessible label of the number input itself («Сколько бомб»). */
+  /** Accessible label of the readout itself («Сколько бомб»). */
   label: string
   /** Accusative noun for the ± buttons («бомбу») — kept separate so label
-   *  queries (getByLabelText) match only the input. */
+   *  queries (getByLabelText) match only the readout. */
   noun: string
   value: number
   max: number | null
@@ -121,16 +121,7 @@ export function NumberStepper({
       >
         −
       </button>
-      <input
-        type="number"
-        min={0}
-        max={max ?? undefined}
-        step={1}
-        value={value}
-        aria-label={label}
-        disabled={disabled}
-        onChange={(e) => onChange(clamp(Number(e.target.value)))}
-      />
+      <output aria-label={label}>{value}</output>
       <button
         type="button"
         className="ghost"

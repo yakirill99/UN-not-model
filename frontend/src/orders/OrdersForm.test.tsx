@@ -96,7 +96,7 @@ describe('OrdersForm', () => {
     setup()
     await userEvent.click(screen.getAllByRole('button', { name: 'Добавить Москва' })[0])
     await userEvent.click(screen.getAllByRole('button', { name: 'Добавить Москва' })[0])
-    await userEvent.type(screen.getByLabelText(/Сколько программ/), '1')
+    await userEvent.click(screen.getByRole('button', { name: 'Добавить программу' }))
     await userEvent.click(screen.getByLabelText('Разработать в этом раунде'))
     await userEvent.click(submitButton())
 
@@ -241,7 +241,7 @@ describe('OrdersForm', () => {
     expect(screen.queryByText(/Материальная помощь/)).toBeNull()
   })
 
-  it('clamps bombs to zero when the field is emptied or negated', () => {
+  it('steps bombs only via buttons and never below zero', () => {
     setup(
       actionSpace({
         actions: {
@@ -250,13 +250,16 @@ describe('OrdersForm', () => {
         },
       }),
     )
-    const bombs = screen.getByLabelText(/Сколько бомб/)
-    fireEvent.change(bombs, { target: { value: '2' } })
+    const minus = screen.getByRole('button', { name: 'Убрать бомбу' })
+    expect(minus).toHaveProperty('disabled', true)
+    const plus = screen.getByRole('button', { name: 'Добавить бомбу' })
+    fireEvent.click(plus)
+    fireEvent.click(plus)
     expect(screen.getByText(/Потрачено 300 \$ из/)).toBeTruthy()
-    fireEvent.change(bombs, { target: { value: '' } })
+    fireEvent.click(minus)
+    fireEvent.click(minus)
     expect(screen.getByText(/Потрачено 0 \$ из/)).toBeTruthy()
-    fireEvent.change(bombs, { target: { value: '-1' } })
-    expect(screen.getByText(/Потрачено 0 \$ из/)).toBeTruthy()
+    expect(minus).toHaveProperty('disabled', true)
   })
 
   it('names an unknown target id instead of hiding the rejection', async () => {
@@ -309,17 +312,15 @@ describe('OrdersForm', () => {
     expect(within(shield).queryAllByRole('checkbox')).toHaveLength(0)
   })
 
-  it('clamps eco programs to zero when emptied or negated', () => {
+  it('steps eco programs only via buttons and never below zero', () => {
     setup()
-    const field = screen.getByLabelText(/Сколько программ/)
-    // A number input lets "" and "-5" through on paste; neither may become income.
-    fireEvent.change(field, { target: { value: '2' } })
-    expect(screen.getByText(/Потрачено 400 \$ из/)).toBeTruthy()
-    fireEvent.change(field, { target: { value: '' } })
+    const minus = screen.getByRole('button', { name: 'Убрать программу' })
+    expect(minus).toHaveProperty('disabled', true)
+    fireEvent.click(screen.getByRole('button', { name: 'Добавить программу' }))
+    expect(screen.getByText(/Потрачено 200 \$ из/)).toBeTruthy()
+    fireEvent.click(minus)
     expect(screen.getByText(/Потрачено 0 \$ из/)).toBeTruthy()
-    fireEvent.change(field, { target: { value: '-5' } })
-    expect(screen.getByText(/Потрачено 0 \$ из/)).toBeTruthy()
-    expect(submitButton()).toHaveProperty('disabled', true)
+    expect(minus).toHaveProperty('disabled', true)
   })
 
   it('leaves the bomb field uncapped when the rules set no per-round limit', () => {
@@ -337,7 +338,8 @@ describe('OrdersForm', () => {
       }),
     )
     expect(screen.getByText(/лимита нет/)).toBeTruthy()
-    expect(screen.getByLabelText(/Сколько бомб/).getAttribute('max')).toBeNull()
+    // Without a cap the plus button keeps working past any count.
+    expect(screen.getByRole('button', { name: 'Добавить бомбу' })).toHaveProperty('disabled', false)
   })
 
   it('stops the bomb stepper at the per-round cap', () => {
@@ -426,7 +428,9 @@ describe('OrdersForm when the action space changes under it', () => {
     const { rerender } = render(
       <OrdersForm gameId="g1" space={withBombs} observation={OBS} onSubmitted={vi.fn()} />,
     )
-    fireEvent.change(screen.getByLabelText(/Сколько бомб/), { target: { value: '2' } })
+    const plus = screen.getByRole('button', { name: 'Добавить бомбу' })
+    fireEvent.click(plus)
+    fireEvent.click(plus)
     expect(screen.getByText(/Потрачено 300 \$ из/)).toBeTruthy()
 
     rerender(
@@ -489,7 +493,10 @@ describe('OrdersForm when the action space changes under it', () => {
     const { rerender } = render(
       <OrdersForm gameId="g1" space={wide} observation={OBS} onSubmitted={vi.fn()} />,
     )
-    fireEvent.change(screen.getByLabelText(/Сколько бомб/), { target: { value: '3' } })
+    const plus = screen.getByRole('button', { name: 'Добавить бомбу' })
+    fireEvent.click(plus)
+    fireEvent.click(plus)
+    fireEvent.click(plus)
     expect(screen.getByText(/Потрачено 450 \$ из/)).toBeTruthy()
 
     rerender(

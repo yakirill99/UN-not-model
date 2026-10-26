@@ -1,5 +1,7 @@
 :root {
-  color-scheme: light dark;
+  /* Light is the only automatic theme: the playtest said the auto-dark felt «мрачно».
+     Dark stays available as an explicit opt-in: <html data-theme="dark">. */
+  color-scheme: light;
   --bg: #f6f7f9;
   --fg: #1b2a41;
   --muted: #6b7280;
@@ -14,13 +16,12 @@
     sans-serif;
   line-height: 1.5;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0f172a;
-    --fg: #e5e7eb;
-    --muted: #9ca3af;
-    --card: #1e293b;
-  }
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0f172a;
+  --fg: #e5e7eb;
+  --muted: #9ca3af;
+  --card: #1e293b;
 }
 * {
   box-sizing: border-box;
@@ -238,6 +239,12 @@ label.row.inline input[type='checkbox'] {
   min-width: 1.5rem;
   text-align: center;
   font-variant-numeric: tabular-nums;
+}
+.counter input[type='number'] {
+  width: 4.5rem;
+  min-height: 2.25rem;
+  padding: 0.2rem 0.25rem;
+  text-align: center;
 }
 
 /* --- host dashboard: charts and the public feed (#74) ----------------------- */

@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { foreign } from '../test/observation'
+import { foreign, me } from '../test/observation'
 import Others from './Others'
 
 describe('Others', () => {
@@ -38,5 +38,36 @@ describe('Others', () => {
     render(<Others others={[foreign(), foreign({ id: 'iran', name: 'Иран' })]} />)
     expect(screen.getByText('США')).toBeTruthy()
     expect(screen.getByText('Иран')).toBeTruthy()
+  })
+
+  it('sorts by average life, best first, ties by name', () => {
+    const { container } = render(
+      <Others
+        others={[
+          foreign({ average_life_level: 3000 }),
+          foreign({ id: 'iran', name: 'Иран', average_life_level: 6000 }),
+          foreign({ id: 'brazil', name: 'Бразилия', average_life_level: 3000 }),
+        ]}
+      />,
+    )
+    const names = [...container.querySelectorAll('.other strong')].map((el) => el.textContent)
+    expect(names).toEqual(['1. Иран 🥇', '2. Бразилия 🥈', '2. США 🥈'])
+  })
+
+  it('counts my own country in the ranking but does not list it', () => {
+    const mine = me({ average_life_level: 7000 })
+    const { container } = render(
+      <Others
+        others={[
+          foreign({ average_life_level: 6000 }),
+          foreign({ id: 'iran', name: 'Иран', average_life_level: 5000 }),
+        ]}
+        me={mine}
+      />,
+    )
+    // Everyone drops one place: I am first, so the USA shows its global place 2.
+    const names = [...container.querySelectorAll('.other strong')].map((el) => el.textContent)
+    expect(names).toEqual(['2. США 🥈', '3. Иран 🥉'])
+    expect(container.textContent).not.toContain('Россия')
   })
 })

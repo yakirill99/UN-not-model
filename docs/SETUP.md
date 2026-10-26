@@ -104,10 +104,9 @@ docker compose -f compose.prod.yaml --env-file .env.prod exec api \
 # 5. Демо-партия с кодами команд
 docker compose -f compose.prod.yaml --env-file .env.prod exec api python -m arena.seed_demo
 
-# 6. Анимационное демо (стек визуала)
-docker compose -f compose.prod.yaml --env-file .env.prod \
-  cp docs/demos/bomb-lock-offline.html web:/usr/share/nginx/html/
-# браузер: http://localhost:8080/bomb-lock-offline.html
+# 6. Анимационное демо (стек визуала) — лежит в frontend/public/demos/
+#    и попадает в образ при обычной пересборке, отдельный cp не нужен
+# браузер: http://localhost:8080/demos/bomb-lock-offline.html
 # все три панели должны дойти до «Готова к запуску»
 ```
 
@@ -127,10 +126,11 @@ $UP down -v          # ⚠ снести вместе с данными парт�
 
 ### Правка одного файла без пересборки
 
-`docker cp` живёт до пересоздания контейнера. Для постоянного файла — через Vite:
+`docker cp` живёт до пересоздания контейнера. Постоянные файлы кладите в
+`frontend/public/` (демо уже лежит в `frontend/public/demos/`) — они попадают
+в образ при обычной пересборке:
 
 ```bash
-cp docs/demos/bomb-lock-offline.html frontend/public/
 docker compose -f compose.prod.yaml --env-file .env.prod up -d --build web
 ```
 

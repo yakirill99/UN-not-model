@@ -5,34 +5,34 @@ description = "World Arena — turn-based multiplayer UN diplomacy strategy game
 requires-python = ">=3.13"
 dependencies = [
     "aiosqlite>=0.22.1",
-    "alembic>=1.20.0",
-    "asyncpg>=0.31.0",
-    "fastapi>=0.141.1",
-    "numpy>=2.1",
-    "polars>=1.44.2",
-    "pydantic>=2.9",
-    "pydantic-settings>=2.15.0",
+    "alembic>=1.20.1",
+    "asyncpg>=0.32.0",
+    "fastapi>=0.162.0",
+    "numpy>=2.5.4",
+    "polars>=2.1.0",
+    "pydantic>=2.14.2",
+    "pydantic-settings>=2.16.2",
     "pyjwt>=2.15.1",
     "pyyaml>=6.0",
-    "sqlalchemy[asyncio]>=2.1.1",
+    "sqlalchemy[asyncio]>=2.1.6",
     "uvicorn[standard]>=0.54.0",
 ]
 
 [dependency-groups]
 analytics = [
-    "jupyterlab>=4.6.4",
+    "jupyterlab>=4.6.5",
     "matplotlib>=3.11.2",
 ]
 dev = [
     "httpx>=0.28.1",
-    "hypothesis>=6.100",
-    "mypy>=1.11",
-    "pytest>=8.3",
-    "pytest-asyncio>=1.4.0",
+    "hypothesis>=6.170.14",
+    "mypy>=2.4.1",
+    "pytest>=9.2.0",
+    "pytest-asyncio>=1.4.1",
     "pytest-cov>=5.0",
-    "ruff>=0.6",
+    "ruff>=0.17.3",
     "testcontainers[postgres]>=4.15.0",
-    "types-pyyaml>=6.0",
+    "types-pyyaml>=6.0.12.20261030",
 ]
 
 [build-system]

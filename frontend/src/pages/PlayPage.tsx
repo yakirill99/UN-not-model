@@ -13,13 +13,17 @@ import News from '../country/News'
 import Others from '../country/Others'
 import StatusStrip from '../country/StatusStrip'
 import OrdersForm from '../orders/OrdersForm'
+import WorldTab from '../world/WorldTab'
+import { flagUrl } from '../world/flags'
 import Header from './Header'
 
-/** The three screens of one player page; «Страна» is where the round is played. */
+/** The screens of one player page; «Страна» is where the round is played.
+    «Мир» is experimental: a schematic map with manual diplomacy (#world). */
 const TABS = [
   { id: 'country', label: 'Страна' },
-  { id: 'others', label: 'Другие страны' },
-  { id: 'news', label: 'Новости раунда' },
+  { id: 'others', label: 'Участники' },
+  { id: 'news', label: 'Новости' },
+  { id: 'world', label: 'Мир' },
 ] as const
 
 type TabId = (typeof TABS)[number]['id']
@@ -61,6 +65,16 @@ export default function PlayPage() {
 
   return (
     <main className="app">
+      {/* The played nation behind everything (#world): one file per country
+          in /public/flags — swap the file, swap the banner. */}
+      {obs && (
+        <div
+          className="flag-bg"
+          style={{ backgroundImage: `url("${flagUrl(obs.me.name)}")` }}
+          aria-hidden="true"
+        />
+      )}
+
       <Header
         title={obs?.me.name ?? 'Моя страна'}
         subtitle={obs ? `Раунд ${obs.round}` : undefined}
@@ -74,38 +88,39 @@ export default function PlayPage() {
 
       {obs && (
         <div className="stack">
-          {/* Sticky summary + the refresh: «как мы вообще?» without scrolling. */}
-          <StatusStrip
-            me={obs.me}
-            ecology={obs.ecology}
-            others={obs.others}
-            action={
-              <button className="ghost" onClick={() => void load()} disabled={busy}>
-                {busy ? 'Обновляем…' : 'Обновить'}
-              </button>
-            }
-          />
+          {/* Sticky header travels with the scroll: key numbers AND the menu
+              stay visible — «плашка меню тоже опускается вниз». */}
+          <div className="playhead">
+            <StatusStrip
+              me={obs.me}
+              ecology={obs.ecology}
+              others={obs.others}
+              action={
+                <button className="ghost" onClick={() => void load()} disabled={busy}>
+                  {busy ? 'Обновляем…' : 'Обновить'}
+                </button>
+              }
+            />
 
-          {/* The switcher scrolls away with the page: the sticky spot belongs
-              to the numbers above, not to navigation. */}
-          <nav className="tabs" role="tablist" aria-label="Разделы">
-            {TABS.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                role="tab"
-                id={`tab-${t.id}`}
-                aria-selected={tab === t.id}
-                aria-controls={`panel-${t.id}`}
-                className={tab === t.id ? 'tab on' : 'tab'}
-                onClick={() => setTab(t.id)}
-              >
-                {t.label}
-              </button>
-            ))}
-          </nav>
+            <nav className="tabs" role="tablist" aria-label="Разделы">
+              {TABS.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  role="tab"
+                  id={`tab-${t.id}`}
+                  aria-selected={tab === t.id}
+                  aria-controls={`panel-${t.id}`}
+                  className={tab === t.id ? 'tab on' : 'tab'}
+                  onClick={() => setTab(t.id)}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </nav>
+          </div>
 
-          {/* All three stay mounted; `hidden` hides the inactive ones. That is
+          {/* All panels stay mounted; `hidden` hides the inactive ones. That is
               what keeps the half-filled order form alive across tab switches. */}
           <div
             className="stack"
@@ -160,6 +175,16 @@ export default function PlayPage() {
             {/* What the last resolved round changed, worst first (#6). */}
             <Changes news={obs.news ?? []} />
             <News news={obs.news ?? []} />
+          </div>
+
+          <div
+            className="stack"
+            role="tabpanel"
+            id="panel-world"
+            aria-labelledby="tab-world"
+            hidden={tab !== 'world'}
+          >
+            <WorldTab obs={obs} gameId={gameId} />
           </div>
         </div>
       )}

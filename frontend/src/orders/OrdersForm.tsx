@@ -97,7 +97,7 @@ export default function OrdersForm({
     const problems = errors[id] ?? []
     return (
       <section className={option.available ? 'action' : 'action off'}>
-        <ActionHeader option={option} />
+        <ActionHeader option={option} id={id} />
         {option.available && children}
         {problems.length > 0 && (
           <p className="bad" role="alert">
@@ -211,6 +211,7 @@ export default function OrdersForm({
           option={space.actions.aid}
           names={names}
           aid={draft.aid}
+          budgetLeft={left}
           disabled={busy}
           onChange={(aid) => patch({ aid })}
         />,

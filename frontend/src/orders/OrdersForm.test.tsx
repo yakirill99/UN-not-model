@@ -122,10 +122,30 @@ describe('OrdersForm', () => {
     const sanction = screen.getByText(/Наложить экономические санкции/).closest('section')!
     await userEvent.click(within(sanction).getByLabelText('США'))
     const aid = screen.getByText(/Материальная помощь/).closest('section')!
-    await userEvent.type(within(aid).getByLabelText('США'), '50')
+    await userEvent.click(within(aid).getByRole('button', { name: 'Добавить помощь США' }))
     await userEvent.click(submitButton())
 
     expect(body()).toMatchObject({ shields: ['spb'], sanctions: ['usa'], aid: { usa: 50 } })
+  })
+
+  it('moves aid in fifty-dollar steps and stops at the budget', async () => {
+    setup(actionSpace({ budget: 80 }))
+    const aid = screen.getByText(/Материальная помощь/).closest('section')!
+    const plus = within(aid).getByRole('button', { name: 'Добавить помощь США' })
+    const minus = within(aid).getByRole('button', { name: 'Убрать помощь США' })
+
+    await userEvent.click(plus)
+    expect(screen.getByText(/Потрачено 50 \$ из/)).toBeTruthy()
+    expect(minus).toHaveProperty('disabled', false)
+
+    // 50 + 50 would overshoot the 80 $ left, so the second click lands on 80.
+    await userEvent.click(plus)
+    expect(screen.getByText(/Потрачено 80 \$ из/)).toBeTruthy()
+    expect(plus).toHaveProperty('disabled', true)
+    expect(submitButton()).toHaveProperty('disabled', false)
+
+    await userEvent.click(minus)
+    expect(screen.getByText(/Потрачено 30 \$ из/)).toBeTruthy()
   })
 
   it('confirms a successful submission and tells the player it can be replaced', async () => {
@@ -296,7 +316,7 @@ describe('OrdersForm', () => {
       }),
     )
     const aid = screen.getByText(/Материальная помощь/).closest('section')!
-    expect(within(aid).queryAllByRole('spinbutton')).toHaveLength(0)
+    expect(within(aid).queryAllByRole('button')).toHaveLength(0)
   })
 
   it('renders toggles with no targets at all', () => {

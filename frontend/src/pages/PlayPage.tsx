@@ -15,6 +15,15 @@ import StatusStrip from '../country/StatusStrip'
 import OrdersForm from '../orders/OrdersForm'
 import Header from './Header'
 
+/** The three screens of one player page; «Страна» is where the round is played. */
+const TABS = [
+  { id: 'country', label: 'Страна' },
+  { id: 'others', label: 'Другие страны' },
+  { id: 'news', label: 'Новости раунда' },
+] as const
+
+type TabId = (typeof TABS)[number]['id']
+
 /** Player home: country card (#58) plus the order form of the current round (#59). */
 export default function PlayPage() {
   const { gameId } = useParams()
@@ -23,6 +32,7 @@ export default function PlayPage() {
   const [status, setStatus] = useState<RoundStatus | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [tab, setTab] = useState<TabId>('country')
 
   const load = useCallback(async () => {
     if (!gameId) return
@@ -76,37 +86,81 @@ export default function PlayPage() {
             }
           />
 
-          {/* What the last resolved round changed, worst first (#6). */}
-          <Changes news={obs.news ?? []} />
+          {/* The switcher scrolls away with the page: the sticky spot belongs
+              to the numbers above, not to navigation. */}
+          <nav className="tabs" role="tablist" aria-label="Разделы">
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                role="tab"
+                id={`tab-${t.id}`}
+                aria-selected={tab === t.id}
+                aria-controls={`panel-${t.id}`}
+                className={tab === t.id ? 'tab on' : 'tab'}
+                onClick={() => setTab(t.id)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </nav>
 
-          <MyCountry me={obs.me} />
+          {/* All three stay mounted; `hidden` hides the inactive ones. That is
+              what keeps the half-filled order form alive across tab switches. */}
+          <div
+            className="stack"
+            role="tabpanel"
+            id="panel-country"
+            aria-labelledby="tab-country"
+            hidden={tab !== 'country'}
+          >
+            <MyCountry me={obs.me} />
 
-          {ordersOpen && space ? (
-            <>
-              {submitted && (
-                <p className="ok">
-                  Приказы на этот раунд уже приняты. Новая отправка заменит предыдущую.
-                </p>
-              )}
-              {/* A new round is a new form: remounting drops the previous draft. */}
-              <OrdersForm
-                key={space.round}
-                gameId={gameId!}
-                space={space}
-                observation={obs}
-                onSubmitted={() => void load()}
-              />
-            </>
-          ) : (
-            <p className="muted">
-              {status && !ordersOpen
-                ? `Приказы закрыты (${status.phase}). Ждём, пока ведущий подведёт итоги раунда.`
-                : 'Приказы сейчас недоступны.'}
-            </p>
-          )}
+            {ordersOpen && space ? (
+              <>
+                {submitted && (
+                  <p className="ok">
+                    Приказы на этот раунд уже приняты. Новая отправка заменит предыдущую.
+                  </p>
+                )}
+                {/* A new round is a new form: remounting drops the previous draft. */}
+                <OrdersForm
+                  key={space.round}
+                  gameId={gameId!}
+                  space={space}
+                  observation={obs}
+                  onSubmitted={() => void load()}
+                />
+              </>
+            ) : (
+              <p className="muted">
+                {status && !ordersOpen
+                  ? `Приказы закрыты (${status.phase}). Ждём, пока ведущий подведёт итоги раунда.`
+                  : 'Приказы сейчас недоступны.'}
+              </p>
+            )}
+          </div>
 
-          <Others others={obs.others} me={obs.me} />
-          <News news={obs.news ?? []} />
+          <div
+            role="tabpanel"
+            id="panel-others"
+            aria-labelledby="tab-others"
+            hidden={tab !== 'others'}
+          >
+            <Others others={obs.others} me={obs.me} />
+          </div>
+
+          <div
+            className="stack"
+            role="tabpanel"
+            id="panel-news"
+            aria-labelledby="tab-news"
+            hidden={tab !== 'news'}
+          >
+            {/* What the last resolved round changed, worst first (#6). */}
+            <Changes news={obs.news ?? []} />
+            <News news={obs.news ?? []} />
+          </div>
         </div>
       )}
     </main>

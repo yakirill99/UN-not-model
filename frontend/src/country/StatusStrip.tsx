@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
 import type { Schemas } from '../api/client'
 import { ecologyTone, lifeLevel, money, percent } from './format'
-import { medalFor, rankOf } from './rank'
+import { Medal } from './Medal'
+import { allEqual, rankOf } from './rank'
 
 type Me = Schemas['OwnCountryView']
 type Foreign = Schemas['ForeignCountryView']
@@ -13,6 +14,9 @@ type Foreign = Schemas['ForeignCountryView']
  * to the top, so a page refresh answers «как мы вообще?» before any scrolling.
  * It is deliberately one line: on the projector and on a phone it must read
  * without wrapping, so each cell keeps its label tiny and its value whole.
+ *
+ * The place appears only once the field has separated: round one, everyone at
+ * 0.00 %, would otherwise crown the whole room first at once.
  */
 export default function StatusStrip({
   me,
@@ -26,8 +30,8 @@ export default function StatusStrip({
   action?: ReactNode
 }) {
   const { place, total } = rankOf(me, others)
+  const unranked = allEqual([me.average_life_level, ...others.map((c) => c.average_life_level)])
   const alive = me.cities.filter((c) => !c.destroyed).length
-  const medal = medalFor(place)
 
   return (
     <div className="statusbar">
@@ -41,9 +45,14 @@ export default function StatusStrip({
       </div>
       <div className="stat">
         <span className="muted">Место</span>
-        <strong>
-          {medal && `${medal} `}
-          {place} из {total}
+        <strong title={unranked ? 'Места ещё не разыграны' : undefined}>
+          {unranked ? (
+            '—'
+          ) : (
+            <>
+              <Medal place={place} size={16} /> {place} из {total}
+            </>
+          )}
         </strong>
       </div>
       <div className="stat">

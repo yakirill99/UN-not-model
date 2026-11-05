@@ -10,7 +10,10 @@
 import type { AnyEvent } from './core'
 import { money, percent } from '../country/format'
 
-/** A line on the screen: an icon, a sentence, and the category it can be filtered by. */
+/**
+ * A line on the screen: an icon, a sentence, and the category it can be filtered by.
+ * The icon is the name of a file in /public/icons — swap the file, swap the look.
+ */
 export type Entry = {
   key: string
   round: number
@@ -68,46 +71,50 @@ function describe(e: AnyEvent, name: Name): Line {
     case 'city_invested':
       return {
         kind: 'build',
-        icon: '🏙',
+        icon: 'invest',
         text: `${name(e.target)}: развитие ${percent(e.development_before)} → ${percent(e.development_after)}`,
       }
     case 'ecology_changed':
       return {
         kind: 'eco',
-        icon: e.delta > 0 ? '♻️' : '☁️',
+        icon: e.delta > 0 ? 'eco_program' : 'cloud',
         // The cause is a rule id ("bomb_production"), never a country: safe to show.
         text: `Экология ${e.delta > 0 ? '+' : ''}${e.delta} → ${percent(e.ecology_after)}`,
       }
     case 'tech_developed':
-      return { kind: 'war', icon: '☢️', text: `${name(e.actor)} освоила ядерную технологию` }
+      return {
+        kind: 'war',
+        icon: 'nuclear_tech',
+        text: `${name(e.actor)} освоила ядерную технологию`,
+      }
     case 'bombs_produced':
-      return { kind: 'war', icon: '💣', text: `${name(e.actor)} произвела бомб: ${e.count}` }
+      return { kind: 'war', icon: 'bomb', text: `${name(e.actor)} произвела бомб: ${e.count}` }
     case 'shield_built':
-      return { kind: 'war', icon: '🛡', text: `${name(e.target)} под ядерным щитом` }
+      return { kind: 'war', icon: 'shield', text: `${name(e.target)} под ядерным щитом` }
     case 'nuclear_strike':
       // The author stays hidden: this is the heart of the game's secrecy.
       return {
         kind: 'war',
-        icon: '🚀',
+        icon: 'strike',
         text: `Ядерный удар по ${name(e.target)}: ${STRIKE[e.outcome]}`,
       }
     case 'city_destroyed':
-      return { kind: 'war', icon: '💥', text: `Город ${name(e.target)} разрушен` }
+      return { kind: 'war', icon: 'destroyed', text: `Город ${name(e.target)} разрушен` }
     case 'sanction_applied':
       // Sanctions are public by the rules — the victim is told who imposed them.
       return {
         kind: 'deal',
-        icon: '❌',
+        icon: 'sanction',
         text: `${name(e.actor)} ввела санкции против ${name(e.target)}: развитие −${e.delta}`,
       }
     case 'aid_transferred':
       return {
         kind: 'deal',
-        icon: '💸',
+        icon: 'aid',
         text: `${name(e.actor)} передала ${money(e.amount)} стране ${name(e.target)}`,
       }
     case 'laugh_awarded':
-      return { kind: 'deal', icon: '😄', text: `Приз за юмор: ${name(e.target)}` }
+      return { kind: 'deal', icon: 'laugh', text: `Приз за юмор: ${name(e.target)}` }
     default:
       return null
   }

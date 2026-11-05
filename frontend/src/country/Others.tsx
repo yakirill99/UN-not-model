@@ -1,6 +1,7 @@
 import type { Schemas } from '../api/client'
 import { lifeLevel } from './format'
-import { medalFor } from './rank'
+import { Medal } from './Medal'
+import { allEqual } from './rank'
 
 type Foreign = Schemas['ForeignCountryView']
 type Me = Schemas['OwnCountryView']
@@ -13,12 +14,15 @@ type Me = Schemas['OwnCountryView']
  * The list is sorted by average life, best first, and the player's own country
  * counts in the ranking when `me` is given: the first question of the room is
  * «кто на первом месте», and nobody should compute places by hand (#2).
+ * While the whole field is level (round one, all 0.00 %) no places are shown:
+ * «все первые» — это не рейтинг, а отсутствие рейтинга.
  */
 export default function Others({ others, me }: { others: Foreign[]; me?: Me | null }) {
   if (others.length === 0) return null
 
   // The ranking pool holds what the player can see: their own country plus the others.
   const pool: { id: string; average_life_level: number }[] = me ? [me, ...others] : others
+  const unranked = allEqual(pool.map((c) => c.average_life_level))
   const placeOf = new Map(
     pool.map((c) => [
       c.id,
@@ -34,14 +38,14 @@ export default function Others({ others, me }: { others: Foreign[]; me?: Me | nu
       <h2>Другие страны</h2>
       {sorted.map((country) => {
         const alive = country.cities.filter((c) => !c.destroyed).length
-        const medal = medalFor(placeOf.get(country.id) ?? 0)
+        const place = placeOf.get(country.id) ?? 0
         return (
           <div key={country.id} className="other">
             <div className="row">
               <strong>
-                <span className="muted">{placeOf.get(country.id)}. </span>
+                <span className="muted">{unranked ? '— ' : `${place}. `}</span>
                 {country.name}
-                {medal && <span aria-hidden="true"> {medal}</span>}
+                {!unranked && <Medal place={place} />}
               </strong>
               <span>{lifeLevel(country.average_life_level)}</span>
             </div>

@@ -51,7 +51,23 @@ describe('Others', () => {
       />,
     )
     const names = [...container.querySelectorAll('.other strong')].map((el) => el.textContent)
-    expect(names).toEqual(['1. Иран 🥇', '2. Бразилия 🥈', '2. США 🥈'])
+    expect(names).toEqual(['1. Иран', '2. Бразилия', '2. США'])
+    expect(screen.getByAltText('1 место')).toBeTruthy()
+    expect(screen.getAllByAltText('2 место')).toHaveLength(2)
+  })
+
+  it('hides places entirely while the whole field is level — round one, all 0.00 %', () => {
+    const { container } = render(
+      <Others
+        others={[
+          foreign({ average_life_level: 0 }),
+          foreign({ id: 'iran', name: 'Иран', average_life_level: 0 }),
+        ]}
+      />,
+    )
+    const names = [...container.querySelectorAll('.other strong')].map((el) => el.textContent)
+    expect(names).toEqual(['— Иран', '— США'])
+    expect(screen.queryByAltText(/место/)).toBeNull()
   })
 
   it('counts my own country in the ranking but does not list it', () => {
@@ -67,7 +83,9 @@ describe('Others', () => {
     )
     // Everyone drops one place: I am first, so the USA shows its global place 2.
     const names = [...container.querySelectorAll('.other strong')].map((el) => el.textContent)
-    expect(names).toEqual(['2. США 🥈', '3. Иран 🥉'])
+    expect(names).toEqual(['2. США', '3. Иран'])
+    expect(screen.getByAltText('2 место')).toBeTruthy()
+    expect(screen.getByAltText('3 место')).toBeTruthy()
     expect(container.textContent).not.toContain('Россия')
   })
 })

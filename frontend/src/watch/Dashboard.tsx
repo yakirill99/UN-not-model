@@ -6,6 +6,7 @@
  * (see feed.ts): the host knows who struck, the screen must not say it.
  */
 import { useMemo, useState } from 'react'
+import { Icon } from '../ui/Icon'
 import { DeedsChart, EcologyChart, Legend, LifeChart } from './Charts'
 import {
   deeds,
@@ -112,7 +113,9 @@ export default function Dashboard({ log }: { log: GameLog }) {
           <ul className="feed">
             {entries.map((e) => (
               <li key={e.key}>
-                <span className="feed-icon">{e.icon}</span>
+                <span className="feed-icon" aria-hidden="true">
+                  <Icon name={e.icon} size={18} />
+                </span>
                 <span className="feed-round">{e.round}</span>
                 {e.text}
               </li>

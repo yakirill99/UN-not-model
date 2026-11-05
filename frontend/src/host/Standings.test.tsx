@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { gameInfo, hostStatus, player } from '../test/host'
 import { teams } from './core'
@@ -36,10 +36,29 @@ describe('Standings', () => {
       />,
     )
     const rows = screen.getAllByRole('row')
-    expect(rows[0].textContent).toBe('🥇 1США60.00 %')
-    expect(rows[1].textContent).toBe('🥈 2Россия45.67 %')
-    expect(rows[2].textContent).toBe('🥉 3Иран30.00 %')
+    expect(rows[0].textContent).toBe('1США60.00 %')
+    expect(rows[1].textContent).toBe('2Россия45.67 %')
+    expect(rows[2].textContent).toBe('3Иран30.00 %')
     expect(rows[3].textContent).toBe('4Бразилия20.00 %')
+    expect(within(rows[0]).getByAltText('1 место')).toBeTruthy()
+    expect(within(rows[1]).getByAltText('2 место')).toBeTruthy()
+    expect(within(rows[2]).getByAltText('3 место')).toBeTruthy()
+    expect(within(rows[3]).queryByAltText(/место/)).toBeNull()
+  })
+
+  it('medals nobody while the field is completely level', () => {
+    render(
+      <Standings
+        standings={[
+          ['usa', 0],
+          ['russia', 0],
+        ]}
+        list={list}
+      />,
+    )
+    const rows = screen.getAllByRole('row')
+    expect(rows[0].textContent).toBe('1США0.00 %')
+    expect(screen.queryByAltText(/место/)).toBeNull()
   })
 
   it('shows the raw id of a country missing from the list', () => {

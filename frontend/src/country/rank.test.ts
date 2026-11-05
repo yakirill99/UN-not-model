@@ -1,16 +1,34 @@
 import { describe, expect, it } from 'vitest'
 import { foreign, me } from '../test/observation'
-import { medalFor, rankOf } from './rank'
+import { allEqual, medalPlace, rankOf } from './rank'
 
-describe('medalFor', () => {
+describe('medalPlace', () => {
   it.each([
-    [1, '🥇'],
-    [2, '🥈'],
-    [3, '🥉'],
-    [4, ''],
-    [17, ''],
+    [1, 1],
+    [2, 2],
+    [3, 3],
+    [4, null],
+    [17, null],
   ])('place %i -> %s', (place, medal) => {
-    expect(medalFor(place)).toBe(medal)
+    expect(medalPlace(place)).toBe(medal)
+  })
+})
+
+describe('allEqual', () => {
+  it('is true while nobody differs: round one, everyone at 0.00 %', () => {
+    expect(allEqual([0, 0, 0, 0])).toBe(true)
+  })
+
+  it('is false once someone pulls ahead', () => {
+    expect(allEqual([0, 0, 1])).toBe(false)
+  })
+
+  it('a lone country has nothing to compare', () => {
+    expect(allEqual([4567])).toBe(true)
+  })
+
+  it('an empty field has no places to argue about', () => {
+    expect(allEqual([])).toBe(true)
   })
 })
 

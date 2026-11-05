@@ -10,21 +10,36 @@ describe('StatusStrip', () => {
     const text = container.querySelector('.statusbar')?.textContent ?? ''
     expect(text).toContain(money(1200)) // 1 200 $, narrow no-break spaces
     expect(text).toContain('45.67 %') // average life, mine
-    expect(text).toContain('🥈 2 из 2') // the USA (60 %) is better — silver place
+    expect(text).toContain('2 из 2') // the USA (60 %) is better — silver place
+    expect(screen.getByAltText('2 место')).toBeTruthy()
     expect(text).toContain('1 из 1') // cities: alive of all
     expect(text).toContain('72 %') // world ecology
   })
 
   it('medals the first place, silver stays second', () => {
-    const { container, rerender } = render(
+    const { rerender } = render(
       <StatusStrip me={me({ average_life_level: 9000 })} ecology={72} others={[foreign()]} />,
     )
-    expect(container.querySelector('.statusbar')?.textContent).toContain('🥇 1 из 2')
+    expect(screen.getByAltText('1 место')).toBeTruthy()
 
     rerender(
       <StatusStrip me={me({ average_life_level: 5000 })} ecology={72} others={[foreign()]} />,
     )
-    expect(container.querySelector('.statusbar')?.textContent).toContain('🥈 2 из 2')
+    expect(screen.getByAltText('2 место')).toBeTruthy()
+  })
+
+  it('shows no place while the whole field is level: round one, all 0.00 %', () => {
+    const { container } = render(
+      <StatusStrip
+        me={me({ average_life_level: 0 })}
+        ecology={72}
+        others={[foreign({ average_life_level: 0 })]}
+      />,
+    )
+    const text = container.querySelector('.statusbar')?.textContent ?? ''
+    expect(text).toContain('—')
+    expect(text).not.toContain('1 из 2')
+    expect(screen.queryByAltText(/место/)).toBeNull()
   })
 
   it.each([

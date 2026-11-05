@@ -1,4 +1,5 @@
 import type { Team } from './core'
+import { Icon } from '../ui/Icon'
 
 /**
  * The host's table: a code to read out loud, whether the team joined, whether its
@@ -20,7 +21,12 @@ export default function TeamTable({
           <tr key={team.id}>
             <td>
               {team.name}
-              {team.laughWinner && <span title="Приз за юмор"> 😄</span>}
+              {team.laughWinner && (
+                <span title="Приз за юмор">
+                  {' '}
+                  <Icon name="laugh" size={16} />
+                </span>
+              )}
             </td>
             <td>
               {team.isBot ? (

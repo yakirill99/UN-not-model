@@ -1,4 +1,5 @@
 import { useTheme } from './theme'
+import { Icon } from './ui/Icon'
 
 /** The theme switch pinned to the top-right corner of every page. */
 export function ThemeToggle() {
@@ -11,7 +12,7 @@ export function ThemeToggle() {
       title={theme === 'dark' ? 'Светлая тема' : 'Тёмная тема'}
       onClick={toggle}
     >
-      {theme === 'dark' ? '☀️' : '🌙'}
+      <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={18} />
     </button>
   )
 }

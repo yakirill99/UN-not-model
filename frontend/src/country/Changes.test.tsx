@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import Changes, { changes } from './Changes'
+import Changes from './Changes'
+import { changes } from './changes'
 import type { AnyEvent } from './news'
 
 const base = { round: 2, schema_version: 1, actor: null, target: null }
@@ -28,7 +29,7 @@ describe('changes', () => {
     const list = changes([ev('bombs_produced', { count: 1, bombs_pending_after: 1 })])
     expect(list).toHaveLength(1)
     expect(list[0].tone).toBeNull()
-    expect(list[0].icon).toBe('🧨')
+    expect(list[0].icon).toBe('bomb')
   })
 
   it('skips the life level recalculation — nothing the player watches has moved', () => {

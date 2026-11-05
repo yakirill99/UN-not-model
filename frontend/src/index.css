@@ -232,10 +232,6 @@ label.row.inline {
   align-items: center;
   justify-content: space-between;
 }
-label.row.inline input[type='number'] {
-  width: 6rem;
-  text-align: right;
-}
 label.row.inline input[type='checkbox'] {
   width: 1.4rem;
   height: 1.4rem;
@@ -258,11 +254,49 @@ label.row.inline input[type='checkbox'] {
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
-.counter input[type='number'] {
-  width: 4.5rem;
-  min-height: 2.25rem;
-  padding: 0.2rem 0.25rem;
-  text-align: center;
+
+/* --- round tabs: three screens behind one switcher --------------------------
+   The switcher sits in the normal flow on purpose: it scrolls away with the
+   page, the sticky spot at the top belongs to the status numbers. */
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  background: var(--card);
+  border-radius: 0.75rem;
+  padding: 0.25rem;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+}
+.tabs .tab {
+  flex: 1;
+  min-height: 2.5rem;
+  padding: 0.35rem 0.4rem;
+  border-radius: 0.55rem;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.tabs .tab.on {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+/* Flat icons from /public/icons: swap the file, swap the look. The little
+   dip keeps an inline image on the text baseline instead of floating. */
+.icon {
+  vertical-align: -0.28em;
+}
+.icon-fallback {
+  font-size: 0.95em;
+}
+/* Where the markup carries no literal space (standings table, «Другие страны»),
+   the breathing room around a medal comes from here. */
+.codes .icon {
+  margin-right: 0.3rem;
+}
+.other strong .icon {
+  margin-left: 0.25rem;
 }
 
 /* --- host dashboard: charts and the public feed (#74) ----------------------- */
@@ -370,6 +404,9 @@ label.row.inline input[type='checkbox'] {
   display: flex;
   align-items: baseline;
   gap: 0.5rem;
+}
+.feed .feed-icon .icon {
+  vertical-align: -0.35em;
 }
 .feed-icon {
   flex: none;

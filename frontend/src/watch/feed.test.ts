@@ -122,12 +122,12 @@ describe('feed · wording', () => {
     const down = line(
       event({ type: 'ecology_changed', cause: 'bomb_production', delta: -15, ecology_after: 85 }),
     )
-    expect(down).toMatchObject({ icon: '☁️', text: 'Экология -15 → 85 %' })
+    expect(down).toMatchObject({ icon: 'cloud', text: 'Экология -15 → 85 %' })
 
     const up = line(
       event({ type: 'ecology_changed', cause: 'eco_program', delta: 30, ecology_after: 100 }),
     )
-    expect(up).toMatchObject({ icon: '♻️', text: 'Экология +30 → 100 %' })
+    expect(up).toMatchObject({ icon: 'eco_program', text: 'Экология +30 → 100 %' })
   })
 
   it('falls back to the raw id when a name is unknown', () => {

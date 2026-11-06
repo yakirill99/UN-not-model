@@ -14,7 +14,7 @@ describe('CityList', () => {
     const row = screen.getByText('Москва').closest('tr')!
     expect(within(row).getByText('70 %')).toBeTruthy()
     expect(within(row).getByText('55.00 %')).toBeTruthy()
-    expect(within(row).getByTitle('Противоракетный щит')).toBeTruthy()
+    expect(within(row).getByTitle('Ядерный щит')).toBeTruthy()
   })
 
   it('keeps a destroyed city on the list but hides its numbers', () => {

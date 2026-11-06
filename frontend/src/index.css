@@ -1,5 +1,7 @@
 :root {
-  color-scheme: light dark;
+  /* Light is the only automatic theme: the playtest said the auto-dark felt «мрачно».
+     Dark stays available as an explicit opt-in: <html data-theme="dark">. */
+  color-scheme: light;
   --bg: #f6f7f9;
   --fg: #1b2a41;
   --muted: #6b7280;
@@ -14,16 +16,21 @@
     sans-serif;
   line-height: 1.5;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0f172a;
-    --fg: #e5e7eb;
-    --muted: #9ca3af;
-    --card: #1e293b;
-  }
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0f172a;
+  --fg: #e5e7eb;
+  --muted: #9ca3af;
+  --card: #1e293b;
 }
 * {
   box-sizing: border-box;
+}
+/* Panels are hidden with the `hidden` attribute, but .stack sets display:flex,
+   which beats the browser's default [hidden] rule — every tab showed its
+   content at once («три одинаковые вкладки»). This restores the attribute. */
+[hidden] {
+  display: none !important;
 }
 body {
   margin: 0;
@@ -35,7 +42,26 @@ body {
 .app {
   max-width: 40rem;
   margin: 0 auto;
-  padding: 1.5rem 1rem;
+  /* Top padding keeps content clear of the fixed theme switch in the corner. */
+  padding: 3.4rem 1rem 1.5rem;
+  /* Above the nation-flag backdrop (z-index 0) and behind the theme switch. */
+  position: relative;
+  z-index: 1;
+}
+/* Faded flag of the played nation behind the whole play page. The file comes
+   from /public/flags/<code>.svg — swap the file, swap the banner (#world). */
+.flag-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  opacity: 0.08;
+}
+:root[data-theme='dark'] .flag-bg {
+  opacity: 0.13;
 }
 .card {
   background: var(--card);
@@ -111,6 +137,23 @@ button.ghost {
   background: transparent;
   color: var(--muted);
   border: 1px solid color-mix(in srgb, var(--fg) 25%, transparent);
+}
+/* Floating theme switch: top-right corner of every page, above sticky bars. */
+.theme-toggle {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 0.5rem);
+  right: max(0.75rem, env(safe-area-inset-right, 0px));
+  z-index: 50; /* above the sticky status bar (10) */
+  width: 2.5rem;
+  height: 2.5rem;
+  min-height: 0;
+  padding: 0;
+  border-radius: 9999px;
+  font-size: 1.15rem;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.18);
 }
 fieldset {
   border: 1px solid color-mix(in srgb, var(--fg) 15%, transparent);
@@ -213,10 +256,6 @@ label.row.inline {
   align-items: center;
   justify-content: space-between;
 }
-label.row.inline input[type='number'] {
-  width: 6rem;
-  text-align: right;
-}
 label.row.inline input[type='checkbox'] {
   width: 1.4rem;
   height: 1.4rem;
@@ -238,6 +277,58 @@ label.row.inline input[type='checkbox'] {
   min-width: 1.5rem;
   text-align: center;
   font-variant-numeric: tabular-nums;
+}
+
+/* --- round tabs: three screens behind one switcher --------------------------
+   The switcher sits in the normal flow on purpose: it scrolls away with the
+   page, the sticky spot at the top belongs to the status numbers. */
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  background: var(--card);
+  border-radius: 0.75rem;
+  padding: 0.25rem;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+}
+.tabs .tab {
+  flex: 1;
+  min-height: 2.5rem;
+  padding: 0.35rem 0.4rem;
+  border-radius: 0.55rem;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.tabs .tab.on {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+/* --- diplomacy colours (#world): blue us, green friends, gray neutral, red enemies */
+:root {
+  --diplo-us: #2563eb;
+  --diplo-friend: #16a34a;
+  --diplo-neutral: #94a3b8;
+  --diplo-enemy: #dc2626;
+}
+
+/* Flat icons from /public/icons: swap the file, swap the look. The little
+   dip keeps an inline image on the text baseline instead of floating. */
+.icon {
+  vertical-align: -0.28em;
+}
+.icon-fallback {
+  font-size: 0.95em;
+}
+/* Where the markup carries no literal space (standings table, «Другие страны»),
+   the breathing room around a medal comes from here. */
+.codes .icon {
+  margin-right: 0.3rem;
+}
+.other strong .icon {
+  margin-left: 0.25rem;
 }
 
 /* --- host dashboard: charts and the public feed (#74) ----------------------- */
@@ -346,6 +437,9 @@ label.row.inline input[type='checkbox'] {
   align-items: baseline;
   gap: 0.5rem;
 }
+.feed .feed-icon .icon {
+  vertical-align: -0.35em;
+}
 .feed-icon {
   flex: none;
 }
@@ -353,4 +447,236 @@ label.row.inline input[type='checkbox'] {
   color: var(--muted);
   font-variant-numeric: tabular-nums;
   flex: none;
+}
+
+/* --- player status strip (#3): key numbers ----------------------------------
+   The strip and the tab switcher share one sticky header (.playhead below):
+   both follow the scroll, as requested — «плашка меню тоже опускается вниз». */
+.statusbar {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  background: var(--card);
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.9rem;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+  overflow-x: auto;
+}
+
+/* The sticky spot holds the numbers AND the menu: they travel together. */
+.playhead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: var(--bg);
+  padding: 0.35rem 0.35rem 0.6rem;
+  margin: -0.35rem -0.35rem 0.4rem;
+  border-radius: 0 0 0.75rem 0.75rem;
+}
+.stat {
+  display: flex;
+  flex-direction: column;
+}
+.stat > span {
+  font-size: 0.72rem;
+}
+.stat > strong {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.statusbar .ghost {
+  margin-left: auto;
+  flex: none;
+}
+
+/* --- round changes (#6): the toned subset of the news ----------------------- */
+
+.changes {
+  list-style: none;
+  padding-left: 0;
+}
+
+/* --- the experimental «Мир» tab (#world) ------------------------------------- */
+
+/* Legend chips above the map: one color — one relation. */
+.legend-chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.9rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.legend-chips li {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.legend-chips .swatch {
+  border-radius: 999px;
+}
+
+/* The stylized world map: muted continents, relation links, value-sized markers. */
+.world-map {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.world-map .land {
+  fill: color-mix(in srgb, var(--fg) 9%, transparent);
+  stroke: color-mix(in srgb, var(--fg) 16%, transparent);
+  stroke-width: 0.6;
+}
+.world-map .link {
+  fill: none;
+  stroke-width: 1.4;
+}
+.world-map .link.friend {
+  stroke: var(--diplo-friend);
+}
+.world-map .link.enemy {
+  stroke: var(--diplo-enemy);
+}
+.world-map .link.neutral {
+  stroke: var(--muted);
+  stroke-dasharray: 3 3;
+  opacity: 0.55;
+}
+.world-map .marker {
+  stroke: var(--card);
+  stroke-width: 1;
+  cursor: pointer;
+}
+.world-map .marker.us {
+  fill: var(--diplo-us);
+}
+.world-map .marker.friend {
+  fill: var(--diplo-friend);
+}
+.world-map .marker.enemy {
+  fill: var(--diplo-enemy);
+}
+.world-map .marker.neutral {
+  fill: var(--diplo-neutral);
+}
+.world-map .marker.sel {
+  stroke: var(--fg);
+  stroke-width: 1.6;
+}
+.world-map .halo {
+  fill: none;
+  stroke: var(--fg);
+  stroke-width: 1.2;
+  stroke-dasharray: 2.5 2.5;
+}
+.world-map text {
+  fill: var(--fg);
+  font-size: 9.5px;
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: 2.5px;
+  pointer-events: none;
+}
+
+/* Friend / neutral / enemy switch under the selected country. */
+.relation {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+.relation button {
+  min-height: 2.25rem;
+  padding: 0.25rem 0.8rem;
+  font-size: 0.9rem;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--fg) 25%, transparent);
+  color: var(--fg);
+}
+.relation button[aria-pressed='true'] {
+  background: var(--fg);
+  color: var(--bg);
+}
+.relation button.friend[aria-pressed='true'] {
+  background: var(--diplo-friend);
+  border-color: transparent;
+  color: #fff;
+}
+.relation button.enemy[aria-pressed='true'] {
+  background: var(--diplo-enemy);
+  border-color: transparent;
+  color: #fff;
+}
+
+/* The polygon map of our cities: cells sized by life level. */
+.citymap {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.citymap .cell {
+  stroke: var(--card);
+  stroke-width: 0.7;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.citymap .cell.dim {
+  opacity: 0.45;
+}
+.citymap .cell.sel {
+  stroke: var(--fg);
+  stroke-width: 1.5;
+}
+.citymap text {
+  fill: var(--fg);
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: 1.6px;
+  pointer-events: none;
+}
+.citymap .cell-stat {
+  font-size: 7.5px;
+  fill: color-mix(in srgb, var(--fg) 75%, transparent);
+}
+.citymap .cell-name {
+  font-size: 9.5px;
+  font-weight: 600;
+}
+.citymap .edge-stat {
+  font-size: 8px;
+  fill: var(--muted);
+}
+
+/* The stat list under the polygon: the selected city is highlighted. */
+.city-stats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.92rem;
+}
+.city-stats li {
+  border-top: 1px solid color-mix(in srgb, var(--fg) 10%, transparent);
+  padding: 0.35rem 0.3rem;
+  border-radius: 0.4rem;
+}
+.city-stats li:first-child {
+  border-top: none;
+}
+.city-stats li.on {
+  background: color-mix(in srgb, var(--fg) 8%, transparent);
+  outline: 1px solid color-mix(in srgb, var(--fg) 25%, transparent);
+}
+.city-stats button {
+  all: unset;
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  gap: 0.6rem;
+  cursor: pointer;
+  align-items: baseline;
 }

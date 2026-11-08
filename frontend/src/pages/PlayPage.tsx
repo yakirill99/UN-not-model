@@ -7,12 +7,28 @@ import {
   type Observation,
   type RoundStatus,
 } from '../api/client'
+import Changes from '../country/Changes'
 import MyCountry from '../country/MyCountry'
 import News from '../country/News'
 import Others from '../country/Others'
-import { ecologyTone, percent } from '../country/format'
+import StatusStrip from '../country/StatusStrip'
+import Ticker from '../country/Ticker'
+import { namesOf } from '../country/names'
 import OrdersForm from '../orders/OrdersForm'
+import WorldTab from '../world/WorldTab'
+import { flagUrl } from '../world/flags'
 import Header from './Header'
+
+/** The screens of one player page; «Страна» is where the round is played.
+    «Мир» is experimental: a schematic map with manual diplomacy (#world). */
+const TABS = [
+  { id: 'country', label: 'Страна' },
+  { id: 'others', label: 'Участники' },
+  { id: 'news', label: 'Новости' },
+  { id: 'world', label: 'Мир' },
+] as const
+
+type TabId = (typeof TABS)[number]['id']
 
 /** Player home: country card (#58) plus the order form of the current round (#59). */
 export default function PlayPage() {
@@ -22,6 +38,7 @@ export default function PlayPage() {
   const [status, setStatus] = useState<RoundStatus | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [tab, setTab] = useState<TabId>('country')
 
   const load = useCallback(async () => {
     if (!gameId) return
@@ -47,62 +64,144 @@ export default function PlayPage() {
 
   const submitted = status ? Object.values(status.submitted).some(Boolean) : false
   const ordersOpen = status?.phase === 'orders'
+  // One dictionary for every feed: engine events speak in ids, players read names.
+  const names = obs ? namesOf(obs) : {}
 
   return (
-    <main className="app">
-      <Header
-        title={obs?.me.name ?? 'Моя страна'}
-        subtitle={obs ? `Раунд ${obs.round}` : undefined}
-      />
-
-      {error && (
-        <p className="bad" role="alert">
-          {error}
-        </p>
+    <>
+      {/* The played nation in the SIDE GUTTERS only (#world): one file per
+          country in /public/flags. It lives OUTSIDE <main> — inside it the
+          fixed layer sat in .app's own stacking context and outpainted every
+          card that had no z-index of its own. The URL rides in a CSS custom
+          property: the element itself paints nothing, its two pseudo-element
+          stripes do. */}
+      {obs && (
+        <div
+          className="flag-bg"
+          style={{ '--flag': `url("${flagUrl(obs.me.name)}")` } as React.CSSProperties}
+          aria-hidden="true"
+        />
       )}
 
-      {obs && (
-        <div className="stack">
-          <div className="row">
-            <span className="muted">
-              Экология мира:{' '}
-              <strong className={ecologyTone(obs.ecology)}>{percent(obs.ecology)}</strong>
-            </span>
-            <button className="ghost" onClick={() => void load()} disabled={busy}>
-              {busy ? 'Обновляем…' : 'Обновить'}
-            </button>
-          </div>
+      <main className="app">
+        <Header
+          title={obs?.me.name ?? 'Моя страна'}
+          subtitle={obs ? `Раунд ${obs.round}` : undefined}
+        />
 
-          <MyCountry me={obs.me} />
+        {error && (
+          <p className="bad" role="alert">
+            {error}
+          </p>
+        )}
 
-          {ordersOpen && space ? (
-            <>
-              {submitted && (
-                <p className="ok">
-                  Приказы на этот раунд уже приняты. Новая отправка заменит предыдущую.
+        {obs && (
+          <div className="stack">
+            {/* Sticky header travels with the scroll: key numbers AND the menu
+              stay visible — «плашка меню тоже опускается вниз». */}
+            <div className="playhead">
+              <StatusStrip
+                me={obs.me}
+                ecology={obs.ecology}
+                others={obs.others}
+                forecast={obs.income_forecast}
+                action={
+                  <button className="ghost" onClick={() => void load()} disabled={busy}>
+                    {busy ? 'Обновляем…' : 'Обновить'}
+                  </button>
+                }
+              />
+
+              {/* The crawling one-liner of the round (#5): news without scrolling. */}
+              <Ticker news={obs.news ?? []} names={names} />
+
+              <nav className="tabs" role="tablist" aria-label="Разделы">
+                {TABS.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    role="tab"
+                    id={`tab-${t.id}`}
+                    aria-selected={tab === t.id}
+                    aria-controls={`panel-${t.id}`}
+                    className={tab === t.id ? 'tab on' : 'tab'}
+                    onClick={() => setTab(t.id)}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </nav>
+            </div>
+
+            {/* All panels stay mounted; `hidden` hides the inactive ones. That is
+              what keeps the half-filled order form alive across tab switches. */}
+            <div
+              className="stack"
+              role="tabpanel"
+              id="panel-country"
+              aria-labelledby="tab-country"
+              hidden={tab !== 'country'}
+            >
+              <MyCountry me={obs.me} />
+
+              {ordersOpen && space ? (
+                <>
+                  {submitted && (
+                    <p className="ok">
+                      Приказы на этот раунд уже приняты. Новая отправка заменит предыдущую.
+                    </p>
+                  )}
+                  {/* A new round is a new form: remounting drops the previous draft. */}
+                  <OrdersForm
+                    key={space.round}
+                    gameId={gameId!}
+                    space={space}
+                    observation={obs}
+                    onSubmitted={() => void load()}
+                  />
+                </>
+              ) : (
+                <p className="muted">
+                  {status && !ordersOpen
+                    ? `Приказы закрыты (${status.phase}). Ждём, пока ведущий подведёт итоги раунда.`
+                    : 'Приказы сейчас недоступны.'}
                 </p>
               )}
-              {/* A new round is a new form: remounting drops the previous draft. */}
-              <OrdersForm
-                key={space.round}
-                gameId={gameId!}
-                space={space}
-                observation={obs}
-                onSubmitted={() => void load()}
-              />
-            </>
-          ) : (
-            <p className="muted">
-              {status && !ordersOpen
-                ? `Приказы закрыты (${status.phase}). Ждём, пока ведущий подведёт итоги раунда.`
-                : 'Приказы сейчас недоступны.'}
-            </p>
-          )}
+            </div>
 
-          <Others others={obs.others} />
-          <News news={obs.news ?? []} />
-        </div>
-      )}
-    </main>
+            <div
+              role="tabpanel"
+              id="panel-others"
+              aria-labelledby="tab-others"
+              hidden={tab !== 'others'}
+            >
+              <Others others={obs.others} me={obs.me} />
+            </div>
+
+            <div
+              className="stack"
+              role="tabpanel"
+              id="panel-news"
+              aria-labelledby="tab-news"
+              hidden={tab !== 'news'}
+            >
+              {/* What the last resolved round changed, worst first (#6). */}
+              <Changes news={obs.news ?? []} names={names} />
+              <News news={obs.news ?? []} names={names} />
+            </div>
+
+            <div
+              className="stack"
+              role="tabpanel"
+              id="panel-world"
+              aria-labelledby="tab-world"
+              hidden={tab !== 'world'}
+            >
+              <WorldTab obs={obs} gameId={gameId} />
+            </div>
+          </div>
+        )}
+      </main>
+    </>
   )
 }

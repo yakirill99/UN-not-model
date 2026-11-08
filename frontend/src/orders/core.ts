@@ -76,11 +76,19 @@ export function pruneDraft(draft: Draft, space: ActionSpace): Draft {
       )
     : {}
 
+  // A count may also become too high: the cap depends on the round (last-round bombs),
+  // and the space can change while the draft is open. Keep it inside max_count.
+  const capped = (v: number, id: string): number => {
+    if (!live(id)) return 0
+    const max = space.actions[id].max_count
+    return max == null ? v : Math.min(v, max)
+  }
+
   const next: Draft = {
     invest: legal('invest', draft.invest),
-    eco_programs: live('eco_program') ? draft.eco_programs : 0,
+    eco_programs: capped(draft.eco_programs, 'eco_program'),
     nuclear_tech: live('nuclear_tech') && draft.nuclear_tech,
-    bombs: live('bomb') ? draft.bombs : 0,
+    bombs: capped(draft.bombs, 'bomb'),
     strikes: legal('strike', draft.strikes),
     shields: legal('shield', draft.shields),
     sanctions: legal('sanction', draft.sanctions),
@@ -108,6 +116,15 @@ function same(a: Draft, b: Draft): boolean {
 
 export function costOf(space: ActionSpace, id: string): number {
   return space.actions[id]?.cost ?? 0
+}
+
+/**
+ * One click of the aid stepper moves this much money — it IS the aid, not a
+ * fee. The header and the hint below the targets read the same number, so
+ * «по 50 $ за шаг» never disagrees with what the + button actually adds.
+ */
+export function aidStep(option: ActionOption): number {
+  return Math.max(50, option.min_amount ?? 1)
 }
 
 /** Same sum the backend checks against the budget: strikes and sanctions are free. */

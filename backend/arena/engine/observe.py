@@ -23,7 +23,9 @@ from arena.engine.events import (
     NuclearStrike,
     SanctionApplied,
 )
+from arena.engine.rules import RuleSet
 from arena.engine.state import ArenaModel, City, Country, GameState
+from arena.engine.systems.income import IncomeSystem
 
 
 class OwnCityView(ArenaModel):
@@ -70,16 +72,38 @@ class Observation(ArenaModel):
     me: OwnCountryView
     others: list[ForeignCountryView]
     news: list[AnyEvent] = Field(default_factory=list, description="Events visible to this country")
+    income_forecast: int = Field(
+        default=0,
+        description=(
+            "Income the current indicators will earn at the end of this round, "
+            "before anyone acts; foreign strikes and sanctions will move it"
+        ),
+    )
 
 
-def observe(state: GameState, country_id: str, events: list[Event] | None = None) -> Observation:
+def observe(
+    state: GameState,
+    country_id: str,
+    events: list[Event] | None = None,
+    rules: RuleSet | None = None,
+) -> Observation:
     me = state.country(country_id)
+    # The forecast (#11 of the playtest feedback) rides along with the view:
+    # the income formula lives in one place (IncomeSystem), the secrecy rules
+    # in another (here) — the forecast is public arithmetic on own numbers.
+    income = IncomeSystem(rules) if rules is not None else None
+    forecast = (
+        sum(income.city_income(c, state.ecology) for c in me.alive_cities)
+        if income is not None
+        else 0
+    )
     return Observation(
         round=state.round,
         ecology=state.ecology,
         me=_own(me),
         others=[_foreign(c) for c in state.countries if c.id != country_id],
         news=visible_events(events or [], country_id),
+        income_forecast=forecast,
     )
 
 

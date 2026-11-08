@@ -89,3 +89,37 @@ describe('News', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(2)
   })
 })
+
+describe('describeEvent with names: ids become words', () => {
+  const names = { spb: 'Санкт-Петербург', usa: 'США', iran: 'Иран', dprk: 'КНДР' }
+
+  it('names the city a shield was built over', () => {
+    expect(say(ev('shield_built', { target: 'spb' }), names)).toBe(
+      'Построен щит над городом Санкт-Петербург',
+    )
+  })
+
+  it('tells the victim who sanctioned them (#6)', () => {
+    expect(say(ev('sanction_applied', { actor: 'usa', target: 'iran', delta: 10 }), names)).toBe(
+      'Санкции от США → Иран: развитие −10',
+    )
+  })
+
+  it('names the striker when it is known, the city always', () => {
+    expect(
+      say(ev('nuclear_strike', { actor: 'dprk', target: 'spb', outcome: 'destroyed' }), names),
+    ).toBe('КНДР нанёс ядерный удар по Санкт-Петербург: город разрушен')
+  })
+
+  it('resolves aid both ways', () => {
+    expect(say(ev('aid_transferred', { actor: 'usa', target: 'iran', amount: 500 }), names)).toBe(
+      'Помощь 500 $: США → Иран',
+    )
+  })
+
+  it('falls back to the raw id when the dictionary misses it', () => {
+    expect(say(ev('city_destroyed', { target: 'atlantis', cause: 'nuclear' }), names)).toBe(
+      'Город atlantis разрушен (nuclear)',
+    )
+  })
+})

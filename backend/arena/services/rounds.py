@@ -70,7 +70,7 @@ async def get_observation(
     state = await load_state(session, game_id)
     _check_country(state, country_id)
     news = await load_round_events(session, game_id, game.current_round - 1)
-    return observe(state, country_id, news)
+    return observe(state, country_id, news, rules=rules_of(game))
 
 
 async def load_round_events(
@@ -315,6 +315,6 @@ async def _collect_orders(
             # Bots are re-created every round from the persisted config: they keep no memory
             # between HTTP requests (Avenger's grudges reset each round - accepted for v1.0).
             bot = make_bot(str(p.agent_config.get("bot", "idle")), seed=game.seed * 100 + i)
-            obs = observe(state, p.country_id, news)
+            obs = observe(state, p.country_id, news, rules=rules)
             book[p.country_id] = bot.act(obs, legal_actions(state, p.country_id, rules))
     return OrderBook(orders=book)

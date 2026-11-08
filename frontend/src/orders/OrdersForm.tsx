@@ -13,7 +13,7 @@ import {
   type Draft,
 } from './core'
 import { nameOf, type Names } from './names'
-import { ActionHeader, AidFields, TargetCounters, TargetToggles } from './Picker'
+import { ActionHeader, AidFields, NumberStepper, TargetCounters, TargetToggles } from './Picker'
 
 /**
  * The order form for one round.
@@ -97,7 +97,7 @@ export default function OrdersForm({
     const problems = errors[id] ?? []
     return (
       <section className={option.available ? 'action' : 'action off'}>
-        <ActionHeader option={option} />
+        <ActionHeader option={option} id={id} />
         {option.available && children}
         {problems.length > 0 && (
           <p className="bad" role="alert">
@@ -131,91 +131,95 @@ export default function OrdersForm({
         </span>
       </div>
 
-      {block('invest', counters('invest', 'invest'))}
+      {/* Two columns from a laptop up (#wide): the actions are independent
+          blocks, the header and the submit stay full-width. */}
+      <div className="actions-grid">
+        {block('invest', counters('invest', 'invest'))}
 
-      {block(
-        'eco_program',
-        <label className="row inline">
-          <span>Сколько программ</span>
-          <input
-            type="number"
-            min={0}
-            step={1}
-            value={draft.eco_programs}
+        {block(
+          'eco_program',
+          <div className="row inline">
+            <span>Программы: {draft.eco_programs}</span>
+            <NumberStepper
+              label="Сколько программ"
+              noun="программу"
+              value={draft.eco_programs}
+              max={space.actions.eco_program.max_count ?? null}
+              disabled={busy}
+              onChange={(eco_programs) => patch({ eco_programs })}
+            />
+          </div>,
+        )}
+
+        {block(
+          'nuclear_tech',
+          <label className="row inline">
+            <span>Разработать в этом раунде</span>
+            <input
+              type="checkbox"
+              checked={draft.nuclear_tech}
+              disabled={busy}
+              onChange={(e) => patch({ nuclear_tech: e.target.checked })}
+            />
+          </label>,
+        )}
+
+        {block(
+          'bomb',
+          <div className="row inline">
+            <span>
+              Бомбы: {draft.bombs}
+              {space.actions.bomb.max_count != null
+                ? ` из ${space.actions.bomb.max_count}`
+                : ' · лимита нет'}
+            </span>
+            <NumberStepper
+              label="Сколько бомб"
+              noun="бомбу"
+              value={draft.bombs}
+              max={space.actions.bomb.max_count ?? null}
+              disabled={busy}
+              onChange={(bombs) => patch({ bombs })}
+            />
+          </div>,
+        )}
+
+        {block('strike', counters('strike', 'strikes'))}
+
+        {block(
+          'shield',
+          <TargetToggles
+            option={space.actions.shield}
+            names={names}
+            picked={draft.shields}
             disabled={busy}
-            onChange={(e) => patch({ eco_programs: Math.max(0, Number(e.target.value) || 0) })}
-          />
-        </label>,
-      )}
+            onChange={(shields) => patch({ shields })}
+          />,
+        )}
 
-      {block(
-        'nuclear_tech',
-        <label className="row inline">
-          <span>Разработать в этом раунде</span>
-          <input
-            type="checkbox"
-            checked={draft.nuclear_tech}
+        {block(
+          'sanction',
+          <TargetToggles
+            option={space.actions.sanction}
+            names={names}
+            picked={draft.sanctions}
             disabled={busy}
-            onChange={(e) => patch({ nuclear_tech: e.target.checked })}
-          />
-        </label>,
-      )}
+            onChange={(sanctions) => patch({ sanctions })}
+          />,
+        )}
 
-      {block(
-        'bomb',
-        <label className="row inline">
-          <span>
-            Сколько бомб
-            {space.actions.bomb.max_count != null && (
-              <span className="muted"> (не больше {space.actions.bomb.max_count})</span>
-            )}
-          </span>
-          <input
-            type="number"
-            min={0}
-            max={space.actions.bomb.max_count ?? undefined}
-            step={1}
-            value={draft.bombs}
+        {block(
+          'aid',
+          <AidFields
+            option={space.actions.aid}
+            names={names}
+            aid={draft.aid}
+            budgetLeft={left}
             disabled={busy}
-            onChange={(e) => patch({ bombs: Math.max(0, Number(e.target.value) || 0) })}
-          />
-        </label>,
-      )}
-
-      {block('strike', counters('strike', 'strikes'))}
-
-      {block(
-        'shield',
-        <TargetToggles
-          option={space.actions.shield}
-          names={names}
-          picked={draft.shields}
-          disabled={busy}
-          onChange={(shields) => patch({ shields })}
-        />,
-      )}
-
-      {block(
-        'sanction',
-        <TargetToggles
-          option={space.actions.sanction}
-          names={names}
-          picked={draft.sanctions}
-          disabled={busy}
-          onChange={(sanctions) => patch({ sanctions })}
-        />,
-      )}
-
-      {block(
-        'aid',
-        <AidFields
-          option={space.actions.aid}
-          names={names}
-          aid={draft.aid}
-          disabled={busy}
-          onChange={(aid) => patch({ aid })}
-        />,
-      )}
+            onChange={(aid) => patch({ aid })}
+          />,
+        )}
+      </div>
 
       {message && (
         <p className="bad" role="alert">

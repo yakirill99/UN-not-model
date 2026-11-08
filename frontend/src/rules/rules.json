@@ -1,0 +1,116 @@
+{
+  "version": "1.0.0",
+  "rounds": 6,
+  "ecology": {
+    "min": 0,
+    "max": 100
+  },
+  "life_weights": {
+    "development": 33,
+    "ecology": 33,
+    "laugh": 33
+  },
+  "income": {
+    "k_development": 100,
+    "k_ecology": 150
+  },
+  "laugh_bonus": 20,
+  "budget_priority": ["shield", "invest", "eco_program", "nuclear_tech", "bomb", "aid"],
+  "last_round": {
+    "unlimited_bombs": false
+  },
+  "pipeline": [
+    "budget",
+    "aid",
+    "build",
+    "develop",
+    "strikes",
+    "sanctions",
+    "clamp",
+    "life_level",
+    "income",
+    "laugh",
+    "end_of_round"
+  ],
+  "actions": {
+    "invest": {
+      "id": "invest",
+      "title": "Инвестировать в развитие города",
+      "emoji": "🌆",
+      "cost": 150,
+      "effect": {
+        "development": 15
+      },
+      "target": "own_city",
+      "max_per_city_per_round": null
+    },
+    "eco_program": {
+      "id": "eco_program",
+      "title": "Запустить экологическую программу",
+      "emoji": "♻️",
+      "cost": 200,
+      "effect": {
+        "ecology": 30
+      }
+    },
+    "nuclear_tech": {
+      "id": "nuclear_tech",
+      "title": "Разработать ядерную технологию",
+      "emoji": "☢️",
+      "cost": 500,
+      "effect": {
+        "ecology": -5
+      },
+      "once_per_game": true
+    },
+    "bomb": {
+      "id": "bomb",
+      "title": "Произвести ядерные бомбы",
+      "emoji": "💣",
+      "cost": 150,
+      "effect": {
+        "ecology": -5
+      },
+      "max_per_round": 3,
+      "requires": "nuclear_tech",
+      "usable": "next_round"
+    },
+    "strike": {
+      "id": "strike",
+      "title": "Нанести ядерный удар",
+      "emoji": "🚀",
+      "cost": 0,
+      "effect": {
+        "ecology": -5
+      },
+      "max_per_round": 3,
+      "max_per_target_city_per_round": 1,
+      "requires": "bomb"
+    },
+    "shield": {
+      "id": "shield",
+      "title": "Построить ядерный щит",
+      "emoji": "🛡️",
+      "cost": 300,
+      "target": "own_city",
+      "active": "same_round"
+    },
+    "sanction": {
+      "id": "sanction",
+      "title": "Наложить экономические санкции",
+      "emoji": "❌",
+      "cost": 0,
+      "effect": {
+        "development_all_cities": -5
+      },
+      "duration_rounds": 1
+    },
+    "aid": {
+      "id": "aid",
+      "title": "Материальная помощь",
+      "emoji": "💸",
+      "min_amount": 1,
+      "available": "next_round"
+    }
+  }
+}

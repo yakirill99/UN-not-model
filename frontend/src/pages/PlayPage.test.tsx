@@ -186,12 +186,89 @@ describe('PlayPage', () => {
     expect(screen.getByText('Приказы сейчас недоступны.')).toBeTruthy()
   })
 
+  it('splits the screen into four tabs: country, others, news, world', async () => {
+    answer({})
+    renderPage()
+    await screen.findByRole('heading', { name: 'Приказы на раунд 1' })
+
+    // Страна opens by default: the card and the orders are one screen.
+    expect(screen.getByRole('tab', { name: 'Страна' }).getAttribute('aria-selected')).toBe('true')
+    expect(screen.queryByRole('heading', { name: 'Другие страны' })).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Новости раунда' })).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Карта мира' })).toBeNull()
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Участники' }))
+    expect(screen.getByRole('heading', { name: 'Другие страны' })).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: 'Приказы на раунд 1' })).toBeNull()
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Новости' }))
+    expect(screen.getByRole('heading', { name: 'Новости раунда' })).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: 'Другие страны' })).toBeNull()
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Мир' }))
+    expect(screen.getByRole('heading', { name: 'Карта мира' })).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: 'Новости раунда' })).toBeNull()
+  })
+
+  it('hides the inactive panels for real — the «три одинаковые вкладки» regression', async () => {
+    answer({})
+    renderPage()
+    await screen.findByRole('heading', { name: 'Приказы на раунд 1' })
+    expect(document.getElementById('panel-country')?.hidden).toBe(false)
+    expect(document.getElementById('panel-others')?.hidden).toBe(true)
+    expect(document.getElementById('panel-news')?.hidden).toBe(true)
+    expect(document.getElementById('panel-world')?.hidden).toBe(true)
+
+    // .stack sets display:flex, which used to beat the [hidden] attribute:
+    // every panel showed its content at once, whatever the tab.
+    await userEvent.click(screen.getByRole('tab', { name: 'Участники' }))
+    expect(document.getElementById('panel-country')?.hidden).toBe(true)
+    expect(document.getElementById('panel-others')?.hidden).toBe(false)
+  })
+
+  it('puts the status numbers and the menu into one sticky header', async () => {
+    answer({})
+    renderPage()
+    await screen.findByRole('heading', { name: 'Россия' })
+    const playhead = document.querySelector('.playhead')
+    expect(playhead).toBeTruthy()
+    expect(playhead?.querySelector('.statusbar')).toBeTruthy()
+    expect(playhead?.querySelector('.tabs')).toBeTruthy()
+  })
+
+  it('paints the played nation behind the page', async () => {
+    answer({})
+    renderPage()
+    await screen.findByRole('heading', { name: 'Россия' })
+    const bg = document.querySelector('.flag-bg') as HTMLElement | null
+    expect(bg).toBeTruthy()
+    // The url rides in the --flag custom property: the element itself paints
+    // nothing, its two side pseudo-stripes do.
+    expect(bg?.style.getPropertyValue('--flag')).toContain('/flags/ru.svg')
+  })
+
+  it('keeps the order draft alive while the player peeks at the other tabs', async () => {
+    answer({})
+    renderPage()
+    await screen.findByRole('heading', { name: 'Приказы на раунд 1' })
+
+    await userEvent.click(screen.getAllByRole('button', { name: 'Добавить Москва' })[0])
+    expect(screen.getByText(/Потрачено 150 \$ из/)).toBeTruthy()
+
+    // A peek at another tab and back: the draft is still there.
+    await userEvent.click(screen.getByRole('tab', { name: 'Новости' }))
+    await userEvent.click(screen.getByRole('tab', { name: 'Страна' }))
+    expect(screen.getByText(/Потрачено 150 \$ из/)).toBeTruthy()
+  })
+
   it('survives an observation whose news list is absent', async () => {
     const obs = observation({ me: OBS.me, others: OBS.others })
     delete (obs as { news?: unknown }).news
     answer({ observation: obs })
     renderPage()
-    expect(await screen.findByText('Пока ничего не произошло.')).toBeTruthy()
+    await screen.findByRole('heading', { name: 'Россия' })
+    await userEvent.click(screen.getByRole('tab', { name: 'Новости' }))
+    expect(screen.getByText('Пока ничего не произошло.')).toBeTruthy()
   })
 })
 

@@ -123,7 +123,7 @@ def collect_orders(
         agent = agents.get(country.id)
         if agent is None:
             continue
-        obs = observe(state, country.id, last_events or [])
+        obs = observe(state, country.id, last_events or [], rules=rules)
         legal = legal_actions(state, country.id, rules)
         orders[country.id] = agent.act(obs, legal)
     return OrderBook(orders=orders)

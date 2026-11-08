@@ -102,3 +102,27 @@ def test_observation_round_trips() -> None:
     s, ev, _ = _play_round()
     obs = observe(s, "iran", ev)
     assert Observation.model_validate_json(obs.model_dump_json()) == obs
+
+
+def test_income_forecast_matches_the_income_formula() -> None:
+    """Feedback #11: the observation carries the income the current
+    indicators will earn at round end — the same formula the income
+    system credits, before anyone acts."""
+    rules = load_rules("v1.0", REPO_ROOT / "rules")
+    state = load_scenario(REPO_ROOT / "scenarios" / "equal.yaml").initial_state()
+    obs = observe(state, "russia", rules=rules)
+    k = rules.params.income
+    expected = sum(
+        (k.k_development * c.development + k.k_ecology * state.ecology) // 100
+        for c in state.country("russia").alive_cities
+    )
+    assert obs.income_forecast == expected > 0
+    # A destroyed city earns nothing, and the field follows the survivors.
+    state.country("russia").city("moscow").destroyed = True
+    obs = observe(state, "russia", rules=rules)
+    assert obs.income_forecast < expected
+
+
+def test_income_forecast_defaults_to_zero_without_rules() -> None:
+    state = load_scenario(REPO_ROOT / "scenarios" / "equal.yaml").initial_state()
+    assert observe(state, "russia").income_forecast == 0

@@ -71,6 +71,10 @@ def legal_actions(state: GameState, country_id: str, rules: RuleSet) -> ActionSp
                     o.available, o.reason = False, "already_owned"
             case "bomb":
                 o.max_count = spec.max_per_round
+                # Feedback #10: the host may lift the cap in the final round —
+                # «чтобы всё могло поменяться в последний момент».
+                if rules.params.last_round.unlimited_bombs and state.round == rules.params.rounds:
+                    o.max_count = None
                 if not me.nuclear_tech:
                     o.available, o.reason = False, "requires_nuclear_tech"
             case "strike":

@@ -56,6 +56,17 @@ class IncomeCoefficients(ArenaModel):
     k_ecology: int = Field(ge=0)
 
 
+class LastRound(ArenaModel):
+    """Overrides for the final round. The playtest's ask #10: «на последнем
+    раунде можно было сколько угодно кинуть, чтобы всё могло поменяться в
+    последний момент». Off by default — the host decides per rules version."""
+
+    unlimited_bombs: bool = Field(
+        default=False,
+        description="Lift the per-round bomb cap in the final round",
+    )
+
+
 class Params(ArenaModel):
     rounds: int = Field(ge=1)
     ecology: Range
@@ -65,6 +76,7 @@ class Params(ArenaModel):
     budget_priority: list[str] = Field(
         min_length=1, description="Action ids in the order the budget is spent"
     )
+    last_round: LastRound = Field(default_factory=LastRound)
 
 
 class UiSpec(ArenaModel):

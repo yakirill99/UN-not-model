@@ -90,3 +90,26 @@ def test_space_is_serialisable_for_frontend_and_llm() -> None:
     schema = space.model_json_schema()
     assert "ActionOption" in schema["$defs"]
     assert space.model_validate_json(space.model_dump_json()) == space
+
+
+def test_last_round_lifts_the_bomb_cap_only_when_enabled() -> None:
+    """Feedback #10: the host may lift the 3-bomb cap in the final round."""
+    state, rules = _setup()
+    r = state.country("russia")
+    r.nuclear_tech, r.bombs = True, 9
+
+    # Default rules: the cap stays in force until the last round of the game...
+    a = legal_actions(state, "russia", rules).actions
+    assert a["bomb"].max_count == 3
+    state.round = rules.params.rounds
+    a = legal_actions(state, "russia", rules).actions
+    assert a["bomb"].max_count == 3  # ...because the override is off by default
+
+    rules.params.last_round.unlimited_bombs = True
+    a = legal_actions(state, "russia", rules).actions
+    assert a["bomb"].max_count is None  # «арсенал без лимита» in the final round
+
+    # An earlier round keeps the cap even with the override on.
+    state.round = rules.params.rounds - 1
+    a = legal_actions(state, "russia", rules).actions
+    assert a["bomb"].max_count == 3

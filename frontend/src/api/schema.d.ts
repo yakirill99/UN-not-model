@@ -982,6 +982,20 @@ export interface components {
       token: string
     }
     /**
+     * LastRound
+     * @description Overrides for the final round. The playtest's ask #10: «на последнем
+     *     раунде можно было сколько угодно кинуть, чтобы всё могло поменяться в
+     *     последний момент». Off by default — the host decides per rules version.
+     */
+    LastRound: {
+      /**
+       * Unlimited Bombs
+       * @description Lift the per-round bomb cap in the final round
+       * @default false
+       */
+      unlimited_bombs: boolean
+    }
+    /**
      * LaughAwarded
      * @description The host named ``target`` the funniest team of the round.
      */
@@ -1092,6 +1106,12 @@ export interface components {
     Observation: {
       /** Ecology */
       ecology: number
+      /**
+       * Income Forecast
+       * @description Income the current indicators will earn at the end of this round, before anyone acts; foreign strikes and sanctions will move it
+       * @default 0
+       */
+      income_forecast: number
       me: components['schemas']['OwnCountryView']
       /**
        * News
@@ -1212,6 +1232,7 @@ export interface components {
       budget_priority: string[]
       ecology: components['schemas']['Range']
       income: components['schemas']['IncomeCoefficients']
+      last_round?: components['schemas']['LastRound']
       /**
        * Laugh Bonus
        * @description Percentage points added to the laugh winner

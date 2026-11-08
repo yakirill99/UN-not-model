@@ -30,6 +30,9 @@ params:
   income: {k_development: 100, k_ecology: 150}
   laugh_bonus: 20
   budget_priority: [shield, invest, eco_program, nuclear_tech, bomb, aid]
+  # Feedback #10: the final round may lift the bomb cap — «чтобы всё могло
+  # поменяться в последний момент». Off by default: the host decides.
+  last_round: {unlimited_bombs: false}
 
 actions:
   invest:

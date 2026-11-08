@@ -1343,6 +1343,20 @@
         "title": "JoinResponse",
         "type": "object"
       },
+      "LastRound": {
+        "additionalProperties": false,
+        "description": "Overrides for the final round. The playtest's ask #10: «на последнем\nраунде можно было сколько угодно кинуть, чтобы всё могло поменяться в\nпоследний момент». Off by default — the host decides per rules version.",
+        "properties": {
+          "unlimited_bombs": {
+            "default": false,
+            "description": "Lift the per-round bomb cap in the final round",
+            "title": "Unlimited Bombs",
+            "type": "boolean"
+          }
+        },
+        "title": "LastRound",
+        "type": "object"
+      },
       "LaughAwarded": {
         "additionalProperties": false,
         "description": "The host named ``target`` the funniest team of the round.",
@@ -1555,6 +1569,12 @@
         "properties": {
           "ecology": {
             "title": "Ecology",
+            "type": "integer"
+          },
+          "income_forecast": {
+            "default": 0,
+            "description": "Income the current indicators will earn at the end of this round, before anyone acts; foreign strikes and sanctions will move it",
+            "title": "Income Forecast",
             "type": "integer"
           },
           "me": {
@@ -1864,6 +1884,9 @@
           },
           "income": {
             "$ref": "#/components/schemas/IncomeCoefficients"
+          },
+          "last_round": {
+            "$ref": "#/components/schemas/LastRound"
           },
           "laugh_bonus": {
             "description": "Percentage points added to the laugh winner",

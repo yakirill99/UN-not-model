@@ -41,7 +41,9 @@ export default function StatusStrip({
       </div>
       <div className="stat">
         <span className="muted">Средний УЖ</span>
-        <strong>{lifeLevel(me.average_life_level)}</strong>
+        <strong title={unranked ? 'Жизнь посчитается при подведении итогов раунда' : undefined}>
+          {lifeLevel(me.average_life_level)}
+        </strong>
       </div>
       <div className="stat">
         <span className="muted">Место</span>

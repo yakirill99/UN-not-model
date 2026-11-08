@@ -1,6 +1,6 @@
 import type { ActionOption } from '../api/client'
 import { money } from '../country/format'
-import { reasonText } from './core'
+import { aidStep, reasonText } from './core'
 import { nameOf, type Names } from './names'
 import { Icon } from '../ui/Icon'
 
@@ -8,6 +8,9 @@ import { Icon } from '../ui/Icon'
  * Header of one action block: icon, title, price, and why it is blocked.
  * The icon is the file /public/icons/<id>.svg; while it is missing the
  * engine's emoji from the rules yaml stands in.
+ *
+ * Aid has action cost 0 (no overhead), yet every step sends real money from
+ * the budget — so «бесплатно» would be a lie; the header names the step.
  */
 export function ActionHeader({ option, id }: { option: ActionOption; id: string }) {
   return (
@@ -17,9 +20,11 @@ export function ActionHeader({ option, id }: { option: ActionOption; id: string 
       </span>
       <span className="muted">
         {option.available
-          ? option.cost > 0
-            ? money(option.cost)
-            : 'бесплатно'
+          ? option.min_amount != null
+            ? `по ${money(aidStep(option))} за шаг`
+            : option.cost > 0
+              ? money(option.cost)
+              : 'бесплатно'
           : reasonText(option.reason)}
       </span>
     </div>
@@ -186,7 +191,7 @@ export function TargetToggles({
 /**
  * Aid: an amount per recipient, moved by the same thumb-sized − / + as every
  * other order — no typing, no on-screen keyboard on phones. One click moves
- * `max(50, min_amount)` dollars; `+` stops at what the budget still has, so
+ * `aidStep(option)` dollars; `+` stops at what the budget still has, so
  * the draft can never go into the red through aid alone.
  */
 export function AidFields({
@@ -211,29 +216,37 @@ export function AidFields({
     else next[id] = amount
     onChange(next)
   }
-  const step = Math.max(50, option.min_amount ?? 1)
+  const step = aidStep(option)
 
   return (
-    <ul className="targets">
-      {(option.targets ?? []).map((id) => {
-        const current = aid[id] ?? 0
-        const title = nameOf(names, id)
-        return (
-          <li key={id} className="row">
-            <span>{title}</span>
-            <NumberStepper
-              label={`Сумма помощи ${title}`}
-              noun={`помощь ${title}`}
-              value={current}
-              max={budgetLeft + current}
-              step={step}
-              format={money}
-              disabled={disabled}
-              onChange={(next) => set(id, next)}
-            />
-          </li>
-        )
-      })}
-    </ul>
+    <>
+      <ul className="targets">
+        {(option.targets ?? []).map((id) => {
+          const current = aid[id] ?? 0
+          const title = nameOf(names, id)
+          return (
+            <li key={id} className="row">
+              <span>{title}</span>
+              <NumberStepper
+                label={`Сумма помощи ${title}`}
+                noun={`помощь ${title}`}
+                value={current}
+                max={budgetLeft + current}
+                step={step}
+                format={money}
+                disabled={disabled}
+                onChange={(next) => set(id, next)}
+              />
+            </li>
+          )
+        })}
+      </ul>
+      {/* The step is the amount itself: players read «бесплатно» in the header
+          and then see 50 $ leave the budget — spell the mechanics out. */}
+      <p className="muted aid-hint">
+        Это не комиссия: каждый шаг — {money(step)} помощи. Сумма спишется с вашего бюджета и придёт
+        стране-получателю после подведения итогов.
+      </p>
+    </>
   )
 }

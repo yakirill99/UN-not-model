@@ -118,6 +118,15 @@ export function costOf(space: ActionSpace, id: string): number {
   return space.actions[id]?.cost ?? 0
 }
 
+/**
+ * One click of the aid stepper moves this much money — it IS the aid, not a
+ * fee. The header and the hint below the targets read the same number, so
+ * «по 50 $ за шаг» never disagrees with what the + button actually adds.
+ */
+export function aidStep(option: ActionOption): number {
+  return Math.max(50, option.min_amount ?? 1)
+}
+
 /** Same sum the backend checks against the budget: strikes and sanctions are free. */
 export function totalCost(draft: Draft, space: ActionSpace): number {
   return (

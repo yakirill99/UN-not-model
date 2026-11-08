@@ -36,6 +36,14 @@ export default function Others({ others, me }: { others: Foreign[]; me?: Me | nu
   return (
     <section className="card stack">
       <h2>Другие страны</h2>
+      {/* Round one reads «0.00 %» everywhere and looks broken — it is not:
+          the engine computes life at the round's end. Say so once, here. */}
+      {unranked && (
+        <p className="muted">
+          Уровень жизни пока у всех одинаковый — движок посчитает его при подведении итогов раунда,
+          тогда и разыграются места.
+        </p>
+      )}
       {sorted.map((country) => {
         const alive = country.cities.filter((c) => !c.destroyed).length
         const place = placeOf.get(country.id) ?? 0

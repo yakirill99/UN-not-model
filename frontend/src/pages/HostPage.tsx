@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router'
 import { api, errorMessage, type GameInfo, type RoundStatus } from '../api/client'
+import { useAutoRefresh } from '../useAutoRefresh'
 import HostPanel from '../host/HostPanel'
 import Dashboard from '../watch/Dashboard'
 import type { GameLog } from '../watch/core'
@@ -38,6 +39,10 @@ export default function HostPage() {
   useEffect(() => {
     void load()
   }, [load])
+
+  // The room's screen and the host panel follow the game by themselves:
+  // resolving a round repaints the projector with no button press.
+  useAutoRefresh(load)
 
   return (
     <main className="app">

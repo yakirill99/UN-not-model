@@ -1,7 +1,11 @@
 /**
  * The round's changes as pure data — the selection and ordering of the news,
  * with no React. The component in Changes.tsx only draws what this returns.
+ *
+ * Same-kind events are pre-merged into one story (merge.ts): a bot investing
+ * three times is one line about growth, not three.
  */
+import { mergeNews, type Group } from './merge'
 import type { AnyEvent } from './news'
 
 /** Pure bookkeeping: no number the player watches actually moves, so not a change. */
@@ -63,7 +67,7 @@ const GOOD = new Set<AnyEvent['type']>([
   'tech_developed',
 ])
 
-export type Change = { event: AnyEvent; icon: string; tone: 'bad' | 'ok' | null }
+export type Change = { group: Group; icon: string; tone: 'bad' | 'ok' | null }
 
 function toneOf(type: AnyEvent['type']): Change['tone'] {
   if (BAD.has(type)) return 'bad'
@@ -71,20 +75,19 @@ function toneOf(type: AnyEvent['type']): Change['tone'] {
 }
 
 /**
- * The round's news, ordered by importance — pure, so the tests stay cheap.
- * Within one importance group the engine's own order is kept: it is already
- * causal, and re-sorting it would read like a shuffled deck.
+ * The round's news as merged stories, ordered by importance — pure, so the
+ * tests stay cheap. Within one importance group the engine's own order is
+ * kept: it is already causal, and re-sorting it would read like a shuffled deck.
  */
 export function changes(news: AnyEvent[]): Change[] {
-  return news
-    .filter((event) => !SKIP.has(event.type))
-    .map((event, index) => ({
-      event,
+  return mergeNews(news.filter((event) => !SKIP.has(event.type)))
+    .map((group, index) => ({
+      group,
       index,
-      rank: ORDER.indexOf(event.type),
-      icon: ICONS[event.type],
-      tone: toneOf(event.type),
+      rank: ORDER.indexOf(group.events[0].type),
+      icon: ICONS[group.events[0].type],
+      tone: toneOf(group.events[0].type),
     }))
     .sort((a, b) => a.rank - b.rank || a.index - b.index)
-    .map(({ event, icon, tone }) => ({ event, icon, tone }))
+    .map(({ group, icon, tone }) => ({ group, icon, tone }))
 }

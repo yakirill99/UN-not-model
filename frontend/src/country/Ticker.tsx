@@ -1,5 +1,5 @@
 import { changes } from './changes'
-import { describeEvent, type AnyEvent } from './news'
+import { describeGroup, type AnyEvent } from './news'
 import { Icon } from '../ui/Icon'
 import type { Names } from './names'
 
@@ -9,16 +9,17 @@ import type { Names } from './names'
  * header carries it, so a page refresh answers «что изменилось?» before any
  * scrolling. The track holds the items twice: the animation shifts by exactly
  * one half, so the loop is seamless. Hover pauses the crawl; readers who
- * prefer no motion get a plain scrollable line instead.
+ * prefer no motion get a plain scrollable line instead. Same-kind events are
+ * merged (merge.ts), so one story never crawls past three times.
  */
 export default function Ticker({ news, names = {} }: { news: AnyEvent[]; names?: Names }) {
   const list = changes(news)
   if (list.length === 0) return null
 
-  const half = list.map(({ event, icon, tone }, i) => (
-    <span key={i} className={`ticker-item${tone ? ` ${tone}` : ''}`}>
+  const half = list.map(({ group, icon, tone }) => (
+    <span key={group.key} className={`ticker-item${tone ? ` ${tone}` : ''}`}>
       <Icon name={icon} size={15} />
-      <span>{describeEvent(event, names)}</span>
+      <span>{describeGroup(group, names)}</span>
     </span>
   ))
 

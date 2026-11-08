@@ -16,13 +16,23 @@ describe('changes', () => {
       ev('city_destroyed', { target: 'spb', cause: 'nuclear' }),
       ev('shield_built', { target: 'moscow' }),
     ])
-    expect(list.map((c) => c.event.type)).toEqual([
+    expect(list.map((c) => c.group.events[0].type)).toEqual([
       'nuclear_strike',
       'city_destroyed',
       'shield_built',
       'income_credited',
     ])
     expect(list.map((c) => c.tone)).toEqual(['bad', 'bad', 'ok', 'ok'])
+  })
+
+  it('merges the same story into one line: three investments are one news', () => {
+    const list = changes([
+      ev('city_invested', { target: 'spb', development_before: 60, development_after: 70 }),
+      ev('city_invested', { target: 'moscow', development_before: 40, development_after: 50 }),
+      ev('city_invested', { target: 'nyc', development_before: 30, development_after: 45 }),
+    ])
+    expect(list).toHaveLength(1)
+    expect(list[0].group.events).toHaveLength(3)
   })
 
   it('leaves neutral changes untoned: spending is neither good nor bad', () => {
@@ -38,7 +48,7 @@ describe('changes', () => {
       ev('life_level_computed', { life_level: 4567 }),
     ])
     expect(list).toHaveLength(1)
-    expect(list[0].event.type).toBe('income_credited')
+    expect(list[0].group.events[0].type).toBe('income_credited')
   })
 })
 

@@ -189,14 +189,20 @@ describe('WorldTab: the city honeycomb', () => {
     }
   })
 
-  it('draws city labels horizontally: no rotated text anywhere on the card', async () => {
+  it('draws city labels as crisp HTML, always horizontal', async () => {
     renderTab()
     await screen.findByRole('button', { name: 'Россия на карте (это мы)' })
-    const labels = [...document.querySelectorAll('.citymap text')]
+    // The labels are HTML nodes over the SVG, never scaled with the map —
+    // the scaled SVG text came out blurry on big monitors.
+    const labels = [...document.querySelectorAll('.citymap-label')]
     expect(labels.length).toBeGreaterThan(0)
+    expect(labels.map((l) => l.textContent?.includes('Москва'))).toContain(true)
     for (const label of labels) {
       expect(label.getAttribute('transform')).toBeNull()
+      expect((label as HTMLElement).style.transform).not.toMatch(/rotate/)
     }
+    // And no text lives inside the SVG anymore.
+    expect(document.querySelectorAll('.citymap text')).toHaveLength(0)
   })
 })
 

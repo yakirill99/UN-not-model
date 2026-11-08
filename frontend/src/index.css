@@ -594,8 +594,9 @@ label.row.inline input[type='checkbox'] {
 /* --- the news ticker (#5): the round in one crawling line -------------------
    Lives in the sticky header: a refresh answers «что изменилось?» with no
    scrolling. The track holds its content twice; the animation shifts by
-   exactly one half, so the loop is seamless. Hover pauses, reduced-motion
-   readers get a plain scrollable line. */
+   exactly one half, so the loop is seamless. It crawls slowly to the RIGHT —
+   «надписи должны ехать медленно вправо, чтобы была ротация новостей».
+   Hover pauses, reduced-motion readers get a plain scrollable line. */
 .ticker {
   overflow: hidden;
   background: var(--card);
@@ -606,7 +607,7 @@ label.row.inline input[type='checkbox'] {
 .ticker-track {
   display: inline-flex;
   white-space: nowrap;
-  animation: ticker-move 32s linear infinite;
+  animation: ticker-move 55s linear infinite;
 }
 .ticker:hover .ticker-track {
   animation-play-state: paused;
@@ -626,8 +627,11 @@ label.row.inline input[type='checkbox'] {
   flex: none;
 }
 @keyframes ticker-move {
-  to {
+  from {
     transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -636,6 +640,64 @@ label.row.inline input[type='checkbox'] {
   }
   .ticker {
     overflow-x: auto;
+  }
+}
+
+/* --- the round transition (#hall): «анимация переходов между раундами» -------
+   One beat of theatre when the auto-refresh brings the resolved round in:
+   the banner pops over the page, holds, and fades itself out. With reduced
+   motion it just appears and disappears without the pop. */
+.round-banner {
+  position: fixed;
+  left: 50%;
+  top: 36%;
+  transform: translate(-50%, -50%);
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 1.1rem 2.2rem;
+  border-radius: 1.25rem;
+  background: var(--card);
+  border: 1px solid color-mix(in srgb, var(--fg) 18%, transparent);
+  box-shadow: 0 18px 60px rgb(0 0 0 / 0.35);
+  text-align: center;
+  pointer-events: none;
+  animation: round-pop 3.4s ease forwards;
+}
+.round-banner strong {
+  font-size: 1.7rem;
+  letter-spacing: 0.02em;
+}
+.round-banner span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+@keyframes round-pop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.82);
+  }
+  10% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.03);
+  }
+  18% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  82% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .round-banner {
+    animation: none;
+    opacity: 1;
   }
 }
 
@@ -895,14 +957,20 @@ label.row.inline input[type='checkbox'] {
 }
 
 /* --- the experimental «Мир» tab (#world) ------------------------------------- */
+/* The honeycomb lives in a relatively-positioned wrapper: the SVG draws the
+   cells, the HTML labels sit on top at percentage offsets — fixed-size type,
+   crisp on any monitor (the scaled SVG text came out blurry on 2K). */
+.citymap-wrap {
+  position: relative;
+}
 .citymap {
   width: 100%;
   height: auto;
   display: block;
 }
 .citymap .cell {
-  stroke: var(--card);
-  stroke-width: 2;
+  stroke: color-mix(in srgb, var(--card) 65%, transparent);
+  stroke-width: 1;
   cursor: pointer;
   transition: opacity 0.15s ease;
 }
@@ -911,21 +979,37 @@ label.row.inline input[type='checkbox'] {
 }
 .citymap .cell.sel {
   stroke: var(--fg);
-  stroke-width: 3;
+  stroke-width: 2.5;
 }
-.citymap text {
-  fill: var(--fg);
-  paint-order: stroke;
-  stroke: rgb(0 0 0 / 0.18);
-  stroke-width: 1.6px;
+.citymap .borders line {
+  stroke: var(--fg);
+  opacity: 0.55;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+.citymap-label {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  text-align: center;
   pointer-events: none;
+  line-height: 1.2;
+  color: var(--fg);
+  text-shadow:
+    0 1px 2px rgb(0 0 0 / 0.35),
+    0 0 4px rgb(0 0 0 / 0.18);
 }
-.citymap .cell-stat {
-  font-size: 12px;
-  fill: color-mix(in srgb, var(--fg) 80%, transparent);
+.citymap-label .name {
+  display: block;
+  font-weight: 700;
+  font-size: 0.95rem;
 }
-.citymap .cell-name {
-  font-size: 15px;
+.citymap-label .stat {
+  display: block;
+  font-size: 0.78rem;
+  opacity: 0.85;
+}
+.citymap-label .stat.bad {
+  color: var(--bad);
   font-weight: 600;
 }
 

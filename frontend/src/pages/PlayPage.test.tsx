@@ -308,4 +308,17 @@ describe('PlayPage when the round turns', () => {
     )
     expect(screen.getByText(/Потрачено 0 \$ из/)).toBeTruthy()
   })
+
+  it('greets the new round with the transition banner, but stays quiet on first load', async () => {
+    answerRounds(1, 2)
+    renderPage()
+    await screen.findByRole('button', { name: 'Отправить приказы' })
+    // The very first load announces nothing: no round has "turned" yet.
+    expect(document.querySelector('.round-banner')).toBeNull()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Обновить' }))
+    await waitFor(() =>
+      expect(document.querySelector('.round-banner')?.textContent).toContain('Раунд 2'),
+    )
+  })
 })

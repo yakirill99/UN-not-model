@@ -78,15 +78,28 @@ describe('Dashboard · filtering', () => {
     )
   })
 
-  it('combines kinds, and clears them by clicking again', async () => {
+  it('switches between kinds instead of stacking them («режим переключения»)', async () => {
     show()
     await userEvent.click(chip('Оружие'))
-    await userEvent.click(chip('Экология'))
-    expect(feedItems()).toHaveLength(4)
+    expect(feedItems()).toHaveLength(2)
 
-    await userEvent.click(chip('Оружие'))
+    // Picking another kind REPLACES the previous one — no on/off accumulation.
     await userEvent.click(chip('Экология'))
+    expect(feedItems()).toHaveLength(2)
+    expect(feedItems().every((t) => t.includes('Экология'))).toBe(true)
+
+    // «Все» brings the whole feed back.
+    await userEvent.click(chip('Все'))
     expect(feedItems()).toHaveLength(5)
+  })
+
+  it('marks the active kind chip as pressed', async () => {
+    show()
+    const war = chip('Оружие')
+    expect(war.getAttribute('aria-pressed')).toBe('false')
+    await userEvent.click(war)
+    expect(war.getAttribute('aria-pressed')).toBe('true')
+    expect(chip('Все').getAttribute('aria-pressed')).toBe('false')
   })
 
   it('says so when the filters match nothing', async () => {
@@ -103,7 +116,7 @@ describe('Dashboard · filtering', () => {
       />,
     )
     await userEvent.click(chip('Дипломатия'))
-    expect(screen.getByText('Под эти фильтры ничего не попало.')).toBeTruthy()
+    expect(screen.getByText('Под этот фильтр ничего не попало.')).toBeTruthy()
   })
 
   it('keeps the round and the kind filters independent', async () => {

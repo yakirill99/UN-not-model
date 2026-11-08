@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router'
+import { useAutoRefresh } from '../useAutoRefresh'
 import {
   api,
   errorMessage,
@@ -40,6 +41,9 @@ export default function PlayPage() {
   const [busy, setBusy] = useState(false)
   const [tab, setTab] = useState<TabId>('country')
 
+  const [banner, setBanner] = useState<number | null>(null)
+  const seenRound = useRef<number | null>(null)
+
   const load = useCallback(async () => {
     if (!gameId) return
     setBusy(true)
@@ -53,6 +57,11 @@ export default function PlayPage() {
     if (!observation.data) return setError(errorMessage(observation.error))
     setError(null)
     setObs(observation.data)
+    // A new round deserves a beat of theatre: the banner says the results are
+    // in («анимация перехода между раундами»). The very first load stays quiet.
+    const next = observation.data.round
+    if (seenRound.current != null && next !== seenRound.current) setBanner(next)
+    seenRound.current = next
     // The action space and the status are absent between rounds — the card stays usable.
     setSpace(actions.data ?? null)
     setStatus(round.data ?? null)
@@ -61,6 +70,16 @@ export default function PlayPage() {
   useEffect(() => {
     void load()
   }, [load])
+
+  // The round resolves on the host's machine; every player's page catches up
+  // on its own — no F5 marathon in the room.
+  useAutoRefresh(load)
+
+  useEffect(() => {
+    if (banner == null) return
+    const t = window.setTimeout(() => setBanner(null), 3600)
+    return () => window.clearTimeout(t)
+  }, [banner])
 
   const submitted = status ? Object.values(status.submitted).some(Boolean) : false
   const ordersOpen = status?.phase === 'orders'
@@ -81,6 +100,14 @@ export default function PlayPage() {
           style={{ '--flag': `url("${flagUrl(obs.me.name)}")` } as React.CSSProperties}
           aria-hidden="true"
         />
+      )}
+
+      {/* The round transition (#hall): a beat of theatre while the numbers move. */}
+      {banner != null && (
+        <div className="round-banner" role="status" key={banner}>
+          <strong>Раунд {banner}</strong>
+          <span>Итоги подведены — данные обновились сами</span>
+        </div>
       )}
 
       <main className="app">

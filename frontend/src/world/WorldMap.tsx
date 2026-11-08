@@ -27,6 +27,34 @@ type Player = {
   at?: { x: number; y: number }
 }
 
+/** One strike of the round to draw as a flying arc (#17, the CFR-tracker ask). */
+export type StrikeMark = {
+  id: string
+  /** Country id of the target city; resolved against the players of the game. */
+  toId: string
+  outcome: 'absorbed' | 'destroyed' | 'already_destroyed'
+  /** True when we fired it: the arc starts from our borders, otherwise
+      it falls from the top edge — the engine hides the author (section 11). */
+  fromMe: boolean
+}
+
+/** A quad bezier that bows above the straight line: a trajectory, not a wire. */
+function arcPath(a: { x: number; y: number }, b: { x: number; y: number }): string {
+  const dx = b.x - a.x
+  const dy = b.y - a.y
+  const len = Math.hypot(dx, dy) || 1
+  const lift = Math.min(90, len * 0.35)
+  let ox = -dy / len
+  let oy = dx / len
+  if (oy > 0) {
+    ox = -ox
+    oy = -oy
+  }
+  const cx = (a.x + b.x) / 2 + ox * lift
+  const cy = (a.y + b.y) / 2 + oy * lift
+  return `M ${a.x.toFixed(1)} ${a.y.toFixed(1)} Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${b.x.toFixed(1)} ${b.y.toFixed(1)}`
+}
+
 /**
  * The world map of the «Мир» tab (#world) with real country borders
  * (world-atlas 1:50m). The attitude to us is drawn as the outline of the
@@ -43,12 +71,14 @@ export default function WorldMap({
   relations,
   selectedId,
   onSelect,
+  strikes = [],
 }: {
   me: Me
   others: Foreign[]
   relations: Relations
   selectedId: string | null
   onSelect: (id: string) => void
+  strikes?: StrikeMark[]
 }) {
   const [world, setWorld] = useState<CountryFeature[] | null>(null)
   const [failed, setFailed] = useState(false)
@@ -147,6 +177,25 @@ export default function WorldMap({
             {p.name}
           </text>
         ))}
+
+      {/* The round's nuclear strikes: an arc into the target and a flash ring
+          on it — «визуализация прилетов ракет». Traces stay for the round. */}
+      {strikes.length > 0 && (
+        <g className="strikes" aria-label={`Ядерные удары за раунд: ${strikes.length}`}>
+          {strikes.map((s) => {
+            const target = players.find((p) => p.id === s.toId)
+            if (!target?.at) return null // a country without borders cannot host an arc
+            const fromMe = s.fromMe ? players.find((p) => p.own)?.at : undefined
+            const from = fromMe ?? { x: target.at.x, y: -8 }
+            return (
+              <g key={s.id}>
+                <path className={`arc ${s.outcome}`} d={arcPath(from, target.at)} />
+                <circle className={`boom ${s.outcome}`} cx={target.at.x} cy={target.at.y} r={9} />
+              </g>
+            )
+          })}
+        </g>
+      )}
 
       {/* Countries without a shape on the atlas: an index strip along the bottom. */}
       {strip.length > 0 && (

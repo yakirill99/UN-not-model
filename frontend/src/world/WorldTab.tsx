@@ -4,7 +4,7 @@ import { lifeLevel, money } from '../country/format'
 import { allEqual } from '../country/rank'
 import { Flag } from './Flag'
 import CityMap from './CityMap'
-import WorldMap from './WorldMap'
+import WorldMap, { type StrikeMark } from './WorldMap'
 import { relationOf, useDiplomacy, RELATIONS, type Relation } from './diplomacy'
 
 type Me = Schemas['OwnCountryView']
@@ -17,10 +17,10 @@ const RELATION_LABEL: Record<Relation, string> = {
 }
 
 /**
- * The experimental «Мир» tab (#world): a stylized world map with manual
- * diplomacy, and the cities of our state as one polygon cut by value.
- * Nothing here feeds back into the engine yet — it is an overlay for seeing
- * the room, not a new rule.
+ * The experimental «Мир» tab (#world): a world map with real borders and
+ * manual diplomacy, this round's strikes flying as arcs (#17), and our cities
+ * as a honeycomb of hexagons. Nothing here feeds back into the engine yet —
+ * it is an overlay for seeing the room, not a new rule.
  */
 export default function WorldTab({ obs, gameId }: { obs: Observation; gameId?: string }) {
   const { relations, setRelation } = useDiplomacy(gameId)
@@ -29,6 +29,24 @@ export default function WorldTab({ obs, gameId }: { obs: Observation; gameId?: s
 
   const foreign = countryId ? obs.others.find((c) => c.id === countryId) : undefined
   const meSelected = countryId === obs.me.id
+
+  // City id → country id: the strike event names a city, the arc needs a country.
+  const ownerOf = new Map<string, string>()
+  for (const c of [obs.me, ...obs.others]) for (const city of c.cities) ownerOf.set(city.id, c.id)
+  const strikes: StrikeMark[] = (obs.news ?? []).flatMap((e) => {
+    if (e.type !== 'nuclear_strike' || e.target == null) return []
+    const toId = ownerOf.get(e.target)
+    return toId
+      ? [
+          {
+            id: `${e.round}-${e.target}-${e.outcome}`,
+            toId,
+            outcome: e.outcome,
+            fromMe: e.actor === obs.me.id,
+          },
+        ]
+      : []
+  })
 
   return (
     <div className="stack">
@@ -62,6 +80,7 @@ export default function WorldTab({ obs, gameId }: { obs: Observation; gameId?: s
           relations={relations}
           selectedId={countryId}
           onSelect={(id) => setCountryId(id === countryId ? null : id)}
+          strikes={strikes}
         />
 
         {foreign && (

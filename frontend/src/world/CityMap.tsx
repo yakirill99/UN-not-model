@@ -1,20 +1,21 @@
 import type { Schemas } from '../api/client'
 import { lifeLevel, percent } from '../country/format'
 import { Icon } from '../ui/Icon'
-import { squarify, type Rect } from './treemap'
+import { hexLayout, hexPoints } from './hex'
 
 type OwnCity = Schemas['OwnCityView']
 
 const W = 640
 const H = 400
-const GAP = 5
 
 /**
- * The territory of our state as one treemap, cut into city cells (#world).
- * A cell's area follows the city's life level — «чем большее значение несёт
- * город, тем больше фигура»; a destroyed city keeps a small red sliver.
- * The summary sits above the map, and clicking a cell (or a row in the list
- * below) highlights that city both ways.
+ * The territory of our state as a honeycomb (#world): one hexagon per city,
+ * packed from the centre out. A hexagon's area follows the city's life level —
+ * «чем большее значение несёт город, тем больше фигура»; a destroyed city
+ * keeps a small red hexagon. Every label is horizontal: rotating text to
+ * squeeze it into a cell was a bug, not a style («не переворачивай текст»).
+ * The summary sits above the map, and clicking a hexagon (or a row in the
+ * list below) highlights that city both ways.
  */
 export default function CityMap({
   cities,
@@ -27,10 +28,9 @@ export default function CityMap({
   selectedId: string | null
   onSelect: (id: string | null) => void
 }) {
-  const container: Rect = { x: GAP, y: GAP, w: W - GAP * 2, h: H - GAP * 2 }
-  const cells = squarify(
-    container,
+  const hexes = hexLayout(
     cities.map((c) => (c.destroyed ? 0 : c.life_level)),
+    { w: W, h: H },
   )
 
   const alive = cities.filter((c) => !c.destroyed).length
@@ -69,27 +69,25 @@ export default function CityMap({
         role="img"
         aria-label={`Карта городов: целы ${alive} из ${cities.length}`}
       >
-        {cells.map((cell, i) => {
+        {hexes.map((hex, i) => {
           const city = cities[i]
-          const area = cell.w * cell.h
           const ratio = city.destroyed ? 0 : city.life_level / maxLife
           const fill = city.destroyed
             ? 'var(--bad)'
             : `color-mix(in srgb, var(--ok) ${Math.round(Math.min(Math.max(ratio * 78 + 8, 8), 88))}%, var(--card))`
           const selected = selectedId === city.id
           const dimmed = selectedId != null && !selected
-          const wide = cell.w > cell.h
+          // Labels only where the hexagon is big enough to carry them —
+          // and always horizontal: no rotated text anywhere on the card.
+          const fitsName = hex.r >= 26
+          const fitsStat = hex.r >= 34
           return (
             <g key={city.id}>
-              <rect
+              <polygon
                 className={`cell${selected ? ' sel' : dimmed ? ' dim' : ''}`}
-                x={cell.x}
-                y={cell.y}
-                width={cell.w}
-                height={cell.h}
-                rx={10}
+                points={hexPoints(hex)}
                 style={{ fill }}
-                fillOpacity={city.destroyed ? 0.3 : undefined}
+                fillOpacity={city.destroyed ? 0.35 : undefined}
                 role="button"
                 aria-label={
                   city.destroyed
@@ -99,30 +97,24 @@ export default function CityMap({
                 aria-pressed={selected}
                 onClick={() => onSelect(selected ? null : city.id)}
               />
-              {/* Labels only where the cell is big enough to carry them. */}
-              {area > 5200 && (
+              {fitsName && !city.destroyed && (
                 <text
                   className="cell-name"
-                  x={cell.x + cell.w / 2}
-                  y={cell.y + cell.h / 2 + (area > 12000 ? -4 : 4)}
+                  x={hex.cx}
+                  y={hex.cy + (fitsStat ? -3 : 4)}
                   textAnchor="middle"
                 >
                   {city.name}
                 </text>
               )}
-              {area > 12000 && (
-                <text
-                  className={wide ? 'cell-stat' : 'cell-stat vert'}
-                  x={cell.x + cell.w / 2}
-                  y={cell.y + cell.h / 2 + 13}
-                  textAnchor="middle"
-                  transform={
-                    wide ? undefined : `rotate(-90 ${cell.x + cell.w / 2} ${cell.y + cell.h / 2})`
-                  }
-                >
-                  {city.destroyed
-                    ? 'разрушен'
-                    : `${lifeLevel(city.life_level)} · разв. ${percent(city.development)}`}
+              {fitsStat && !city.destroyed && (
+                <text className="cell-stat" x={hex.cx} y={hex.cy + 13} textAnchor="middle">
+                  {`${lifeLevel(city.life_level)} · разв. ${percent(city.development)}`}
+                </text>
+              )}
+              {fitsName && city.destroyed && (
+                <text className="cell-stat" x={hex.cx} y={hex.cy + 4} textAnchor="middle">
+                  разрушен
                 </text>
               )}
             </g>

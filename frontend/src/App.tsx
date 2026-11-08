@@ -4,6 +4,7 @@ import JoinPage from './pages/JoinPage'
 import NewGamePage from './pages/NewGamePage'
 import PlayPage from './pages/PlayPage'
 import RequireRole from './pages/RequireRole'
+import RulesPage from './pages/RulesPage'
 import { ThemeToggle } from './ThemeToggle'
 
 export default function App() {
@@ -13,6 +14,9 @@ export default function App() {
       <Routes>
         <Route path="/" element={<JoinPage />} />
         <Route path="/new" element={<NewGamePage />} />
+        {/* The rules are public on purpose: a delegate (or the curious) reads
+            them without joining a game. */}
+        <Route path="/rules" element={<RulesPage />} />
         <Route element={<RequireRole role="host" />}>
           <Route path="/host/:gameId" element={<HostPage />} />
         </Route>

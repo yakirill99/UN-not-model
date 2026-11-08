@@ -13,10 +13,15 @@ import { Icon } from '../ui/Icon'
  * the budget — so «бесплатно» would be a lie; the header names the step.
  */
 export function ActionHeader({ option, id }: { option: ActionOption; id: string }) {
+  // The playtest asked for the bomb to read as locked until the tech is
+  // bought (#16): the padlock stands in the header while the action is
+  // unavailable for the lack of nuclear technology.
+  const locked = !option.available && option.reason === 'requires_nuclear_tech'
   return (
     <div className="row action-head">
       <span>
-        <Icon name={id} fallback={option.ui.emoji} /> {option.ui.title}
+        {locked && <Icon name="lock" size={16} />} <Icon name={id} fallback={option.ui.emoji} />{' '}
+        {option.ui.title}
       </span>
       <span className="muted">
         {option.available

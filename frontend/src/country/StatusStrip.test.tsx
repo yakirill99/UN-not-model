@@ -16,6 +16,18 @@ describe('StatusStrip', () => {
     expect(text).toContain('72 %') // world ecology
   })
 
+  it('shows the income forecast only when the engine sent one (#11)', () => {
+    const { container, rerender } = render(
+      <StatusStrip me={me()} ecology={72} others={[foreign()]} />,
+    )
+    expect(container.textContent).not.toContain('Доход')
+
+    rerender(<StatusStrip me={me()} ecology={72} others={[foreign()]} forecast={615} />)
+    const text = container.querySelector('.statusbar')?.textContent ?? ''
+    expect(text).toContain('Доход ≈')
+    expect(text).toContain(money(615))
+  })
+
   it('medals the first place, silver stays second', () => {
     const { rerender } = render(
       <StatusStrip me={me({ average_life_level: 9000 })} ecology={72} others={[foreign()]} />,

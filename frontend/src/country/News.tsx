@@ -1,7 +1,8 @@
 import { describeEvent, type AnyEvent } from './news'
+import type { Names } from './names'
 
 /** Round events as a plain list; the wording lives in news.ts. */
-export default function News({ news }: { news: AnyEvent[] }) {
+export default function News({ news, names = {} }: { news: AnyEvent[]; names?: Names }) {
   if (news.length === 0) {
     return (
       <section className="card">
@@ -16,7 +17,7 @@ export default function News({ news }: { news: AnyEvent[] }) {
       <h2>Новости раунда</h2>
       <ul className="news">
         {news.map((event, i) => (
-          <li key={i}>{describeEvent(event)}</li>
+          <li key={i}>{describeEvent(event, names)}</li>
         ))}
       </ul>
     </section>

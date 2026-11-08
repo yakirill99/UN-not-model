@@ -55,22 +55,57 @@ body {
     padding: 3.4rem 2rem 2rem;
   }
 }
-/* Faded flag of the played nation behind the whole play page. The file comes
-   from /public/flags/<code>.svg — swap the file, swap the banner (#world).
-   Text blocks sit on opaque cards above it: the flag belongs to the page
-   background only and must never read «through» the content. */
+/* The flag of the played nation frames the page from the SIDES only: two
+   vertical stripes in the layout gutters, fading towards the content. The
+   72rem column itself stays clean — «пускай будет по бокам, без центра» —
+   and below 80rem there are no gutters, so there is no flag either.
+   The file comes from /public/flags/<code>.svg: swap the file, swap the
+   banner (#world). The url rides in the --flag custom property. */
 .flag-bg {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background-position: center;
-  background-size: cover;
-  background-repeat: no-repeat;
-  opacity: 0.045;
+  display: none;
+  /* The element itself paints NOTHING: the flag url arrives in the --flag
+     custom property (set inline on PlayPage) and only the two pseudo-element
+     stripes draw it — twice, once per side. */
+  background: none;
 }
-:root[data-theme='dark'] .flag-bg {
-  opacity: 0.07;
+@media (min-width: 80rem) {
+  .flag-bg {
+    display: block;
+  }
+}
+.flag-bg::before,
+.flag-bg::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: calc((100% - 72rem) / 2 - 2.5rem);
+  max-width: 22rem;
+  background-image: var(--flag);
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.16;
+}
+:root[data-theme='dark'] .flag-bg::before,
+:root[data-theme='dark'] .flag-bg::after {
+  opacity: 0.2;
+}
+/* The inner edge melts away so the flag never draws a hard line at the
+   content border: the stripe fades into the page background. */
+.flag-bg::before {
+  left: 0;
+  -webkit-mask-image: linear-gradient(to right, black 55%, transparent);
+  mask-image: linear-gradient(to right, black 55%, transparent);
+}
+.flag-bg::after {
+  right: 0;
+  -webkit-mask-image: linear-gradient(to left, black 55%, transparent);
+  mask-image: linear-gradient(to left, black 55%, transparent);
 }
 .card {
   background: var(--card);
@@ -92,6 +127,37 @@ code {
 }
 .narrow {
   max-width: 26rem;
+}
+
+/* The rules page (#19): a readable column and a quiet table. */
+.narrow-rules {
+  max-width: 60rem;
+}
+.rules-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.95rem;
+}
+.rules-table th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--muted);
+  font-size: 0.85rem;
+  padding: 0.3rem 0.5rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--fg) 20%, transparent);
+}
+.rules-table td {
+  padding: 0.45rem 0.5rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--fg) 10%, transparent);
+  vertical-align: top;
+}
+.rules-table .num {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.header-actions {
+  gap: 0.4rem;
+  flex: none;
 }
 .stack {
   display: flex;
@@ -525,7 +591,117 @@ label.row.inline input[type='checkbox'] {
   padding-left: 0;
 }
 
-/* --- the experimental «Мир» tab (#world) ------------------------------------- */
+/* --- the news ticker (#5): the round in one crawling line -------------------
+   Lives in the sticky header: a refresh answers «что изменилось?» with no
+   scrolling. The track holds its content twice; the animation shifts by
+   exactly one half, so the loop is seamless. Hover pauses, reduced-motion
+   readers get a plain scrollable line. */
+.ticker {
+  overflow: hidden;
+  background: var(--card);
+  border-radius: 0.75rem;
+  padding: 0.45rem 0.9rem;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+}
+.ticker-track {
+  display: inline-flex;
+  white-space: nowrap;
+  animation: ticker-move 32s linear infinite;
+}
+.ticker:hover .ticker-track {
+  animation-play-state: paused;
+}
+.ticker-half {
+  display: inline-flex;
+  gap: 2.75rem;
+  padding-right: 2.75rem;
+}
+.ticker-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.88rem;
+}
+.ticker-item .icon {
+  flex: none;
+}
+@keyframes ticker-move {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track {
+    animation: none;
+  }
+  .ticker {
+    overflow-x: auto;
+  }
+}
+
+/* --- strike arcs on the world map (#17): прилеты ракет ---------------------- */
+.world-map .strikes {
+  pointer-events: none;
+}
+.world-map .arc {
+  fill: none;
+  stroke-width: 1.8;
+  stroke-dasharray: 6 4;
+  opacity: 0.75;
+  animation: arc-dash 0.9s linear 1;
+}
+.world-map .arc.destroyed {
+  stroke: var(--diplo-enemy);
+}
+.world-map .arc.absorbed {
+  stroke: var(--diplo-us);
+}
+.world-map .arc.already_destroyed {
+  stroke: var(--muted);
+}
+@keyframes arc-dash {
+  from {
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.world-map .boom {
+  fill: none;
+  stroke-width: 2.4;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: boom 1.2s ease-out 1 both;
+}
+.world-map .boom.destroyed {
+  stroke: var(--diplo-enemy);
+}
+.world-map .boom.absorbed {
+  stroke: var(--diplo-us);
+}
+.world-map .boom.already_destroyed {
+  stroke: var(--muted);
+}
+@keyframes boom {
+  0% {
+    transform: scale(0.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .world-map .arc,
+  .world-map .boom {
+    animation: none;
+  }
+  .world-map .boom {
+    opacity: 0;
+  }
+}
 
 /* Legend chips above the map: one color — one relation. */
 .legend-chips {
@@ -673,7 +849,52 @@ label.row.inline input[type='checkbox'] {
   color: #fff;
 }
 
-/* The treemap of our cities: cells sized by life level, rounded, green ramp. */
+/* The ranking as a bar chart (#2/#8): one scale, the leader fills the track.
+   «Вы» is highlighted so the gap to the leader reads without counting. */
+.rankbars {
+  display: grid;
+  gap: 0.35rem;
+}
+.rankbars .bar-row {
+  grid-template-columns: 10.5rem 1fr 4.2rem;
+}
+.rankbars .bar-fill {
+  /* Neutral fill for the field; «Вы» paints diplomatic blue below. */
+  background: color-mix(in srgb, var(--fg) 40%, transparent);
+}
+.rankbars .bar-row.me .bar-name {
+  font-weight: 700;
+}
+.rankbars .bar-row.me .bar-fill {
+  background: var(--diplo-us);
+}
+.rankbars .bar-value {
+  white-space: nowrap;
+}
+.bar-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 42rem) {
+  .rankbars .bar-row {
+    grid-template-columns: 7.5rem 1fr 3.6rem;
+  }
+}
+
+/* Cities of foreign countries (#7): quiet pills, ruins in red. */
+.city-chips {
+  margin: 0.4rem 0 0;
+}
+.city-chips .chip {
+  cursor: default;
+}
+.city-chips .chip.gone {
+  border-color: color-mix(in srgb, var(--bad) 45%, transparent);
+  color: var(--bad);
+}
+
+/* --- the experimental «Мир» tab (#world) ------------------------------------- */
 .citymap {
   width: 100%;
   height: auto;
@@ -702,9 +923,6 @@ label.row.inline input[type='checkbox'] {
 .citymap .cell-stat {
   font-size: 12px;
   fill: color-mix(in srgb, var(--fg) 80%, transparent);
-}
-.citymap .cell-stat.vert {
-  font-size: 10.5px;
 }
 .citymap .cell-name {
   font-size: 15px;

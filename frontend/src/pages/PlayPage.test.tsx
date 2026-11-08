@@ -242,7 +242,9 @@ describe('PlayPage', () => {
     await screen.findByRole('heading', { name: 'Россия' })
     const bg = document.querySelector('.flag-bg') as HTMLElement | null
     expect(bg).toBeTruthy()
-    expect(bg?.style.backgroundImage).toContain('/flags/ru.svg')
+    // The url rides in the --flag custom property: the element itself paints
+    // nothing, its two side pseudo-stripes do.
+    expect(bg?.style.getPropertyValue('--flag')).toContain('/flags/ru.svg')
   })
 
   it('keeps the order draft alive while the player peeks at the other tabs', async () => {

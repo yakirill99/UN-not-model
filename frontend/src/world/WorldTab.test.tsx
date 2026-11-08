@@ -141,8 +141,8 @@ describe('WorldTab: the world map', () => {
   })
 })
 
-describe('WorldTab: the city treemap', () => {
-  it('shows the summary above the treemap', async () => {
+describe('WorldTab: the city honeycomb', () => {
+  it('shows the summary above the honeycomb', async () => {
     renderTab()
     await screen.findByRole('button', { name: 'Россия на карте (это мы)' })
     expect(screen.getByText('Городов целы')).toBeTruthy()
@@ -187,5 +187,48 @@ describe('WorldTab: the city treemap', () => {
     for (const li of screen.getAllByRole('listitem')) {
       expect(li.className).not.toBe('on')
     }
+  })
+
+  it('draws city labels horizontally: no rotated text anywhere on the card', async () => {
+    renderTab()
+    await screen.findByRole('button', { name: 'Россия на карте (это мы)' })
+    const labels = [...document.querySelectorAll('.citymap text')]
+    expect(labels.length).toBeGreaterThan(0)
+    for (const label of labels) {
+      expect(label.getAttribute('transform')).toBeNull()
+    }
+  })
+})
+
+describe('WorldTab: strike arcs (#17)', () => {
+  const withStrikes = observation({
+    me: me({ cities: [ownCity()] }),
+    others: [foreign()],
+    news: [
+      {
+        round: 2,
+        schema_version: 1,
+        type: 'nuclear_strike',
+        actor: 'russia',
+        target: 'nyc',
+        outcome: 'destroyed',
+      } as never,
+    ],
+  })
+
+  it('flies an arc into the target country and marks the flash', async () => {
+    render(<WorldTab obs={withStrikes} gameId="g9" />)
+    await screen.findByRole('button', { name: 'Россия на карте (это мы)' })
+    const arc = document.querySelector('.world-map .arc.destroyed') as SVGPathElement | null
+    expect(arc).toBeTruthy()
+    // A trajectory: a quad bezier from our borders (I fired it) to the target.
+    expect(arc?.getAttribute('d')).toMatch(/^M [\d.-]+ [\d.-]+ Q [\d.-]+ [\d.-]+ [\d.-]+ [\d.-]+$/)
+    expect(document.querySelector('.world-map .boom.destroyed')).toBeTruthy()
+  })
+
+  it('keeps the map calm on a peaceful round', async () => {
+    render(<WorldTab obs={observation({ me: me(), others: [foreign()] })} gameId="g9" />)
+    await screen.findByRole('button', { name: 'Россия на карте (это мы)' })
+    expect(document.querySelector('.world-map .strikes')).toBeNull()
   })
 })

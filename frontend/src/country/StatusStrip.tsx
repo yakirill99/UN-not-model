@@ -22,11 +22,14 @@ export default function StatusStrip({
   me,
   ecology,
   others,
+  forecast,
   action,
 }: {
   me: Me
   ecology: number
   others: Foreign[]
+  /** What the current indicators will earn at the round's end (#11). */
+  forecast?: number
   action?: ReactNode
 }) {
   const { place, total } = rankOf(me, others)
@@ -39,6 +42,14 @@ export default function StatusStrip({
         <span className="muted">Бюджет</span>
         <strong>{money(me.budget)}</strong>
       </div>
+      {forecast != null && (
+        <div className="stat">
+          <span className="muted">Доход ≈</span>
+          <strong title="Прогноз дохода на конец раунда по текущим показателям: чужие удары и санкции его изменят">
+            {money(forecast)}
+          </strong>
+        </div>
+      )}
       <div className="stat">
         <span className="muted">Средний УЖ</span>
         <strong title={unranked ? 'Жизнь посчитается при подведении итогов раунда' : undefined}>

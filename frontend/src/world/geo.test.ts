@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { flagUrl, hash, isoOf } from './flags'
-import { geoOf } from './geo'
+import { geoOf, numOf } from './geo'
 
 describe('geo', () => {
   it('knows the scenario countries', () => {
@@ -9,6 +9,13 @@ describe('geo', () => {
     expect(geoOf('Франция')?.iso).toBe('fr')
     expect(geoOf('Иран')?.iso).toBe('ir')
     expect(geoOf('КНДР')?.iso).toBe('kp')
+  })
+
+  it('gives the numeric ISO codes the world atlas keys its borders by', () => {
+    expect(numOf('Россия')).toBe('643')
+    expect(numOf('США')).toBe('840')
+    expect(numOf('Франция')).toBe('250')
+    expect(numOf('Атлантида')).toBeUndefined()
   })
 
   it('resolves aliases', () => {

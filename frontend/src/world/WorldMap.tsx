@@ -1,13 +1,15 @@
+import { useEffect, useMemo, useState } from 'react'
+import { geoGraticule10, geoNaturalEarth1, geoPath } from 'd3-geo'
 import type { Schemas } from '../api/client'
 import { relationOf, type Relation, type Relations } from './diplomacy'
-import { geoOf, project, MAP_W, MAP_H } from './geo'
-import { LAND, SEAS } from './continents'
+import { geoOf, numOf } from './geo'
+import { loadWorld, type CountryFeature } from './worldData'
 
 type Me = Schemas['OwnCountryView']
 type Foreign = Schemas['ForeignCountryView']
 
-const W = MAP_W
-const H = MAP_H
+const W = 960
+const H = 520
 
 const RELATION_WORD: Record<Relation, string> = {
   friend: 'друг',
@@ -15,25 +17,25 @@ const RELATION_WORD: Record<Relation, string> = {
   enemy: 'враг',
 }
 
-type Marker = {
+type Player = {
   id: string
   name: string
-  life: number
   relation: Relation
   own: boolean
-  x: number
-  y: number
+  feature?: CountryFeature
+  /** Label anchor in projected coordinates (undefined → goes to the strip). */
+  at?: { x: number; y: number }
 }
 
 /**
- * The stylized world map of the «Мир» tab (#world): every country of the game
- * is a marker sized by its average life level, painted by its relation to us —
- * синий — мы, зелёный — друзья, серый — нейтралы, красный — враги — and linked
- * to our marker. Relations are manual (see diplomacy.ts); the mechanics of
- * who-is-who is a later game feature.
+ * The world map of the «Мир» tab (#world) with real country borders
+ * (world-atlas 1:50m). The attitude to us is drawn as the outline of the
+ * country itself — синий — мы, зелёный — друзья, серый — нейтралы,
+ * красный — враги — not as a dot on the map. Clicking a country opens its
+ * card; relations stay manual (see diplomacy.ts).
  *
- * A country the geo table does not know still shows up: those go to an index
- * strip under the map instead of a random spot in an ocean.
+ * A game country the atlas does not know (or that has no numeric code) still
+ * shows up: those go to an index strip under the map instead of vanishing.
  */
 export default function WorldMap({
   me,
@@ -48,44 +50,65 @@ export default function WorldMap({
   selectedId: string | null
   onSelect: (id: string) => void
 }) {
-  const maxLife = Math.max(me.average_life_level, ...others.map((c) => c.average_life_level), 100)
-  const radius = (life: number) => 4.5 + 8 * Math.sqrt(life / maxLife)
+  const [world, setWorld] = useState<CountryFeature[] | null>(null)
+  const [failed, setFailed] = useState(false)
+  useEffect(() => {
+    let live = true
+    loadWorld()
+      .then((w) => {
+        if (live) setWorld(w)
+      })
+      .catch(() => {
+        if (live) setFailed(true)
+      })
+    return () => {
+      live = false
+    }
+  }, [])
 
-  const myGeo = geoOf(me.name)
-  const myPos = myGeo ? project(myGeo.lon, myGeo.lat) : { x: 30, y: H - 16 }
+  const projection = useMemo(() => {
+    if (!world) return null
+    return geoNaturalEarth1().fitExtent(
+      [
+        [6, 6],
+        [W - 6, H - 6],
+      ],
+      { type: 'FeatureCollection', features: world },
+    )
+  }, [world])
 
-  const strip = others.filter((c) => !geoOf(c.name))
-  const stripX = (i: number) =>
-    strip.length === 1 ? W / 2 : 60 + (i * (W - 120)) / (strip.length - 1)
+  const path = useMemo(() => (projection ? geoPath(projection) : null), [projection])
 
-  const markers: Marker[] = [
-    {
-      id: me.id,
-      name: me.name,
-      life: me.average_life_level,
-      relation: 'neutral', // color comes from the .us class, not the relation
-      own: true,
-      x: myPos.x,
-      y: myPos.y,
-    },
-    ...others.map((c) => {
-      const geo = geoOf(c.name)
-      const pos = geo
-        ? project(geo.lon, geo.lat)
-        : { x: stripX(strip.findIndex((s) => s.id === c.id)), y: H - 16 }
-      return {
-        id: c.id,
-        name: c.name,
-        life: c.average_life_level,
-        relation: relationOf(relations, c.id),
-        own: false,
-        x: pos.x,
-        y: pos.y,
-      }
-    }),
+  if (!world || !projection || !path) {
+    return (
+      <p className="muted world-map-status" role="status">
+        {failed
+          ? 'Карта мира не загрузилась — проверьте соединение и обновите страницу.'
+          : 'Загружаем карту мира…'}
+      </p>
+    )
+  }
+
+  // Players of the game → features of the atlas; unmatched ones go to the strip.
+  const players: Player[] = [
+    { id: me.id, name: me.name, relation: 'neutral', own: true }, // цвет даёт класс .us
+    ...others.map((c) => ({
+      id: c.id,
+      name: c.name,
+      relation: relationOf(relations, c.id),
+      own: false,
+    })),
   ]
-
-  const ring = selectedId ? markers.find((m) => m.id === selectedId) : undefined
+  for (const p of players) {
+    const num = numOf(p.name)
+    p.feature = num ? world.find((f) => String(f.id) === num) : undefined
+    const geo = geoOf(p.name)
+    if (geo && p.feature) {
+      const [x, y] = projection([geo.lon, geo.lat]) ?? []
+      if (x != null && y != null) p.at = { x, y }
+    }
+  }
+  const strip = players.filter((p) => !p.feature)
 
   return (
     <svg
@@ -94,80 +117,66 @@ export default function WorldMap({
       role="img"
       aria-label={`Карта мира: мы — ${me.name}, плюс ${others.length} стран`}
     >
-      {LAND.map((poly, i) => (
-        <polygon
-          key={`land-${i}`}
-          className="land"
-          points={poly
-            .map(([lon, lat]) => {
-              const p = project(lon, lat)
-              return `${p.x},${p.y}`
-            })
-            .join(' ')}
-        />
-      ))}
-      {SEAS.map((poly, i) => (
-        <polygon
-          key={`sea-${i}`}
-          className="land"
-          fill="var(--bg)"
-          points={poly
-            .map(([lon, lat]) => {
-              const p = project(lon, lat)
-              return `${p.x},${p.y}`
-            })
-            .join(' ')}
-        />
+      <rect className="ocean" x={0} y={0} width={W} height={H} />
+      <path className="graticule" d={path(geoGraticule10()) ?? undefined} />
+
+      {world.map((f, i) => (
+        <path key={`land-${i}`} className="land" d={path(f) ?? undefined} />
       ))}
 
-      {/* Diplomatic links: us to everyone, painted by the relation. */}
-      {others.map((c) => {
-        const marker = markers.find((m) => m.id === c.id)
-        if (!marker) return null
-        return (
-          <line
-            key={`link-${c.id}`}
-            className={`link ${relationOf(relations, c.id)}`}
-            x1={myPos.x}
-            y1={myPos.y}
-            x2={marker.x}
-            y2={marker.y}
-          />
-        )
-      })}
-
-      {strip.length > 0 && (
-        <line className="link neutral" x1={30} y1={H - 16} x2={W - 30} y2={H - 16} />
-      )}
-
-      {markers.map((m) => {
-        const r = radius(m.life)
-        return (
-          <g
-            key={m.id}
+      {/* The countries of the game: the relation is the border outline itself. */}
+      {players
+        .filter((p) => p.feature)
+        .map((p) => (
+          <path
+            key={p.id}
+            className={`ctr ${p.own ? 'us' : p.relation}${selectedId === p.id ? ' sel' : ''}`}
+            d={path(p.feature!) ?? undefined}
             role="button"
-            aria-label={`${m.name} на карте${m.own ? ' (это мы)' : ` — ${RELATION_WORD[m.relation]}`}`}
-            aria-pressed={selectedId === m.id}
-            onClick={() => onSelect(m.id)}
-          >
-            {ring && ring.id === m.id && <circle className="halo" cx={m.x} cy={m.y} r={r + 3.5} />}
-            <circle
-              className={`marker ${m.own ? 'us' : m.relation}${selectedId === m.id ? ' sel' : ''}`}
-              cx={m.x}
-              cy={m.y}
-              r={r}
-            />
-            <text
-              x={m.x}
-              y={m.y + r + 10}
-              textAnchor="middle"
-              fontSize={strip.some((s) => s.id === m.id) ? 8.5 : 9.5}
-            >
-              {m.name}
-            </text>
-          </g>
-        )
-      })}
+            aria-label={`${p.name} на карте${p.own ? ' (это мы)' : ` — ${RELATION_WORD[p.relation]}`}`}
+            aria-pressed={selectedId === p.id}
+            onClick={() => onSelect(p.id)}
+          />
+        ))}
+
+      {/* Names of the game countries only — the rest of the world stays quiet. */}
+      {players
+        .filter((p) => p.at)
+        .map((p) => (
+          <text key={`lbl-${p.id}`} className="lbl" x={p.at!.x} y={p.at!.y}>
+            {p.name}
+          </text>
+        ))}
+
+      {/* Countries without a shape on the atlas: an index strip along the bottom. */}
+      {strip.length > 0 && (
+        <g aria-label="Страны без границ на карте">
+          {strip.map((p, i) => {
+            const x = strip.length === 1 ? W / 2 : 80 + (i * (W - 160)) / (strip.length - 1)
+            return (
+              <g
+                key={p.id}
+                role="button"
+                aria-label={`${p.name} на карте${p.own ? ' (это мы)' : ` — ${RELATION_WORD[p.relation]}`}`}
+                aria-pressed={selectedId === p.id}
+                onClick={() => onSelect(p.id)}
+              >
+                <rect
+                  className={`chip ${p.own ? 'us' : p.relation}${selectedId === p.id ? ' sel' : ''}`}
+                  x={x - p.name.length * 2.6 - 8}
+                  y={H - 26}
+                  width={p.name.length * 5.2 + 16}
+                  height={18}
+                  rx={9}
+                />
+                <text className="lbl chip-lbl" x={x} y={H - 13}>
+                  {p.name}
+                </text>
+              </g>
+            )
+          })}
+        </g>
+      )}
     </svg>
   )
 }

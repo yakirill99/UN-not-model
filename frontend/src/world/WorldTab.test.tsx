@@ -1,7 +1,51 @@
-import { fireEvent, render, screen } from '@testing-library/react'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { fireEvent, render, screen, within } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { foreign, me, observation, ownCity } from '../test/observation'
 import WorldTab from './WorldTab'
+import type { CountryFeature } from './worldData'
+
+/** The atlas is mocked: Россия (643) and США (840) have real borders here,
+    Атлантида does not — she must land in the index strip. */
+vi.mock('./worldData', () => ({
+  loadWorld: vi.fn(async (): Promise<CountryFeature[]> => [
+    {
+      type: 'Feature',
+      id: '643',
+      properties: { name: 'Russia' },
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [30, 50],
+            [60, 55],
+            [90, 50],
+            [85, 65],
+            [40, 60],
+            [30, 50],
+          ],
+        ],
+      },
+    },
+    {
+      type: 'Feature',
+      id: '840',
+      properties: { name: 'United States' },
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [-125, 48],
+            [-95, 49],
+            [-70, 45],
+            [-80, 25],
+            [-120, 35],
+            [-125, 48],
+          ],
+        ],
+      },
+    },
+  ]),
+}))
 
 const OBS = observation({
   me: me({
@@ -25,31 +69,44 @@ function renderTab(gameId = 'g9') {
 beforeEach(() => window.localStorage.clear())
 
 describe('WorldTab: the world map', () => {
-  it('draws every country of the game: ours, known and unknown', () => {
+  it('draws every country of the game: ours, known and unknown', async () => {
     renderTab()
-    expect(screen.getByRole('button', { name: 'Россия на карте (это мы)' })).toBeTruthy()
+    expect(await screen.findByRole('button', { name: 'Россия на карте (это мы)' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'США на карте — нейтрал' })).toBeTruthy()
-    // Атлантиды нет в геотаблице — она попадает в индексную полосу внизу.
+    // Атлантиды нет ни в геотаблице, ни в атласе — она попадает в индексную полосу.
     expect(screen.getByRole('button', { name: 'Атлантида на карте — нейтрал' })).toBeTruthy()
   })
 
-  it('shows the legend: blue us, green friends, gray neutral, red enemies', () => {
+  it('paints the borders, not dots: the country paths carry the relation classes', async () => {
     renderTab()
+    const usa = await screen.findByRole('button', { name: 'США на карте — нейтрал' })
+    expect(usa.getAttribute('class')).toContain('ctr neutral')
+    fireEvent.click(usa)
+    fireEvent.click(screen.getByRole('button', { name: 'Враг' }))
+    expect(
+      screen.getByRole('button', { name: 'США на карте — враг' }).getAttribute('class'),
+    ).toContain('ctr enemy')
+  })
+
+  it('shows the legend: blue us, green friends, gray neutral, red enemies', async () => {
+    renderTab()
+    await screen.findByRole('button', { name: 'Россия на карте (это мы)' })
     for (const word of ['Мы', 'Друг', 'Нейтрал', 'Враг']) {
       expect(screen.getByText(word)).toBeTruthy()
     }
   })
 
-  it('selects a country and shows the stats the fog of war allows', () => {
+  it('selects a country and shows the stats the fog of war allows', async () => {
     renderTab()
-    fireEvent.click(screen.getByRole('button', { name: 'США на карте — нейтрал' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'США на карте — нейтрал' }))
     expect(screen.getByText(/Средняя жизнь: 60\.00 %/)).toBeTruthy()
     expect(screen.getByRole('group', { name: 'Отношение к стране США' })).toBeTruthy()
   })
 
-  it('marks a country as an enemy and remembers the choice', () => {
+  it('marks a country as an enemy and remembers the choice', async () => {
     renderTab()
-    fireEvent.click(screen.getByRole('button', { name: 'США на карте — нейтрал' }))
+    const usa = await screen.findByRole('button', { name: 'США на карте — нейтрал' })
+    fireEvent.click(usa)
     const enemy = screen.getByRole('button', { name: 'Враг' })
     expect(enemy.getAttribute('aria-pressed')).toBe('false')
 
@@ -59,42 +116,46 @@ describe('WorldTab: the world map', () => {
     expect(window.localStorage.getItem('arena-diplo:g9')).toContain('"usa":"enemy"')
   })
 
-  it('restores the marks from storage on load', () => {
+  it('restores the marks from storage on load', async () => {
     window.localStorage.setItem('arena-diplo:g9', JSON.stringify({ usa: 'friend' }))
     renderTab()
-    expect(screen.getByRole('button', { name: 'США на карте — друг' })).toBeTruthy()
+    const usa = await screen.findByRole('button', { name: 'США на карте — друг' })
     // The switch itself appears once the country is selected.
-    fireEvent.click(screen.getByRole('button', { name: 'США на карте — друг' }))
+    fireEvent.click(usa)
     expect(screen.getByRole('button', { name: 'Друг' }).getAttribute('aria-pressed')).toBe('true')
   })
 
-  it('keeps our own country out of diplomacy', () => {
+  it('keeps our own country out of diplomacy', async () => {
     renderTab()
-    fireEvent.click(screen.getByRole('button', { name: 'Россия на карте (это мы)' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Россия на карте (это мы)' }))
     expect(screen.getByText('это мы')).toBeTruthy()
     expect(screen.queryByRole('group', { name: /Отношение к стране/ })).toBeNull()
   })
 
-  it('deselects a country on the second click', () => {
+  it('deselects a country on the second click', async () => {
     renderTab()
-    const usa = screen.getByRole('button', { name: 'США на карте — нейтрал' })
+    const usa = await screen.findByRole('button', { name: 'США на карте — нейтрал' })
     fireEvent.click(usa)
     fireEvent.click(screen.getByRole('button', { name: 'США на карте — нейтрал' }))
     expect(screen.queryByRole('group', { name: 'Отношение к стране США' })).toBeNull()
   })
 })
 
-describe('WorldTab: the city polygon', () => {
-  it('draws the edge statistics around the territory', () => {
+describe('WorldTab: the city treemap', () => {
+  it('shows the summary above the treemap', async () => {
     renderTab()
-    expect(screen.getByText('Городов целы: 2 из 2')).toBeTruthy()
-    expect(screen.getByText('Средняя жизнь: 45.67 %')).toBeTruthy()
-    expect(screen.getByText('Щитов: 1')).toBeTruthy()
-    expect(screen.getByText('Разрушено: 0')).toBeTruthy()
+    await screen.findByRole('button', { name: 'Россия на карте (это мы)' })
+    expect(screen.getByText('Городов целы')).toBeTruthy()
+    expect(screen.getByText('2 из 2')).toBeTruthy()
+    expect(screen.getByText('Средняя жизнь')).toBeTruthy()
+    expect(screen.getByText('45.67 %')).toBeTruthy()
+    expect(screen.getByText('Щитов')).toBeTruthy()
+    expect(screen.getByText('Разрушено')).toBeTruthy()
   })
 
-  it('highlights a city both on the polygon and in the list', () => {
+  it('highlights a city both on the treemap and in the list', async () => {
     renderTab()
+    await screen.findByRole('button', { name: 'Россия на карте (это мы)' })
     fireEvent.click(screen.getByRole('button', { name: 'Москва: жизнь 55.00 %' }))
     expect(
       screen.getByRole('button', { name: 'Москва: жизнь 55.00 %' }).getAttribute('aria-pressed'),
@@ -107,19 +168,22 @@ describe('WorldTab: the city polygon', () => {
     expect(row?.className).toBe('on')
   })
 
-  it('marks a destroyed city and keeps its sliver on the map', () => {
+  it('marks a destroyed city and keeps its sliver on the map', async () => {
     const obs = observation({
       me: me({ cities: [ownCity(), ownCity({ id: 'spb', name: 'Петербург', destroyed: true })] }),
       others: [foreign()],
     })
     render(<WorldTab obs={obs} gameId="g9" />)
+    await screen.findByRole('button', { name: 'Россия на карте (это мы)' })
     expect(screen.getByRole('button', { name: 'Петербург: разрушен' })).toBeTruthy()
-    expect(screen.getByText('Разрушено: 1')).toBeTruthy()
-    expect(screen.getByText('Городов целы: 1 из 2')).toBeTruthy()
+    const facts = screen.getByRole('list', { name: 'Сводка по городам' })
+    expect(within(facts).getByText('Разрушено').nextElementSibling?.textContent).toBe('1')
+    expect(within(facts).getByText('Городов целы').nextElementSibling?.textContent).toBe('1 из 2')
   })
 
-  it('starts with no city selected', () => {
+  it('starts with no city selected', async () => {
     renderTab()
+    await screen.findByRole('button', { name: 'Россия на карте (это мы)' })
     for (const li of screen.getAllByRole('listitem')) {
       expect(li.className).not.toBe('on')
     }

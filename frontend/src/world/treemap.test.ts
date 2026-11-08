@@ -1,139 +1,71 @@
 import { describe, expect, it } from 'vitest'
-import {
-  clipByLine,
-  layoutTreemap,
-  pathOf,
-  polygonArea,
-  polygonCentroid,
-  sliceByFraction,
-  type Poly,
-} from './treemap'
+import { squarify, type Rect } from './treemap'
 
-const RECT: Poly = [
-  { x: 0, y: 0 },
-  { x: 100, y: 0 },
-  { x: 100, y: 50 },
-  { x: 0, y: 50 },
-]
+const CONTAINER: Rect = { x: 10, y: 20, w: 300, h: 150 }
 
-/** The same irregular outline CityMap draws. */
-const TERRITORY: Poly = [
-  { x: 30, y: 30 },
-  { x: 110, y: 20 },
-  { x: 210, y: 24 },
-  { x: 292, y: 48 },
-  { x: 312, y: 110 },
-  { x: 300, y: 178 },
-  { x: 232, y: 204 },
-  { x: 140, y: 208 },
-  { x: 58, y: 196 },
-  { x: 10, y: 138 },
-  { x: 14, y: 68 },
-]
+const areaOf = (r: Rect) => r.w * r.h
+const totalArea = (rs: Rect[]) => rs.reduce((s, r) => s + areaOf(r), 0)
+const aspect = (r: Rect) => Math.max(r.w, r.h) / Math.min(r.w, r.h)
 
-const L: Poly = [
-  { x: 0, y: 0 },
-  { x: 100, y: 0 },
-  { x: 100, y: 40 },
-  { x: 40, y: 40 },
-  { x: 40, y: 100 },
-  { x: 0, y: 100 },
-]
+/** Nothing may stick out of the container. */
+function inside(rs: Rect[], c: Rect) {
+  for (const r of rs) {
+    expect(r.x).toBeGreaterThanOrEqual(c.x - 0.01)
+    expect(r.y).toBeGreaterThanOrEqual(c.y - 0.01)
+    expect(r.x + r.w).toBeLessThanOrEqual(c.x + c.w + 0.01)
+    expect(r.y + r.h).toBeLessThanOrEqual(c.y + c.h + 0.01)
+  }
+}
 
-describe('polygon math', () => {
-  it('measures area (shoelace)', () => {
-    expect(polygonArea(RECT)).toBe(5000)
-    // 100×100 minus the 60×60 cut = 6400.
-    expect(polygonArea(L)).toBe(6400)
-  })
-
-  it('finds the centroid of a rectangle in its middle', () => {
-    const c = polygonCentroid(RECT)
-    expect(c.x).toBeCloseTo(50)
-    expect(c.y).toBeCloseTo(25)
-  })
-
-  it('clips a half-plane off the polygon', () => {
-    const left = clipByLine(RECT, (p) => 50 - p.x)
-    expect(polygonArea(left)).toBeCloseTo(2500)
-  })
-
-  it('slices a fraction of the area', () => {
-    const [a, b] = sliceByFraction(RECT, 0.25, 'x')
-    expect(polygonArea(a)).toBeCloseTo(1250, 0)
-    expect(polygonArea(b)).toBeCloseTo(3750, 0)
-  })
-})
-
-describe('layoutTreemap', () => {
+describe('squarify', () => {
   it('gives equal values equal cells', () => {
-    const cells = layoutTreemap(TERRITORY, [1, 1, 1, 1])
-    const total = polygonArea(TERRITORY)
+    const cells = squarify(CONTAINER, [1, 1, 1, 1])
     expect(cells).toHaveLength(4)
     for (const cell of cells) {
-      expect(polygonArea(cell)).toBeGreaterThan(total * 0.24)
-      expect(polygonArea(cell)).toBeLessThan(total * 0.26)
+      expect(areaOf(cell) / totalArea(cells)).toBeCloseTo(0.25, 2)
     }
   })
 
   it('scales cells with the values: the leader visibly dominates', () => {
-    const cells = layoutTreemap(TERRITORY, [8, 2, 2])
-    const total = polygonArea(TERRITORY)
-    expect(polygonArea(cells[0]) / total).toBeGreaterThan(0.64)
-    expect(polygonArea(cells[0]) / total).toBeLessThan(0.69)
+    const cells = squarify(CONTAINER, [8, 2, 2])
+    const total = totalArea(cells)
+    expect(areaOf(cells[0]) / total).toBeCloseTo(8 / 12, 2)
     for (const cell of cells.slice(1)) {
-      expect(polygonArea(cell) / total).toBeCloseTo(1 / 6, 1)
+      expect(areaOf(cell) / total).toBeCloseTo(2 / 12, 2)
     }
   })
 
   it('covers the whole container without gaps', () => {
-    const cells = layoutTreemap(TERRITORY, [5, 3, 4, 1, 2])
-    const total = polygonArea(TERRITORY)
-    const covered = cells.reduce((s, c) => s + polygonArea(c), 0)
-    expect(covered / total).toBeGreaterThan(0.99)
+    const cells = squarify(CONTAINER, [5, 3, 4, 1, 2])
+    expect(totalArea(cells)).toBeCloseTo(areaOf(CONTAINER), 0)
+    inside(cells, CONTAINER)
   })
 
-  it('works on a concave container', () => {
-    const cells = layoutTreemap(L, [1, 1, 1])
-    const total = polygonArea(L)
+  it('keeps cells close to squares (the «squarified» promise)', () => {
+    const cells = squarify({ x: 0, y: 0, w: 100, h: 100 }, [6, 3, 2, 1, 1, 1])
     for (const cell of cells) {
-      expect(polygonArea(cell) / total).toBeCloseTo(1 / 3, 1)
+      expect(aspect(cell)).toBeLessThan(4)
     }
   })
 
   it('keeps a visible sliver for a zero value instead of erasing the city', () => {
-    const cells = layoutTreemap(TERRITORY, [0, 1])
-    const total = polygonArea(TERRITORY)
-    expect(polygonArea(cells[0])).toBeGreaterThan(total * 0.002)
+    const cells = squarify(CONTAINER, [0, 1])
+    expect(areaOf(cells[0])).toBeGreaterThan(areaOf(CONTAINER) * 0.002)
   })
 
   it('returns the whole container for a single city', () => {
-    const cells = layoutTreemap(TERRITORY, [7])
+    const cells = squarify(CONTAINER, [7])
     expect(cells).toHaveLength(1)
-    expect(polygonArea(cells[0])).toBeCloseTo(polygonArea(TERRITORY))
+    expect(cells[0]).toEqual(CONTAINER)
   })
 
   it('handles the empty city list', () => {
-    expect(layoutTreemap(TERRITORY, [])).toEqual([])
+    expect(squarify(CONTAINER, [])).toEqual([])
   })
 
-  it('keeps every vertex inside the container bounding box', () => {
-    const cells = layoutTreemap(TERRITORY, [4, 4, 2, 1])
-    const xs = TERRITORY.map((p) => p.x)
-    const ys = TERRITORY.map((p) => p.y)
-    for (const cell of cells) {
-      for (const p of cell) {
-        expect(p.x).toBeGreaterThanOrEqual(Math.min(...xs) - 1)
-        expect(p.x).toBeLessThanOrEqual(Math.max(...xs) + 1)
-        expect(p.y).toBeGreaterThanOrEqual(Math.min(...ys) - 1)
-        expect(p.y).toBeLessThanOrEqual(Math.max(...ys) + 1)
-      }
-    }
-  })
-
-  it('renders an SVG path', () => {
-    const d = pathOf(RECT)
-    expect(d.startsWith('M0 0')).toBe(true)
-    expect(d.endsWith('Z')).toBe(true)
+  it('is deterministic: the same values give the same layout', () => {
+    const a = squarify(CONTAINER, [4, 4, 2, 1])
+    const b = squarify(CONTAINER, [4, 4, 2, 1])
+    expect(a).toEqual(b)
   })
 })

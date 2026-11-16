@@ -14,6 +14,7 @@ removes the parent's key.
 
 from __future__ import annotations
 
+from itertools import pairwise
 from pathlib import Path
 from typing import Any, Literal
 
@@ -67,6 +68,102 @@ class LastRound(ArenaModel):
     )
 
 
+class InvestReturn(ArenaModel):
+    """One tier of diminishing returns on city investment (GAME_RULES_2.md 13).
+
+    ``gain`` applies while the city's development is strictly below ``up_to``
+    (``None`` = the last, open-ended tier). The first matching tier wins.
+    """
+
+    up_to: int | None = Field(default=None, ge=0)
+    gain: int
+
+
+class ClimateParams(ArenaModel):
+    """Climate thresholds (GAME_RULES_2.md 7): ecology 60-100 fine, below — trouble."""
+
+    unstable_below: int = Field(default=60, ge=0, description="Ecology below this is unstable")
+    catastrophe_below: int = Field(
+        default=30, ge=0, description="Ecology below this is a catastrophe"
+    )
+    unstable_city_loss: int = Field(default=5, description="Development lost by one random city")
+    catastrophe_stability: int = Field(default=-10, description="Stability delta for everyone")
+    catastrophe_income: int = Field(default=-20, ge=-100, description="Income penalty in percent")
+
+
+class RatingLevel(ArenaModel):
+    """A rating band: score >= min gives ``level`` with pool ``weight``."""
+
+    min: int
+    level: str
+    weight: int = Field(ge=1)
+
+
+class RatingParams(ArenaModel):
+    """Investment rating (GAME_RULES_2.md 5): score = 0.5 x stability + 0.5 x life + modifiers."""
+
+    sanction: int = -10
+    nuclear_tech: int = -10
+    bomb: int = -5
+    eco_program: int = 5
+    levels: list[RatingLevel] = Field(
+        default_factory=lambda: [
+            RatingLevel(min=75, level="A", weight=5),
+            RatingLevel(min=60, level="B", weight=4),
+            RatingLevel(min=45, level="C", weight=3),
+            RatingLevel(min=30, level="D", weight=2),
+            RatingLevel(min=0, level="E", weight=1),
+        ]
+    )
+
+
+class PrivatePoolParams(ArenaModel):
+    """The world pool of private capital (GAME_RULES_2.md 5): base x ecology/100."""
+
+    base: int = Field(default=1000, ge=0)
+    jitter_percent: int = Field(
+        default=10, ge=0, le=100, description="Market noise, +/- this percent"
+    )
+
+
+class StabilityLevel(ArenaModel):
+    """Income modifier for a stability band: stability >= min -> ``income_percent``."""
+
+    min: int
+    income_percent: int
+
+
+class StabilityParams(ArenaModel):
+    """Political stability (GAME_RULES_2.md 4): the numbers of the round formula."""
+
+    dynamics_percent: int = Field(
+        default=50, description="Percent of the life-level change the people react to"
+    )
+    good_life: int = Field(
+        default=50, description="Average life (percent) from which stability grows"
+    )
+    good_bonus: int = 2
+    poor_life: int = Field(
+        default=30, description="Average life (percent) below which stability sinks"
+    )
+    poor_penalty: int = -3
+    sanction_penalty: int = -3
+    first_city_loss: int = -5
+    city_loss: int = -15
+    crisis_below: int = Field(default=20, description="Stability below this: strikes are refused")
+    transition_stability: int = Field(
+        default=40, description="Stability after a power change (the reset value)"
+    )
+    income_levels: list[StabilityLevel] = Field(
+        default_factory=lambda: [
+            StabilityLevel(min=70, income_percent=10),
+            StabilityLevel(min=40, income_percent=0),
+            StabilityLevel(min=20, income_percent=-15),
+            StabilityLevel(min=1, income_percent=-30),
+        ]
+    )
+
+
 class Params(ArenaModel):
     rounds: int = Field(ge=1)
     ecology: Range
@@ -77,6 +174,31 @@ class Params(ArenaModel):
         min_length=1, description="Action ids in the order the budget is spent"
     )
     last_round: LastRound = Field(default_factory=LastRound)
+    # --- v2 (GAME_RULES_2.md): used only by the systems the v2 pipeline names ---
+    invest_returns: list[InvestReturn] | None = Field(
+        default=None, description="Diminishing returns tiers; None = flat effect of the action"
+    )
+    climate: ClimateParams = Field(default_factory=ClimateParams)
+    rating: RatingParams = Field(default_factory=RatingParams)
+    private_pool: PrivatePoolParams = Field(default_factory=PrivatePoolParams)
+    stability: StabilityParams = Field(default_factory=StabilityParams)
+    charisma_bonus: int = Field(
+        default=5, ge=0, description="Stability points of the charisma winner"
+    )
+
+    @model_validator(mode="after")
+    def _invest_returns_ordered(self) -> Params:
+        tiers = self.invest_returns
+        if tiers is None:
+            return self
+        for prev, cur in pairwise(tiers):
+            if prev.up_to is None:
+                raise ValueError("invest_returns: the open tier (up_to: null) must be last")
+            if cur.up_to is not None and prev.up_to >= cur.up_to:
+                raise ValueError("invest_returns: tiers must be sorted by up_to")
+        if tiers and tiers[-1].up_to is not None:
+            raise ValueError("invest_returns: the last tier must be open (up_to: null)")
+        return self
 
 
 class UiSpec(ArenaModel):

@@ -16,12 +16,17 @@ from pydantic import Field
 
 from arena.engine.events import (
     AnyEvent,
+    CharismaAwarded,
     CityDestroyed,
+    ClimateThreshold,
     EcologyChanged,
     Event,
     LaughAwarded,
     NuclearStrike,
+    PowerChanged,
+    RatingUpdated,
     SanctionApplied,
+    StabilityChanged,
 )
 from arena.engine.rules import RuleSet
 from arena.engine.state import ArenaModel, City, Country, GameState
@@ -56,6 +61,11 @@ class OwnCountryView(ArenaModel):
     aid_pending: int
     sanctioned_by: list[str]
     average_life_level: int
+    # v2 only (GAME_RULES_2.md 4-5): None in v1 games, so the UI can hide them
+    # instead of showing numbers the current rules never use.
+    stability: int | None = None
+    rating: str | None = None
+    rating_score: int | None = None
 
 
 class ForeignCountryView(ArenaModel):
@@ -64,6 +74,9 @@ class ForeignCountryView(ArenaModel):
     cities: list[ForeignCityView]
     laugh: int
     average_life_level: int
+    stability: int | None = None
+    rating: str | None = None
+    rating_score: int | None = None
 
 
 class Observation(ArenaModel):
@@ -88,20 +101,20 @@ def observe(
     rules: RuleSet | None = None,
 ) -> Observation:
     me = state.country(country_id)
+    v2 = rules is not None and "v2_core" in rules.modules
     # The forecast (#11 of the playtest feedback) rides along with the view:
     # the income formula lives in one place (IncomeSystem), the secrecy rules
     # in another (here) — the forecast is public arithmetic on own numbers.
     income = IncomeSystem(rules) if rules is not None else None
-    forecast = (
-        sum(income.city_income(c, state.ecology) for c in me.alive_cities)
-        if income is not None
-        else 0
-    )
+    forecast = 0
+    if income is not None:
+        gross = sum(income.city_income(c, state.ecology) for c in me.alive_cities)
+        forecast = max(0, (gross * (100 + income.income_percent(me, state.ecology))) // 100)
     return Observation(
         round=state.round,
         ecology=state.ecology,
-        me=_own(me),
-        others=[_foreign(c) for c in state.countries if c.id != country_id],
+        me=_own(me, v2),
+        others=[_foreign(c, v2) for c in state.countries if c.id != country_id],
         news=visible_events(events or [], country_id),
         income_forecast=forecast,
     )
@@ -117,12 +130,25 @@ def visible_events(events: list[Event], country_id: str) -> list[AnyEvent]:
             out.append(e.model_copy(update={"actor": None}))  # strike is public, author is not
         elif isinstance(e, SanctionApplied) and e.target == country_id:
             out.append(e)  # the victim learns who sanctioned it
-        elif isinstance(e, CityDestroyed | EcologyChanged | LaughAwarded):
+        elif isinstance(
+            e,
+            # Public by design (GAME_RULES_2.md): stability and its breakdown, the
+            # rating letters, climate thresholds, power changes, charisma, and the
+            # v1 originals. All of them carry no actor, so nothing to redact.
+            CityDestroyed
+            | EcologyChanged
+            | LaughAwarded
+            | CharismaAwarded
+            | StabilityChanged
+            | PowerChanged
+            | RatingUpdated
+            | ClimateThreshold,
+        ):
             out.append(e.model_copy(update={"actor": None}) if e.actor else e)
     return out  # type: ignore[return-value]  # every Event subclass is a member of AnyEvent
 
 
-def _own(c: Country) -> OwnCountryView:
+def _own(c: Country, v2: bool) -> OwnCountryView:
     return OwnCountryView(
         id=c.id,
         name=c.name,
@@ -135,6 +161,9 @@ def _own(c: Country) -> OwnCountryView:
         aid_pending=c.aid_pending,
         sanctioned_by=list(c.sanctioned_by),
         average_life_level=c.average_life_level,
+        stability=c.stability if v2 else None,
+        rating=c.rating if v2 else None,
+        rating_score=c.rating_score if v2 else None,
     )
 
 
@@ -149,7 +178,7 @@ def _own_city(x: City) -> OwnCityView:
     )
 
 
-def _foreign(c: Country) -> ForeignCountryView:
+def _foreign(c: Country, v2: bool) -> ForeignCountryView:
     return ForeignCountryView(
         id=c.id,
         name=c.name,
@@ -159,4 +188,9 @@ def _foreign(c: Country) -> ForeignCountryView:
         ],
         laugh=c.laugh,
         average_life_level=c.average_life_level,
+        # Stability and the rating letter are public in v2: the news announce them
+        # («Агентство понизило рейтинг Франции до C»), protests are visible.
+        stability=c.stability if v2 else None,
+        rating=c.rating if v2 else None,
+        rating_score=c.rating_score if v2 else None,
     )

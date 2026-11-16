@@ -42,6 +42,10 @@ function groupKey(e: AnyEvent): string | null {
     // strikes on different cities are different headlines.
     case 'nuclear_strike':
       return `strike|${e.target ?? ''}|${e.outcome}`
+    // v2 climate: one round of instability hits one city per country — one
+    // headline with the count, not five separate warnings.
+    case 'climate_threshold':
+      return `climate|${e.level}`
     default:
       return null
   }

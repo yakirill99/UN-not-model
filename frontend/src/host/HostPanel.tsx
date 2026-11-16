@@ -70,7 +70,12 @@ export default function HostPanel({
         {total > 0 && !allSubmitted(list) && ' — можно подвести итоги и без них'}
       </p>
 
-      <TeamTable list={list} onLaugh={(id) => void setLaugh(id)} busy={busy} />
+      <TeamTable
+        list={list}
+        onLaugh={(id) => void setLaugh(id)}
+        busy={busy}
+        pickLabel={game.rules_version.startsWith('2.') ? 'Харизма раунда' : 'Приз за юмор'}
+      />
 
       {error && (
         <p className="bad" role="alert">

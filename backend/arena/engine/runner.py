@@ -21,7 +21,7 @@ from arena.engine.observe import Observation, observe
 from arena.engine.orders import CountryOrders, HostInput, OrderBook
 from arena.engine.pipeline import resolve_round
 from arena.engine.rules import RuleSet
-from arena.engine.state import ArenaModel, GameState
+from arena.engine.state import ArenaModel, GameState, score_of
 
 
 class Agent(Protocol):
@@ -69,9 +69,14 @@ class GameLog(ArenaModel):
         return self.rounds[-1].state_after if self.rounds else self.initial_state
 
     def standings(self) -> list[tuple[str, int]]:
-        """Country id -> average life level, best first (section 4.4)."""
+        """Country id -> score, best first (GAME_RULES.md 4.4; GAME_RULES_2.md 16 for v2).
+
+        v1 ranks by average life; v2 by the итоговый счёт — average life plus
+        0.2 x stability minus the power-change penalties (see ``score_of``).
+        """
         s = self.final_state
-        return sorted(((c.id, c.average_life_level) for c in s.countries), key=lambda x: -x[1])
+        major = int(self.rules_snapshot.version.split(".")[0])
+        return sorted(((c.id, score_of(c, major)) for c in s.countries), key=lambda x: -x[1])
 
 
 def run_game(

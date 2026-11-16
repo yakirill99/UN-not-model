@@ -16,6 +16,7 @@ export default function NewGamePage() {
   const { join } = useSession()
   const navigate = useNavigate()
   const [title, setTitle] = useState('')
+  const [rules, setRules] = useState<'v1.0' | 'v2.0'>('v1.0')
   const [scenario, setScenario] = useState<'smolny' | 'equal'>('smolny')
   const [seed, setSeed] = useState(1)
   const [bots, setBots] = useState<Record<string, string>>(DEFAULT_BOTS)
@@ -29,7 +30,7 @@ export default function NewGamePage() {
     setError(null)
     const { data, error: err } = await api.POST('/api/games', {
       body: {
-        rules: 'v1.0',
+        rules,
         title,
         scenario,
         seed,
@@ -90,6 +91,21 @@ export default function NewGamePage() {
             placeholder="Немодель, 30 сентября"
           />
         </label>
+        <label>
+          Правила
+          <select value={rules} onChange={(e) => setRules(e.target.value as 'v1.0' | 'v2.0')}>
+            <option value="v1.0">Правила 1.0 — базовые</option>
+            <option value="v2.0">Правила 2.0 — устойчивость, рейтинг, климат</option>
+          </select>
+        </label>
+        {rules === 'v2.0' && (
+          <p className="muted">
+            Вторая редакция: политическая устойчивость и смена власти, социальная программа,
+            инвестиционный рейтинг и частный капитал, климатические пороги, харизма вместо
+            коэффициента смеха, убывающая отдача инвестиций. Резолюции ООН и события — в следующих
+            обновлениях.
+          </p>
+        )}
         <label>
           Сценарий
           <select

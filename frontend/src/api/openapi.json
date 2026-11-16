@@ -511,6 +511,67 @@
         "title": "BudgetSpent",
         "type": "object"
       },
+      "CharismaAwarded": {
+        "additionalProperties": false,
+        "description": "v2: the host named ``target`` the most vivid team; it gains stability (GAME_RULES_2.md 4).",
+        "properties": {
+          "actor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country id that caused the event",
+            "title": "Actor"
+          },
+          "bonus": {
+            "title": "Bonus",
+            "type": "integer"
+          },
+          "round": {
+            "minimum": 1.0,
+            "title": "Round",
+            "type": "integer"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "stability_after": {
+            "title": "Stability After",
+            "type": "integer"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country or city id affected",
+            "title": "Target"
+          },
+          "type": {
+            "const": "charisma_awarded",
+            "default": "charisma_awarded",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "round",
+          "bonus",
+          "stability_after"
+        ],
+        "title": "CharismaAwarded",
+        "type": "object"
+      },
       "City": {
         "additionalProperties": false,
         "properties": {
@@ -669,6 +730,118 @@
         "title": "CityInvested",
         "type": "object"
       },
+      "ClimateParams": {
+        "additionalProperties": false,
+        "description": "Climate thresholds (GAME_RULES_2.md 7): ecology 60-100 fine, below — trouble.",
+        "properties": {
+          "catastrophe_below": {
+            "default": 30,
+            "description": "Ecology below this is a catastrophe",
+            "minimum": 0.0,
+            "title": "Catastrophe Below",
+            "type": "integer"
+          },
+          "catastrophe_income": {
+            "default": -20,
+            "description": "Income penalty in percent",
+            "minimum": -100.0,
+            "title": "Catastrophe Income",
+            "type": "integer"
+          },
+          "catastrophe_stability": {
+            "default": -10,
+            "description": "Stability delta for everyone",
+            "title": "Catastrophe Stability",
+            "type": "integer"
+          },
+          "unstable_below": {
+            "default": 60,
+            "description": "Ecology below this is unstable",
+            "minimum": 0.0,
+            "title": "Unstable Below",
+            "type": "integer"
+          },
+          "unstable_city_loss": {
+            "default": 5,
+            "description": "Development lost by one random city",
+            "title": "Unstable City Loss",
+            "type": "integer"
+          }
+        },
+        "title": "ClimateParams",
+        "type": "object"
+      },
+      "ClimateThreshold": {
+        "additionalProperties": false,
+        "description": "v2: a climate threshold crossed (GAME_RULES_2.md 7).\n\n``level``: unstable (30-59 %), catastrophe (1-29 %) or collapse (0 %). In the\nunstable band ``target`` is the city that lost development; in a catastrophe\nit is the country that lost stability.",
+        "properties": {
+          "actor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country id that caused the event",
+            "title": "Actor"
+          },
+          "development_delta": {
+            "default": 0,
+            "title": "Development Delta",
+            "type": "integer"
+          },
+          "level": {
+            "enum": [
+              "unstable",
+              "catastrophe",
+              "collapse"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "round": {
+            "minimum": 1.0,
+            "title": "Round",
+            "type": "integer"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "stability_delta": {
+            "default": 0,
+            "title": "Stability Delta",
+            "type": "integer"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country or city id affected",
+            "title": "Target"
+          },
+          "type": {
+            "const": "climate_threshold",
+            "default": "climate_threshold",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "round",
+          "level"
+        ],
+        "title": "ClimateThreshold",
+        "type": "object"
+      },
       "Country": {
         "additionalProperties": false,
         "properties": {
@@ -678,6 +851,18 @@
             "minimum": 0.0,
             "title": "Aid Pending",
             "type": "integer"
+          },
+          "average_life_prev": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Average life of the previous round, for the dynamics term",
+            "title": "Average Life Prev"
           },
           "bombs": {
             "default": 0,
@@ -706,9 +891,29 @@
             "title": "Cities",
             "type": "array"
           },
+          "cities_lost": {
+            "default": 0,
+            "description": "Cities lost in the whole game",
+            "minimum": 0.0,
+            "title": "Cities Lost",
+            "type": "integer"
+          },
+          "cities_lost_this_round": {
+            "default": 0,
+            "description": "Cities lost this round, consumed by the stability system",
+            "minimum": 0.0,
+            "title": "Cities Lost This Round",
+            "type": "integer"
+          },
           "id": {
             "title": "Id",
             "type": "string"
+          },
+          "in_transition": {
+            "default": false,
+            "description": "New government: strikes (and votes) are refused this round",
+            "title": "In Transition",
+            "type": "boolean"
           },
           "laugh": {
             "default": 0,
@@ -726,12 +931,46 @@
             "title": "Nuclear Tech",
             "type": "boolean"
           },
+          "powers_lost": {
+            "default": 0,
+            "description": "Power changes over the game",
+            "minimum": 0.0,
+            "title": "Powers Lost",
+            "type": "integer"
+          },
+          "rating": {
+            "default": "C",
+            "description": "Investment rating level, A-E",
+            "title": "Rating",
+            "type": "string"
+          },
+          "rating_score": {
+            "default": 0,
+            "description": "Investment rating score (points)",
+            "title": "Rating Score",
+            "type": "integer"
+          },
+          "rating_weight": {
+            "default": 3,
+            "description": "Share weight in the private pool",
+            "minimum": 1.0,
+            "title": "Rating Weight",
+            "type": "integer"
+          },
           "sanctioned_by": {
             "items": {
               "type": "string"
             },
             "title": "Sanctioned By",
             "type": "array"
+          },
+          "stability": {
+            "default": 60,
+            "description": "Political stability, 0-100",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Stability",
+            "type": "integer"
           }
         },
         "required": [
@@ -794,6 +1033,12 @@
             },
             "title": "Shields",
             "type": "array"
+          },
+          "social_program": {
+            "default": false,
+            "description": "v2: support the people, once per round (GAME_RULES_2.md 4)",
+            "title": "Social Program",
+            "type": "boolean"
           },
           "strikes": {
             "description": "Foreign city ids",
@@ -1019,6 +1264,39 @@
           "name": {
             "title": "Name",
             "type": "string"
+          },
+          "rating": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating"
+          },
+          "rating_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating Score"
+          },
+          "stability": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stability"
           }
         },
         "required": [
@@ -1185,7 +1463,7 @@
             "type": "integer"
           },
           "state_schema_version": {
-            "default": 1,
+            "default": 2,
             "title": "State Schema Version",
             "type": "integer"
           }
@@ -1223,7 +1501,7 @@
                 "type": "null"
               }
             ],
-            "description": "Country id chosen by the host",
+            "description": "Country id chosen by the host: the laugh prize in v1, the charisma of the round (+stability) in v2 — one host pick serves both versions",
             "title": "Laugh Winner"
           }
         },
@@ -1311,6 +1589,33 @@
           "budget_after"
         ],
         "title": "IncomeCredited",
+        "type": "object"
+      },
+      "InvestReturn": {
+        "additionalProperties": false,
+        "description": "One tier of diminishing returns on city investment (GAME_RULES_2.md 13).\n\n``gain`` applies while the city's development is strictly below ``up_to``\n(``None`` = the last, open-ended tier). The first matching tier wins.",
+        "properties": {
+          "gain": {
+            "title": "Gain",
+            "type": "integer"
+          },
+          "up_to": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Up To"
+          }
+        },
+        "required": [
+          "gain"
+        ],
+        "title": "InvestReturn",
         "type": "object"
       },
       "JoinRequest": {
@@ -1588,17 +1893,23 @@
                   "aid_transferred": "#/components/schemas/AidTransferred",
                   "bombs_produced": "#/components/schemas/BombsProduced",
                   "budget_spent": "#/components/schemas/BudgetSpent",
+                  "charisma_awarded": "#/components/schemas/CharismaAwarded",
                   "city_destroyed": "#/components/schemas/CityDestroyed",
                   "city_invested": "#/components/schemas/CityInvested",
+                  "climate_threshold": "#/components/schemas/ClimateThreshold",
                   "ecology_changed": "#/components/schemas/EcologyChanged",
                   "income_credited": "#/components/schemas/IncomeCredited",
                   "laugh_awarded": "#/components/schemas/LaughAwarded",
                   "life_level_computed": "#/components/schemas/LifeLevelComputed",
                   "nuclear_strike": "#/components/schemas/NuclearStrike",
                   "order_rejected": "#/components/schemas/OrderRejected",
+                  "power_changed": "#/components/schemas/PowerChanged",
+                  "private_investments_credited": "#/components/schemas/PrivateInvestmentsCredited",
+                  "rating_updated": "#/components/schemas/RatingUpdated",
                   "round_ended": "#/components/schemas/RoundEnded",
                   "sanction_applied": "#/components/schemas/SanctionApplied",
                   "shield_built": "#/components/schemas/ShieldBuilt",
+                  "stability_changed": "#/components/schemas/StabilityChanged",
                   "tech_developed": "#/components/schemas/TechDeveloped"
                 },
                 "propertyName": "type"
@@ -1645,6 +1956,24 @@
                 },
                 {
                   "$ref": "#/components/schemas/LaughAwarded"
+                },
+                {
+                  "$ref": "#/components/schemas/CharismaAwarded"
+                },
+                {
+                  "$ref": "#/components/schemas/StabilityChanged"
+                },
+                {
+                  "$ref": "#/components/schemas/PowerChanged"
+                },
+                {
+                  "$ref": "#/components/schemas/RatingUpdated"
+                },
+                {
+                  "$ref": "#/components/schemas/ClimateThreshold"
+                },
+                {
+                  "$ref": "#/components/schemas/PrivateInvestmentsCredited"
                 },
                 {
                   "$ref": "#/components/schemas/RoundEnded"
@@ -1843,12 +2172,45 @@
             "title": "Nuclear Tech",
             "type": "boolean"
           },
+          "rating": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating"
+          },
+          "rating_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating Score"
+          },
           "sanctioned_by": {
             "items": {
               "type": "string"
             },
             "title": "Sanctioned By",
             "type": "array"
+          },
+          "stability": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stability"
           }
         },
         "required": [
@@ -1879,11 +2241,36 @@
             "title": "Budget Priority",
             "type": "array"
           },
+          "charisma_bonus": {
+            "default": 5,
+            "description": "Stability points of the charisma winner",
+            "minimum": 0.0,
+            "title": "Charisma Bonus",
+            "type": "integer"
+          },
+          "climate": {
+            "$ref": "#/components/schemas/ClimateParams"
+          },
           "ecology": {
             "$ref": "#/components/schemas/Range"
           },
           "income": {
             "$ref": "#/components/schemas/IncomeCoefficients"
+          },
+          "invest_returns": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/InvestReturn"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Diminishing returns tiers; None = flat effect of the action",
+            "title": "Invest Returns"
           },
           "last_round": {
             "$ref": "#/components/schemas/LastRound"
@@ -1897,10 +2284,19 @@
           "life_weights": {
             "$ref": "#/components/schemas/LifeWeights"
           },
+          "private_pool": {
+            "$ref": "#/components/schemas/PrivatePoolParams"
+          },
+          "rating": {
+            "$ref": "#/components/schemas/RatingParams"
+          },
           "rounds": {
             "minimum": 1.0,
             "title": "Rounds",
             "type": "integer"
+          },
+          "stability": {
+            "$ref": "#/components/schemas/StabilityParams"
           }
         },
         "required": [
@@ -1953,6 +2349,67 @@
         "title": "PlayerInfo",
         "type": "object"
       },
+      "PowerChanged": {
+        "additionalProperties": false,
+        "description": "v2: stability hit 0 — the government falls (GAME_RULES_2.md 4, «Смена власти»).\n\nThe team does not leave the game: the budget halves, strikes are refused the\nnext round and stability restarts from ``stability_reset``.",
+        "properties": {
+          "actor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country id that caused the event",
+            "title": "Actor"
+          },
+          "budget_after": {
+            "title": "Budget After",
+            "type": "integer"
+          },
+          "round": {
+            "minimum": 1.0,
+            "title": "Round",
+            "type": "integer"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "stability_reset": {
+            "title": "Stability Reset",
+            "type": "integer"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country or city id affected",
+            "title": "Target"
+          },
+          "type": {
+            "const": "power_changed",
+            "default": "power_changed",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "round",
+          "stability_reset",
+          "budget_after"
+        ],
+        "title": "PowerChanged",
+        "type": "object"
+      },
       "Principal": {
         "description": "Who is calling: decoded from the JWT.",
         "properties": {
@@ -1988,6 +2445,94 @@
         "title": "Principal",
         "type": "object"
       },
+      "PrivateInvestmentsCredited": {
+        "additionalProperties": false,
+        "description": "v2: the country's share of the world pool of private capital (GAME_RULES_2.md 5).\n\nPrivate like ``IncomeCredited``: only the recipient sees the amount.",
+        "properties": {
+          "actor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country id that caused the event",
+            "title": "Actor"
+          },
+          "amount": {
+            "title": "Amount",
+            "type": "integer"
+          },
+          "budget_after": {
+            "title": "Budget After",
+            "type": "integer"
+          },
+          "pool": {
+            "title": "Pool",
+            "type": "integer"
+          },
+          "round": {
+            "minimum": 1.0,
+            "title": "Round",
+            "type": "integer"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country or city id affected",
+            "title": "Target"
+          },
+          "type": {
+            "const": "private_investments_credited",
+            "default": "private_investments_credited",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "round",
+          "amount",
+          "pool",
+          "budget_after"
+        ],
+        "title": "PrivateInvestmentsCredited",
+        "type": "object"
+      },
+      "PrivatePoolParams": {
+        "additionalProperties": false,
+        "description": "The world pool of private capital (GAME_RULES_2.md 5): base x ecology/100.",
+        "properties": {
+          "base": {
+            "default": 1000,
+            "minimum": 0.0,
+            "title": "Base",
+            "type": "integer"
+          },
+          "jitter_percent": {
+            "default": 10,
+            "description": "Market noise, +/- this percent",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Jitter Percent",
+            "type": "integer"
+          }
+        },
+        "title": "PrivatePoolParams",
+        "type": "object"
+      },
       "Range": {
         "additionalProperties": false,
         "properties": {
@@ -2005,6 +2550,133 @@
           "max"
         ],
         "title": "Range",
+        "type": "object"
+      },
+      "RatingLevel": {
+        "additionalProperties": false,
+        "description": "A rating band: score >= min gives ``level`` with pool ``weight``.",
+        "properties": {
+          "level": {
+            "title": "Level",
+            "type": "string"
+          },
+          "min": {
+            "title": "Min",
+            "type": "integer"
+          },
+          "weight": {
+            "minimum": 1.0,
+            "title": "Weight",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "min",
+          "level",
+          "weight"
+        ],
+        "title": "RatingLevel",
+        "type": "object"
+      },
+      "RatingParams": {
+        "additionalProperties": false,
+        "description": "Investment rating (GAME_RULES_2.md 5): score = 0.5 x stability + 0.5 x life + modifiers.",
+        "properties": {
+          "bomb": {
+            "default": -5,
+            "title": "Bomb",
+            "type": "integer"
+          },
+          "eco_program": {
+            "default": 5,
+            "title": "Eco Program",
+            "type": "integer"
+          },
+          "levels": {
+            "items": {
+              "$ref": "#/components/schemas/RatingLevel"
+            },
+            "title": "Levels",
+            "type": "array"
+          },
+          "nuclear_tech": {
+            "default": -10,
+            "title": "Nuclear Tech",
+            "type": "integer"
+          },
+          "sanction": {
+            "default": -10,
+            "title": "Sanction",
+            "type": "integer"
+          }
+        },
+        "title": "RatingParams",
+        "type": "object"
+      },
+      "RatingUpdated": {
+        "additionalProperties": false,
+        "description": "v2: the investment rating recomputed (GAME_RULES_2.md 5) — public news.",
+        "properties": {
+          "actor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country id that caused the event",
+            "title": "Actor"
+          },
+          "level": {
+            "title": "Level",
+            "type": "string"
+          },
+          "round": {
+            "minimum": 1.0,
+            "title": "Round",
+            "type": "integer"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country or city id affected",
+            "title": "Target"
+          },
+          "type": {
+            "const": "rating_updated",
+            "default": "rating_updated",
+            "title": "Type",
+            "type": "string"
+          },
+          "weight": {
+            "title": "Weight",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "round",
+          "score",
+          "level",
+          "weight"
+        ],
+        "title": "RatingUpdated",
         "type": "object"
       },
       "RoundEnded": {
@@ -2088,17 +2760,23 @@
                   "aid_transferred": "#/components/schemas/AidTransferred",
                   "bombs_produced": "#/components/schemas/BombsProduced",
                   "budget_spent": "#/components/schemas/BudgetSpent",
+                  "charisma_awarded": "#/components/schemas/CharismaAwarded",
                   "city_destroyed": "#/components/schemas/CityDestroyed",
                   "city_invested": "#/components/schemas/CityInvested",
+                  "climate_threshold": "#/components/schemas/ClimateThreshold",
                   "ecology_changed": "#/components/schemas/EcologyChanged",
                   "income_credited": "#/components/schemas/IncomeCredited",
                   "laugh_awarded": "#/components/schemas/LaughAwarded",
                   "life_level_computed": "#/components/schemas/LifeLevelComputed",
                   "nuclear_strike": "#/components/schemas/NuclearStrike",
                   "order_rejected": "#/components/schemas/OrderRejected",
+                  "power_changed": "#/components/schemas/PowerChanged",
+                  "private_investments_credited": "#/components/schemas/PrivateInvestmentsCredited",
+                  "rating_updated": "#/components/schemas/RatingUpdated",
                   "round_ended": "#/components/schemas/RoundEnded",
                   "sanction_applied": "#/components/schemas/SanctionApplied",
                   "shield_built": "#/components/schemas/ShieldBuilt",
+                  "stability_changed": "#/components/schemas/StabilityChanged",
                   "tech_developed": "#/components/schemas/TechDeveloped"
                 },
                 "propertyName": "type"
@@ -2145,6 +2823,24 @@
                 },
                 {
                   "$ref": "#/components/schemas/LaughAwarded"
+                },
+                {
+                  "$ref": "#/components/schemas/CharismaAwarded"
+                },
+                {
+                  "$ref": "#/components/schemas/StabilityChanged"
+                },
+                {
+                  "$ref": "#/components/schemas/PowerChanged"
+                },
+                {
+                  "$ref": "#/components/schemas/RatingUpdated"
+                },
+                {
+                  "$ref": "#/components/schemas/ClimateThreshold"
+                },
+                {
+                  "$ref": "#/components/schemas/PrivateInvestmentsCredited"
                 },
                 {
                   "$ref": "#/components/schemas/RoundEnded"
@@ -2430,6 +3126,177 @@
           "round"
         ],
         "title": "ShieldBuilt",
+        "type": "object"
+      },
+      "StabilityChanged": {
+        "additionalProperties": false,
+        "description": "v2: the round's stability update with its breakdown (GAME_RULES_2.md 4, 17).\n\nEvery term is public: the расшифровка is what lets a team understand «почему\nупала устойчивость» without doing any math itself.",
+        "properties": {
+          "actions": {
+            "default": 0,
+            "title": "Actions",
+            "type": "integer"
+          },
+          "actor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country id that caused the event",
+            "title": "Actor"
+          },
+          "dynamics": {
+            "default": 0,
+            "title": "Dynamics",
+            "type": "integer"
+          },
+          "level_effect": {
+            "default": 0,
+            "title": "Level Effect",
+            "type": "integer"
+          },
+          "round": {
+            "minimum": 1.0,
+            "title": "Round",
+            "type": "integer"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "shocks": {
+            "default": 0,
+            "title": "Shocks",
+            "type": "integer"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country or city id affected",
+            "title": "Target"
+          },
+          "type": {
+            "const": "stability_changed",
+            "default": "stability_changed",
+            "title": "Type",
+            "type": "string"
+          },
+          "value_after": {
+            "title": "Value After",
+            "type": "integer"
+          },
+          "value_before": {
+            "title": "Value Before",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "round",
+          "value_before",
+          "value_after"
+        ],
+        "title": "StabilityChanged",
+        "type": "object"
+      },
+      "StabilityLevel": {
+        "additionalProperties": false,
+        "description": "Income modifier for a stability band: stability >= min -> ``income_percent``.",
+        "properties": {
+          "income_percent": {
+            "title": "Income Percent",
+            "type": "integer"
+          },
+          "min": {
+            "title": "Min",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "min",
+          "income_percent"
+        ],
+        "title": "StabilityLevel",
+        "type": "object"
+      },
+      "StabilityParams": {
+        "additionalProperties": false,
+        "description": "Political stability (GAME_RULES_2.md 4): the numbers of the round formula.",
+        "properties": {
+          "city_loss": {
+            "default": -15,
+            "title": "City Loss",
+            "type": "integer"
+          },
+          "crisis_below": {
+            "default": 20,
+            "description": "Stability below this: strikes are refused",
+            "title": "Crisis Below",
+            "type": "integer"
+          },
+          "dynamics_percent": {
+            "default": 50,
+            "description": "Percent of the life-level change the people react to",
+            "title": "Dynamics Percent",
+            "type": "integer"
+          },
+          "first_city_loss": {
+            "default": -5,
+            "title": "First City Loss",
+            "type": "integer"
+          },
+          "good_bonus": {
+            "default": 2,
+            "title": "Good Bonus",
+            "type": "integer"
+          },
+          "good_life": {
+            "default": 50,
+            "description": "Average life (percent) from which stability grows",
+            "title": "Good Life",
+            "type": "integer"
+          },
+          "income_levels": {
+            "items": {
+              "$ref": "#/components/schemas/StabilityLevel"
+            },
+            "title": "Income Levels",
+            "type": "array"
+          },
+          "poor_life": {
+            "default": 30,
+            "description": "Average life (percent) below which stability sinks",
+            "title": "Poor Life",
+            "type": "integer"
+          },
+          "poor_penalty": {
+            "default": -3,
+            "title": "Poor Penalty",
+            "type": "integer"
+          },
+          "sanction_penalty": {
+            "default": -3,
+            "title": "Sanction Penalty",
+            "type": "integer"
+          },
+          "transition_stability": {
+            "default": 40,
+            "description": "Stability after a power change (the reset value)",
+            "title": "Transition Stability",
+            "type": "integer"
+          }
+        },
+        "title": "StabilityParams",
         "type": "object"
       },
       "TechDeveloped": {
@@ -2798,17 +3665,23 @@
                         "aid_transferred": "#/components/schemas/AidTransferred",
                         "bombs_produced": "#/components/schemas/BombsProduced",
                         "budget_spent": "#/components/schemas/BudgetSpent",
+                        "charisma_awarded": "#/components/schemas/CharismaAwarded",
                         "city_destroyed": "#/components/schemas/CityDestroyed",
                         "city_invested": "#/components/schemas/CityInvested",
+                        "climate_threshold": "#/components/schemas/ClimateThreshold",
                         "ecology_changed": "#/components/schemas/EcologyChanged",
                         "income_credited": "#/components/schemas/IncomeCredited",
                         "laugh_awarded": "#/components/schemas/LaughAwarded",
                         "life_level_computed": "#/components/schemas/LifeLevelComputed",
                         "nuclear_strike": "#/components/schemas/NuclearStrike",
                         "order_rejected": "#/components/schemas/OrderRejected",
+                        "power_changed": "#/components/schemas/PowerChanged",
+                        "private_investments_credited": "#/components/schemas/PrivateInvestmentsCredited",
+                        "rating_updated": "#/components/schemas/RatingUpdated",
                         "round_ended": "#/components/schemas/RoundEnded",
                         "sanction_applied": "#/components/schemas/SanctionApplied",
                         "shield_built": "#/components/schemas/ShieldBuilt",
+                        "stability_changed": "#/components/schemas/StabilityChanged",
                         "tech_developed": "#/components/schemas/TechDeveloped"
                       },
                       "propertyName": "type"
@@ -2855,6 +3728,24 @@
                       },
                       {
                         "$ref": "#/components/schemas/LaughAwarded"
+                      },
+                      {
+                        "$ref": "#/components/schemas/CharismaAwarded"
+                      },
+                      {
+                        "$ref": "#/components/schemas/StabilityChanged"
+                      },
+                      {
+                        "$ref": "#/components/schemas/PowerChanged"
+                      },
+                      {
+                        "$ref": "#/components/schemas/RatingUpdated"
+                      },
+                      {
+                        "$ref": "#/components/schemas/ClimateThreshold"
+                      },
+                      {
+                        "$ref": "#/components/schemas/PrivateInvestmentsCredited"
                       },
                       {
                         "$ref": "#/components/schemas/RoundEnded"

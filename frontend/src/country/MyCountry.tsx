@@ -19,6 +19,20 @@ export default function MyCountry({ me }: { me: Me }) {
         <span className="muted">Средний уровень жизни</span>
         <strong>{lifeLevel(me.average_life_level)}</strong>
       </div>
+      {me.stability != null && (
+        <div className="row">
+          <span className="muted">Устойчивость</span>
+          <strong>{me.stability}</strong>
+        </div>
+      )}
+      {me.rating != null && (
+        <div className="row">
+          <span className="muted">Инвестиционный рейтинг</span>
+          <strong>
+            {me.rating} · {me.rating_score}
+          </strong>
+        </div>
+      )}
       {me.laugh > 0 && (
         <div className="row">
           <span className="muted">Коэффициент смеха</span>

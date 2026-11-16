@@ -54,9 +54,40 @@ export function describeEvent(event: AnyEvent, names: Names = {}): string {
     }
     case 'laugh_awarded':
       return `Приз за юмор: ${nameOf(names, event.target)}, +${event.bonus} (итого ${event.laugh_after})`
+    case 'charisma_awarded':
+      return `Харизма раунда: ${nameOf(names, event.target)}, +${event.bonus} к устойчивости (итого ${event.stability_after})`
+    case 'stability_changed': {
+      // The расшифровка is the point (GAME_RULES_2.md 17): «почему упала устойчивость».
+      const parts: string[] = []
+      if (event.dynamics) parts.push(`динамика ${signed(event.dynamics)}`)
+      if (event.level_effect) parts.push(`уровень жизни ${signed(event.level_effect)}`)
+      if (event.shocks) parts.push(`потрясения ${signed(event.shocks)}`)
+      if (event.actions) parts.push(`действия ${signed(event.actions)}`)
+      const why = parts.length > 0 ? ` (${parts.join(', ')})` : ''
+      return `Устойчивость ${nameOf(names, event.target)}: ${event.value_before} → ${event.value_after}${why}`
+    }
+    case 'power_changed':
+      return `Смена власти в ${nameOf(names, event.target)}: бюджет урезан вдвое, устойчивость сброшена до ${event.stability_reset}`
+    case 'rating_updated':
+      return `Рейтинг ${nameOf(names, event.target)}: ${event.level} (${event.score} ${plural(event.score, 'балл', 'балла', 'баллов')})`
+    case 'climate_threshold': {
+      const where = nameOf(names, event.target)
+      if (event.level === 'unstable')
+        return `Климатическая нестабильность: ${where} теряет ${Math.abs(event.development_delta)} п.п. развития`
+      if (event.level === 'collapse')
+        return `Экологический коллапс: частный капитал исчез, устойчивость всех стран ${signed(event.stability_delta)}`
+      return `Климатическая катастрофа: устойчивость всех стран ${signed(event.stability_delta)}, доходы -20 %`
+    }
+    case 'private_investments_credited':
+      return `Частные инвестиции: +${money(event.amount)}, бюджет ${money(event.budget_after)}`
     case 'round_ended':
       return `Раунд завершён. Бюджет ${money(event.budget_after)}, бомб освобождено ${event.bombs_released}, помощь ${money(event.aid_credited)}`
   }
+}
+
+/** −5 stays «−5», +3 becomes «+3»: the deltas of the v2 formulas read with their sign. */
+function signed(n: number): string {
+  return n > 0 ? `+${n}` : `−${Math.abs(n)}`
 }
 
 /** The actor is absent when the engine hid it from this player — do not invent one. */

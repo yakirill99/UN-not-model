@@ -17,10 +17,16 @@ const ORDER: AnyEvent['type'][] = [
   'nuclear_strike',
   'city_destroyed',
   'sanction_applied',
+  'climate_threshold',
+  'power_changed',
   'shield_built',
   'aid_transferred',
-  'laugh_awarded',
+  'stability_changed',
+  'rating_updated',
+  'charisma_awarded',
   'income_credited',
+  'private_investments_credited',
+  'laugh_awarded',
   'tech_developed',
   'bombs_produced',
   'city_invested',
@@ -48,6 +54,14 @@ const ICONS: Record<AnyEvent['type'], string> = {
   city_invested: 'invest',
   ecology_changed: 'eco_program',
   budget_spent: 'budget',
+  // v2 (GAME_RULES_2.md): the host pick keeps the laugh icon; climate borrows
+  // the weather cloud; the rating rides with the money it brings.
+  charisma_awarded: 'laugh',
+  stability_changed: 'flag',
+  power_changed: 'destroyed',
+  rating_updated: 'invest',
+  climate_threshold: 'cloud',
+  private_investments_credited: 'income',
   // Bookkeeping: SKIP filters it out, the icon exists only for exhaustiveness.
   life_level_computed: 'flag',
   round_ended: 'flag',
@@ -58,6 +72,8 @@ const BAD = new Set<AnyEvent['type']>([
   'nuclear_strike',
   'city_destroyed',
   'sanction_applied',
+  'climate_threshold',
+  'power_changed',
 ])
 const GOOD = new Set<AnyEvent['type']>([
   'shield_built',
@@ -65,6 +81,8 @@ const GOOD = new Set<AnyEvent['type']>([
   'laugh_awarded',
   'income_credited',
   'tech_developed',
+  'charisma_awarded',
+  'private_investments_credited',
 ])
 
 export type Change = { group: Group; icon: string; tone: 'bad' | 'ok' | null }

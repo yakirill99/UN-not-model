@@ -66,7 +66,16 @@
     "bombs_pending": 0,
     "laugh": 0,
     "aid_pending": 0,
-    "sanctioned_by": []
+    "sanctioned_by": [],
+    "stability": 60,
+    "average_life_prev": null,
+    "rating_score": 0,
+    "rating": "C",
+    "rating_weight": 3,
+    "cities_lost": 2,
+    "cities_lost_this_round": 0,
+    "powers_lost": 0,
+    "in_transition": false
    },
    {
     "id": "usa",
@@ -111,7 +120,16 @@
     "bombs_pending": 0,
     "laugh": 0,
     "aid_pending": 0,
-    "sanctioned_by": []
+    "sanctioned_by": [],
+    "stability": 60,
+    "average_life_prev": null,
+    "rating_score": 0,
+    "rating": "C",
+    "rating_weight": 3,
+    "cities_lost": 0,
+    "cities_lost_this_round": 0,
+    "powers_lost": 0,
+    "in_transition": false
    },
    {
     "id": "france",
@@ -156,7 +174,16 @@
     "bombs_pending": 0,
     "laugh": 0,
     "aid_pending": 0,
-    "sanctioned_by": []
+    "sanctioned_by": [],
+    "stability": 60,
+    "average_life_prev": null,
+    "rating_score": 0,
+    "rating": "C",
+    "rating_weight": 3,
+    "cities_lost": 3,
+    "cities_lost_this_round": 0,
+    "powers_lost": 0,
+    "in_transition": false
    },
    {
     "id": "iran",
@@ -201,7 +228,16 @@
     "bombs_pending": 0,
     "laugh": 0,
     "aid_pending": 0,
-    "sanctioned_by": []
+    "sanctioned_by": [],
+    "stability": 60,
+    "average_life_prev": null,
+    "rating_score": 0,
+    "rating": "C",
+    "rating_weight": 3,
+    "cities_lost": 0,
+    "cities_lost_this_round": 0,
+    "powers_lost": 0,
+    "in_transition": false
    },
    {
     "id": "dprk",
@@ -246,10 +282,19 @@
     "bombs_pending": 0,
     "laugh": 0,
     "aid_pending": 0,
-    "sanctioned_by": []
+    "sanctioned_by": [],
+    "stability": 60,
+    "average_life_prev": null,
+    "rating_score": 0,
+    "rating": "C",
+    "rating_weight": 3,
+    "cities_lost": 3,
+    "cities_lost_this_round": 0,
+    "powers_lost": 0,
+    "in_transition": false
    }
   ],
   "modules": {},
-  "state_schema_version": 1
+  "state_schema_version": 2
  }
 }

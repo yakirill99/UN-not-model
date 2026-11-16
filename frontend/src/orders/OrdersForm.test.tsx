@@ -111,6 +111,7 @@ describe('OrdersForm', () => {
         shields: [],
         sanctions: [],
         aid: {},
+        social_program: false,
       },
     })
   })

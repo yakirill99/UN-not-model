@@ -17,6 +17,7 @@ export type Draft = {
   shields: string[]
   sanctions: string[]
   aid: Record<string, number>
+  social_program: boolean
 }
 
 export function emptyDraft(): Draft {
@@ -29,6 +30,7 @@ export function emptyDraft(): Draft {
     shields: [],
     sanctions: [],
     aid: {},
+    social_program: false,
   }
 }
 
@@ -41,7 +43,8 @@ export function isEmpty(draft: Draft): boolean {
     draft.strikes.length === 0 &&
     draft.shields.length === 0 &&
     draft.sanctions.length === 0 &&
-    Object.keys(draft.aid).length === 0
+    Object.keys(draft.aid).length === 0 &&
+    !draft.social_program
   )
 }
 
@@ -93,6 +96,7 @@ export function pruneDraft(draft: Draft, space: ActionSpace): Draft {
     shields: legal('shield', draft.shields),
     sanctions: legal('sanction', draft.sanctions),
     aid,
+    social_program: live('social_program') && draft.social_program,
   }
 
   return same(draft, next) ? draft : next
@@ -110,7 +114,8 @@ function same(a: Draft, b: Draft): boolean {
     list(a.shields, b.shields) &&
     list(a.sanctions, b.sanctions) &&
     keys.length === Object.keys(b.aid).length &&
-    keys.every((k) => a.aid[k] === b.aid[k])
+    keys.every((k) => a.aid[k] === b.aid[k]) &&
+    a.social_program === b.social_program
   )
 }
 
@@ -132,6 +137,7 @@ export function totalCost(draft: Draft, space: ActionSpace): number {
   return (
     draft.invest.length * costOf(space, 'invest') +
     draft.eco_programs * costOf(space, 'eco_program') +
+    (draft.social_program ? costOf(space, 'social_program') : 0) +
     (draft.nuclear_tech ? costOf(space, 'nuclear_tech') : 0) +
     draft.bombs * costOf(space, 'bomb') +
     draft.shields.length * costOf(space, 'shield') +
@@ -146,6 +152,8 @@ export function usedCount(draft: Draft, id: string): number {
       return draft.invest.length
     case 'eco_program':
       return draft.eco_programs
+    case 'social_program':
+      return draft.social_program ? 1 : 0
     case 'nuclear_tech':
       return draft.nuclear_tech ? 1 : 0
     case 'bomb':
@@ -171,6 +179,8 @@ export const REASONS: Record<string, string> = {
   already_owned: 'уже есть',
   requires_nuclear_tech: 'нужна ядерная технология',
   no_bombs: 'нет готовых бомб',
+  no_government: 'новое правительство ещё не признано',
+  army_refuses: 'кризис: армия отказывается выполнять приказ',
   insufficient_budget: 'не хватает бюджета',
   no_targets: 'нет доступных целей',
   unsupported_by_engine: 'пока не поддерживается движком',

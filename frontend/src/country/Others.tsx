@@ -86,6 +86,7 @@ export default function Others({ others, me }: { others: Foreign[]; me?: Me | nu
               <span className="muted">
                 Городов целы: {alive} из {country.cities.length}
                 {country.laugh > 0 && ` · смех +${country.laugh}`}
+                {country.rating != null && ` · рейтинг ${country.rating}`}
               </span>
             </div>
             {/* Cities of foreign countries (#7): life level per city, ruins marked. */}

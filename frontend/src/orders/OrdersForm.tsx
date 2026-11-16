@@ -152,6 +152,19 @@ export default function OrdersForm({
         )}
 
         {block(
+          'social_program',
+          <label className="row inline">
+            <span>Запустить в этом раунде</span>
+            <input
+              type="checkbox"
+              checked={draft.social_program}
+              disabled={busy}
+              onChange={(e) => patch({ social_program: e.target.checked })}
+            />
+          </label>,
+        )}
+
+        {block(
           'nuclear_tech',
           <label className="row inline">
             <span>Разработать в этом раунде</span>

@@ -113,6 +113,77 @@ class LaughAwarded(Event):
     laugh_after: int
 
 
+class CharismaAwarded(Event):
+    """v2: the host named ``target`` the most vivid team; it gains stability (GAME_RULES_2.md 4)."""
+
+    type: Literal["charisma_awarded"] = "charisma_awarded"
+    bonus: int
+    stability_after: int
+
+
+class StabilityChanged(Event):
+    """v2: the round's stability update with its breakdown (GAME_RULES_2.md 4, 17).
+
+    Every term is public: the расшифровка is what lets a team understand «почему
+    упала устойчивость» without doing any math itself.
+    """
+
+    type: Literal["stability_changed"] = "stability_changed"
+    value_before: int
+    value_after: int
+    dynamics: int = 0
+    level_effect: int = 0
+    shocks: int = 0
+    actions: int = 0
+
+
+class PowerChanged(Event):
+    """v2: stability hit 0 — the government falls (GAME_RULES_2.md 4, «Смена власти»).
+
+    The team does not leave the game: the budget halves, strikes are refused the
+    next round and stability restarts from ``stability_reset``.
+    """
+
+    type: Literal["power_changed"] = "power_changed"
+    stability_reset: int
+    budget_after: int
+
+
+class RatingUpdated(Event):
+    """v2: the investment rating recomputed (GAME_RULES_2.md 5) — public news."""
+
+    type: Literal["rating_updated"] = "rating_updated"
+    score: int
+    level: str
+    weight: int
+
+
+class ClimateThreshold(Event):
+    """v2: a climate threshold crossed (GAME_RULES_2.md 7).
+
+    ``level``: unstable (30-59 %), catastrophe (1-29 %) or collapse (0 %). In the
+    unstable band ``target`` is the city that lost development; in a catastrophe
+    it is the country that lost stability.
+    """
+
+    type: Literal["climate_threshold"] = "climate_threshold"
+    level: Literal["unstable", "catastrophe", "collapse"]
+    development_delta: int = 0
+    stability_delta: int = 0
+
+
+class PrivateInvestmentsCredited(Event):
+    """v2: the country's share of the world pool of private capital (GAME_RULES_2.md 5).
+
+    Private like ``IncomeCredited``: only the recipient sees the amount.
+    """
+
+    type: Literal["private_investments_credited"] = "private_investments_credited"
+    amount: int
+    pool: int
+    budget_after: int
+
+
 class RoundEnded(Event):
     """Per-country wrap-up: pending bombs and aid released, sanctions reset."""
 
@@ -138,6 +209,12 @@ AnyEvent = Annotated[
     | CityDestroyed
     | SanctionApplied
     | LaughAwarded
+    | CharismaAwarded
+    | StabilityChanged
+    | PowerChanged
+    | RatingUpdated
+    | ClimateThreshold
+    | PrivateInvestmentsCredited
     | RoundEnded,
     Field(discriminator="type"),
 ]

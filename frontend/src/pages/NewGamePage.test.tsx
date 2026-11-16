@@ -70,7 +70,8 @@ describe('NewGamePage', () => {
     const seed = screen.getByLabelText('Seed (для повторяемости)')
     await userEvent.clear(seed)
     await userEvent.type(seed, '7')
-    const [russia, , france] = screen.getAllByRole('combobox').slice(1)
+    // The first two comboboxes are the rules and the scenario; the bots follow.
+    const [russia, , france] = screen.getAllByRole('combobox').slice(2)
     await userEvent.selectOptions(russia, 'random')
     await userEvent.selectOptions(france, '')
     await userEvent.click(screen.getByRole('button', { name: 'Создать' }))
@@ -87,6 +88,14 @@ describe('NewGamePage', () => {
         ],
       },
     })
+  })
+
+  it('can create a rules v2 game: the selector feeds the API body', async () => {
+    POST.mockResolvedValue({ data: CREATED } as never)
+    setup()
+    await userEvent.selectOptions(screen.getByLabelText('Правила'), 'v2.0')
+    await userEvent.click(screen.getByRole('button', { name: 'Создать' }))
+    expect(POST.mock.calls[0][1]).toMatchObject({ body: { rules: 'v2.0' } })
   })
 
   it('shows "Создаём…" while the request is in flight', async () => {

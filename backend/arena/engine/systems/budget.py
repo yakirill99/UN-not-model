@@ -81,6 +81,7 @@ class BudgetSystem(BaseSystem):
         """Reset the fields that this system re-grants unit by unit."""
         orders.invest = []
         orders.eco_programs = 0
+        orders.social_program = False
         orders.nuclear_tech = False
         orders.bombs = 0
         orders.shields = []
@@ -96,6 +97,8 @@ class BudgetSystem(BaseSystem):
                 orders.invest.append(unit.target)
             case "eco_program":
                 orders.eco_programs += 1
+            case "social_program":
+                orders.social_program = True
             case "nuclear_tech":
                 orders.nuclear_tech = True
             case "bomb":
@@ -158,6 +161,14 @@ class BudgetSystem(BaseSystem):
             units.append(Unit("invest", city_id, rules.cost("invest")))
 
         units += [Unit("eco_program", None, rules.cost("eco_program"))] * o.eco_programs
+
+        if o.social_program:
+            # v2 only: a v1 rules file has no such action, and a crafted order
+            # must be rejected visibly, not silently dropped.
+            if "social_program" not in rules.actions:
+                reject("social_program", None, "unsupported_by_engine")
+            else:
+                units.append(Unit("social_program", None, rules.cost("social_program")))
 
         if o.nuclear_tech:
             if country.nuclear_tech:

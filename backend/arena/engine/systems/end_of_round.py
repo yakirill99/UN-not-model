@@ -3,6 +3,10 @@
 Section 12 step 13 plus decisions 10 and 14: bombs produced this round become
 usable, aid received this round becomes spendable, sanctions of this year are
 reset. Shields stay until a strike consumes them. ``round`` is incremented last.
+
+``cities_lost_this_round`` is cleared here, not in the stability system: end_of_round
+runs in every pipeline, so the round-scoped counter never leaks into the next
+round even when the rules have no stability system (v1).
 """
 
 from __future__ import annotations
@@ -24,6 +28,7 @@ class EndOfRoundSystem(BaseSystem):
             c.budget += aid
             c.aid_pending = 0
             c.sanctioned_by = []
+            c.cities_lost_this_round = 0
             events.append(
                 RoundEnded(
                     round=ctx.round,

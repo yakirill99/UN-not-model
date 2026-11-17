@@ -11,7 +11,7 @@ describe('describeEvent', () => {
   it.each([
     [
       ev('order_rejected', { action: 'strike', reason: 'no_bombs' }),
-      /Приказ «ядерный удар» отклонён: нет готовых бомб/,
+      /Приказ «ядерный удар» отклонён, нет готовых бомб/,
     ],
     [
       ev('budget_spent', { action: 'invest', amount: 150, budget_after: 1050 }),
@@ -24,15 +24,15 @@ describe('describeEvent', () => {
     ],
     [ev('life_level_computed', { life_level: 4567 }), /45.67 %/],
     [ev('income_credited', { amount: 300, budget_after: 1500 }), /Доход 300 \$/],
-    [ev('tech_developed', { tech: 'nuclear' }), /Освоена технология: ядерная технология/],
+    [ev('tech_developed', { tech: 'nuclear' }), /Освоена ядерная технология/],
     [ev('shield_built', { target: 'moscow' }), /щит над городом moscow/],
-    [ev('bombs_produced', { count: 2, bombs_pending_after: 3 }), /Произведено бомб: 2/],
+    [ev('bombs_produced', { count: 2, bombs_pending_after: 3 }), /Произведено бомб 2/],
     [
       ev('city_destroyed', { target: 'nyc', cause: 'nuclear' }),
       /Город nyc разрушен \(ядерный удар\)/,
     ],
-    [ev('sanction_applied', { target: 'iran', delta: 10 }), /Санкции против iran: развитие −10/],
-    [ev('laugh_awarded', { target: 'russia', bonus: 5, laugh_after: 5 }), /Приз за юмор: russia/],
+    [ev('sanction_applied', { target: 'iran', delta: 10 }), /Санкции против iran, развитие −10/],
+    [ev('laugh_awarded', { target: 'russia', bonus: 5, laugh_after: 5 }), /Приз за юмор у russia/],
     [
       ev('round_ended', {
         budget_after: 900,
@@ -104,19 +104,19 @@ describe('describeEvent with names: ids become words', () => {
 
   it('tells the victim who sanctioned them (#6)', () => {
     expect(say(ev('sanction_applied', { actor: 'usa', target: 'iran', delta: 10 }), names)).toBe(
-      'Санкции от США → Иран: развитие −10',
+      'Санкции от США → Иран, развитие −10',
     )
   })
 
   it('names the striker when it is known, the city always', () => {
     expect(
       say(ev('nuclear_strike', { actor: 'dprk', target: 'spb', outcome: 'destroyed' }), names),
-    ).toBe('КНДР нанёс ядерный удар по Санкт-Петербург: город разрушен')
+    ).toBe('КНДР нанёс ядерный удар по Санкт-Петербург, город разрушен')
   })
 
   it('resolves aid both ways', () => {
     expect(say(ev('aid_transferred', { actor: 'usa', target: 'iran', amount: 500 }), names)).toBe(
-      'Помощь 500 $: США → Иран',
+      'Помощь 500 $, США → Иран',
     )
   })
 
@@ -135,9 +135,7 @@ describe('describeEvent · the id dictionaries', () => {
     expect(
       say(ev('ecology_changed', { delta: -15, ecology_after: 80, cause: 'bomb_production' })),
     ).toBe('Экология -15 → 80 % (производство бомб)')
-    expect(say(ev('tech_developed', { tech: 'nuclear' }))).toBe(
-      'Освоена технология: ядерная технология',
-    )
+    expect(say(ev('tech_developed', { tech: 'nuclear' }))).toBe('Освоена ядерная технология')
     expect(
       say(ev('order_rejected', { action: 'aid', reason: 'army_refuses' })).replace(
         'материальную помощь',
@@ -147,7 +145,7 @@ describe('describeEvent · the id dictionaries', () => {
   })
 
   it('an unknown id still shows as is — a missing translation must not hide a fact', () => {
-    expect(say(ev('tech_developed', { tech: 'quantum' }))).toBe('Освоена технология: quantum')
+    expect(say(ev('tech_developed', { tech: 'quantum' }))).toBe('Освоена технология quantum')
     expect(say(ev('ecology_changed', { delta: -5, ecology_after: 60, cause: 'mystery' }))).toBe(
       'Экология -5 → 60 % (mystery)',
     )

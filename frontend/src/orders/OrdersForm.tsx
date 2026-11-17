@@ -54,7 +54,7 @@ export default function OrdersForm({
     for (const city of observation.me.cities) map[city.id] = city.name
     for (const country of observation.others) {
       map[country.id] = country.name
-      for (const city of country.cities) map[city.id] = `${country.name} · ${city.name}`
+      for (const city of country.cities) map[city.id] = `${country.name}, ${city.name}`
     }
     return map
   }, [observation])
@@ -85,7 +85,7 @@ export default function OrdersForm({
     if (rejected.length === 0) return setMessage(errorMessage(error))
     const byAction: Record<string, string[]> = {}
     for (const item of rejected) {
-      const target = item.target ? `${nameOf(names, item.target)}: ` : ''
+      const target = item.target ? `${nameOf(names, item.target)}, ` : ''
       ;(byAction[item.action] ??= []).push(`${target}${reasonText(item.reason)}`)
     }
     setErrors(byAction)
@@ -131,107 +131,115 @@ export default function OrdersForm({
         </span>
       </div>
 
-      {/* Two columns from a laptop up (#wide): the actions are independent
-          blocks, the header and the submit stay full-width. */}
+      {/* Two LOGICAL columns from a laptop up (#6 of the feedback): economics
+          and social policy on the left, nuclear technology and war on the
+          right — «сейчас всё вперемешку». The header and the submit stay
+          full-width; on a phone the groups stack in the same order. */}
       <div className="actions-grid">
-        {block('invest', counters('invest', 'invest'))}
+        <div className="action-group">
+          <h3 className="group-title">Экономика и социальная политика</h3>
+          {block('invest', counters('invest', 'invest'))}
 
-        {block(
-          'eco_program',
-          <div className="row inline">
-            <span>Программы: {draft.eco_programs}</span>
-            <NumberStepper
-              label="Сколько программ"
-              noun="программу"
-              value={draft.eco_programs}
-              max={space.actions.eco_program.max_count ?? null}
+          {block(
+            'eco_program',
+            <div className="row inline">
+              <span>Программы {draft.eco_programs}</span>
+              <NumberStepper
+                label="Сколько программ"
+                noun="программу"
+                value={draft.eco_programs}
+                max={space.actions.eco_program.max_count ?? null}
+                disabled={busy}
+                onChange={(eco_programs) => patch({ eco_programs })}
+              />
+            </div>,
+          )}
+
+          {block(
+            'social_program',
+            <label className="row inline">
+              <span>Запустить в этом раунде</span>
+              <input
+                type="checkbox"
+                checked={draft.social_program}
+                disabled={busy}
+                onChange={(e) => patch({ social_program: e.target.checked })}
+              />
+            </label>,
+          )}
+
+          {block(
+            'aid',
+            <AidFields
+              option={space.actions.aid}
+              names={names}
+              aid={draft.aid}
+              budgetLeft={left}
               disabled={busy}
-              onChange={(eco_programs) => patch({ eco_programs })}
-            />
-          </div>,
-        )}
+              onChange={(aid) => patch({ aid })}
+            />,
+          )}
+        </div>
 
-        {block(
-          'social_program',
-          <label className="row inline">
-            <span>Запустить в этом раунде</span>
-            <input
-              type="checkbox"
-              checked={draft.social_program}
+        <div className="action-group">
+          <h3 className="group-title">Ядерные технологии и война</h3>
+          {block(
+            'nuclear_tech',
+            <label className="row inline">
+              <span>Разработать в этом раунде</span>
+              <input
+                type="checkbox"
+                checked={draft.nuclear_tech}
+                disabled={busy}
+                onChange={(e) => patch({ nuclear_tech: e.target.checked })}
+              />
+            </label>,
+          )}
+
+          {block(
+            'bomb',
+            <div className="row inline">
+              <span>
+                Бомбы {draft.bombs}
+                {space.actions.bomb.max_count != null
+                  ? ` из ${space.actions.bomb.max_count}`
+                  : ', лимита нет'}
+              </span>
+              <NumberStepper
+                label="Сколько бомб"
+                noun="бомбу"
+                value={draft.bombs}
+                max={space.actions.bomb.max_count ?? null}
+                disabled={busy}
+                onChange={(bombs) => patch({ bombs })}
+              />
+            </div>,
+          )}
+
+          {block('strike', counters('strike', 'strikes'))}
+
+          {block(
+            'shield',
+            <TargetToggles
+              option={space.actions.shield}
+              names={names}
+              picked={draft.shields}
               disabled={busy}
-              onChange={(e) => patch({ social_program: e.target.checked })}
-            />
-          </label>,
-        )}
+              onChange={(shields) => patch({ shields })}
+            />,
+          )}
 
-        {block(
-          'nuclear_tech',
-          <label className="row inline">
-            <span>Разработать в этом раунде</span>
-            <input
-              type="checkbox"
-              checked={draft.nuclear_tech}
+          {block(
+            'sanction',
+            <TargetToggles
+              option={space.actions.sanction}
+              names={names}
+              picked={draft.sanctions}
               disabled={busy}
-              onChange={(e) => patch({ nuclear_tech: e.target.checked })}
-            />
-          </label>,
-        )}
-
-        {block(
-          'bomb',
-          <div className="row inline">
-            <span>
-              Бомбы: {draft.bombs}
-              {space.actions.bomb.max_count != null
-                ? ` из ${space.actions.bomb.max_count}`
-                : ' · лимита нет'}
-            </span>
-            <NumberStepper
-              label="Сколько бомб"
-              noun="бомбу"
-              value={draft.bombs}
-              max={space.actions.bomb.max_count ?? null}
-              disabled={busy}
-              onChange={(bombs) => patch({ bombs })}
-            />
-          </div>,
-        )}
-
-        {block('strike', counters('strike', 'strikes'))}
-
-        {block(
-          'shield',
-          <TargetToggles
-            option={space.actions.shield}
-            names={names}
-            picked={draft.shields}
-            disabled={busy}
-            onChange={(shields) => patch({ shields })}
-          />,
-        )}
-
-        {block(
-          'sanction',
-          <TargetToggles
-            option={space.actions.sanction}
-            names={names}
-            picked={draft.sanctions}
-            disabled={busy}
-            onChange={(sanctions) => patch({ sanctions })}
-          />,
-        )}
-
-        {block(
-          'aid',
-          <AidFields
-            option={space.actions.aid}
-            names={names}
-            aid={draft.aid}
-            budgetLeft={left}
-            disabled={busy}
-            onChange={(aid) => patch({ aid })}
-          />,
-        )}
+              onChange={(sanctions) => patch({ sanctions })}
+            />,
+          )}
+        </div>
       </div>
 
       {message && (

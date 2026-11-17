@@ -46,7 +46,11 @@ export default function HostPage() {
 
   return (
     <main className="app">
-      <Header title={game?.title || 'Панель ведущего'} subtitle="Ведущий" />
+      <Header
+        title={game?.title || 'Панель ведущего'}
+        subtitle="Ведущий"
+        rulesVersion={game?.rules_version}
+      />
 
       {error && (
         <p className="bad" role="alert">

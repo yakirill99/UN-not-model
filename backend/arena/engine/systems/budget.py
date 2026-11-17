@@ -173,6 +173,8 @@ class BudgetSystem(BaseSystem):
         if o.nuclear_tech:
             if country.nuclear_tech:
                 reject("nuclear_tech", None, "already_owned")
+            elif state.round < rules.params.tech_from_round:
+                reject("nuclear_tech", None, "tech_not_yet")
             else:
                 units.append(Unit("nuclear_tech", None, rules.cost("nuclear_tech")))
 

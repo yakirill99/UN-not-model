@@ -249,8 +249,8 @@ export function AidFields({
       {/* The step is the amount itself: players read «бесплатно» in the header
           and then see 50 $ leave the budget — spell the mechanics out. */}
       <p className="muted aid-hint">
-        Это не комиссия: каждый шаг — {money(step)} помощи. Сумма спишется с вашего бюджета и придёт
-        стране-получателю после подведения итогов.
+        С каждым шагом списывается {money(step)} помощи, она придёт стране-получателю после
+        подведения итогов.
       </p>
     </>
   )

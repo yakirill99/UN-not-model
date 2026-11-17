@@ -100,9 +100,9 @@ export default function Others({
             <div className="row">
               <strong>{country.name}</strong>
               <span className="muted">
-                Городов целы: {alive} из {country.cities.length}
-                {country.laugh > 0 && ` · смех +${country.laugh}`}
-                {country.rating != null && ` · рейтинг ${country.rating}`}
+                Городов целы {alive} из {country.cities.length}
+                {country.laugh > 0 && `, смех +${country.laugh}`}
+                {country.rating != null && `, рейтинг ${country.rating}`}
               </span>
             </div>
             {/* Cities of foreign countries (#7): life level per city, ruins marked.
@@ -114,7 +114,7 @@ export default function Others({
                 const arrow =
                   delta == null || delta === 0
                     ? ''
-                    : `${delta > 0 ? '▲' : '▼'} ${(delta / 100).toFixed(2)}`
+                    : `${delta > 0 ? '▲' : '▼'} ${(Math.abs(delta) / 100).toFixed(2)}`
                 return (
                   <li
                     key={city.id}
@@ -122,14 +122,14 @@ export default function Others({
                     title={
                       city.destroyed
                         ? 'Город разрушен'
-                        : `Уровень жизни: ${lifeLevel(city.life_level)}` +
+                        : `Уровень жизни ${lifeLevel(city.life_level)}` +
                           (delta != null
                             ? ` (в прошлом раунде ${lifeLevel(city.life_level - delta)})`
                             : '')
                     }
                   >
                     {city.destroyed && <Icon name="destroyed" size={12} />} {city.name}
-                    {city.destroyed ? ' — разрушен' : ` · ${lifeLevel(city.life_level)}`}
+                    {city.destroyed ? ', разрушен' : ` ${lifeLevel(city.life_level)}`}
                     {arrow && <span className="delta">{arrow}</span>}
                   </li>
                 )

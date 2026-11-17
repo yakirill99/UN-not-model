@@ -177,6 +177,7 @@ export function countLeft(option: ActionOption, used: number): number | null {
 /** Reasons the engine returns, in the player's language (unknown codes pass through). */
 export const REASONS: Record<string, string> = {
   already_owned: 'уже есть',
+  tech_not_yet: 'ядерная технология откроется позже — задано при старте партии',
   requires_nuclear_tech: 'нужна ядерная технология',
   no_bombs: 'нет готовых бомб',
   no_government: 'новое правительство ещё не признано',

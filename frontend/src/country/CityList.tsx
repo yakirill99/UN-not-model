@@ -26,7 +26,7 @@ export default function CityList({ cities }: { cities: OwnCity[] }) {
           <tr key={city.id} className={city.destroyed ? 'destroyed' : undefined}>
             <td>
               {city.name}
-              {city.destroyed && <span className="bad"> · разрушен</span>}
+              {city.destroyed && <span className="bad">, разрушен</span>}
             </td>
             <td>{city.destroyed ? '—' : percent(city.development)}</td>
             <td>{city.destroyed ? '—' : lifeLevel(city.life_level)}</td>

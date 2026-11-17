@@ -37,8 +37,8 @@ const TECH_WORDS: Record<string, string> = {
   nuclear: 'ядерная технология',
 }
 
-function word(dict: Record<string, string>, id: string): string {
-  return dict[id] ?? id
+function word(dict: Record<string, string>, id: string, fallback?: string): string {
+  return dict[id] ?? fallback ?? id
 }
 
 /**
@@ -55,7 +55,7 @@ function word(dict: Record<string, string>, id: string): string {
 export function describeEvent(event: AnyEvent, names: Names = {}): string {
   switch (event.type) {
     case 'order_rejected':
-      return `Приказ «${word(ACTION_WORDS, event.action)}» отклонён: ${REASONS[event.reason] ?? event.reason}`
+      return `Приказ «${word(ACTION_WORDS, event.action)}» отклонён, ${REASONS[event.reason] ?? event.reason}`
     case 'budget_spent':
       return `Потрачено ${money(event.amount)} на ${word(ACTION_WORDS, event.action)}, осталось ${money(event.budget_after)}`
     case 'city_invested':
@@ -63,19 +63,19 @@ export function describeEvent(event: AnyEvent, names: Names = {}): string {
     case 'ecology_changed':
       return `Экология ${event.delta >= 0 ? '+' : ''}${event.delta} → ${percent(event.ecology_after)} (${word(CAUSE_WORDS, event.cause)})`
     case 'life_level_computed':
-      return `Пересчитан уровень жизни: ${(event.life_level / 100).toFixed(2)} %`
+      return `Пересчитан уровень жизни ${(event.life_level / 100).toFixed(2)} %`
     case 'income_credited':
       return `Доход ${money(event.amount)}, бюджет ${money(event.budget_after)}`
     case 'aid_transferred':
       return event.actor
-        ? `Помощь ${money(event.amount)}: ${nameOf(names, event.actor)} → ${nameOf(names, event.target)}`
+        ? `Помощь ${money(event.amount)}, ${nameOf(names, event.actor)} → ${nameOf(names, event.target)}`
         : `Получена помощь ${money(event.amount)}`
     case 'tech_developed':
-      return `Освоена технология: ${word(TECH_WORDS, event.tech)}`
+      return `Освоена ${word(TECH_WORDS, event.tech, `технология ${event.tech}`)}`
     case 'shield_built':
       return `Построен щит над городом ${nameOf(names, event.target)}`
     case 'bombs_produced':
-      return `Произведено бомб: ${event.count} (всего в работе ${event.bombs_pending_after})`
+      return `Произведено бомб ${event.count}, всего в работе ${event.bombs_pending_after}`
     case 'nuclear_strike':
       return describeStrike(event, names)
     case 'city_destroyed':
@@ -86,12 +86,12 @@ export function describeEvent(event: AnyEvent, names: Names = {}): string {
       // The arrow avoids Russian genitive forms («против Ирана»), which the
       // scenario names would need case by case.
       const from = event.actor ? ` от ${nameOf(names, event.actor)} →` : ' против'
-      return `Санкции${from} ${nameOf(names, event.target)}: развитие −${event.delta}`
+      return `Санкции${from} ${nameOf(names, event.target)}, развитие −${Math.abs(event.delta)}`
     }
     case 'laugh_awarded':
-      return `Приз за юмор: ${nameOf(names, event.target)}, +${event.bonus} (итого ${event.laugh_after})`
+      return `Приз за юмор у ${nameOf(names, event.target)}, +${event.bonus} (итого ${event.laugh_after})`
     case 'charisma_awarded':
-      return `Харизма раунда: ${nameOf(names, event.target)}, +${event.bonus} к устойчивости (итого ${event.stability_after})`
+      return `Харизма раунда у ${nameOf(names, event.target)}, +${event.bonus} к устойчивости (итого ${event.stability_after})`
     case 'stability_changed': {
       // The расшифровка is the point (GAME_RULES_2.md 17): «почему упала устойчивость».
       const parts: string[] = []
@@ -100,22 +100,22 @@ export function describeEvent(event: AnyEvent, names: Names = {}): string {
       if (event.shocks) parts.push(`потрясения ${signed(event.shocks)}`)
       if (event.actions) parts.push(`действия ${signed(event.actions)}`)
       const why = parts.length > 0 ? ` (${parts.join(', ')})` : ''
-      return `Устойчивость ${nameOf(names, event.target)}: ${event.value_before} → ${event.value_after}${why}`
+      return `Устойчивость ${nameOf(names, event.target)} ${event.value_before} → ${event.value_after}${why}`
     }
     case 'power_changed':
-      return `Смена власти в ${nameOf(names, event.target)}: бюджет урезан вдвое, устойчивость сброшена до ${event.stability_reset}`
+      return `Смена власти в ${nameOf(names, event.target)}, бюджет урезан вдвое, устойчивость сброшена до ${event.stability_reset}`
     case 'rating_updated':
-      return `Рейтинг ${nameOf(names, event.target)}: ${event.level} (${event.score} ${plural(event.score, 'балл', 'балла', 'баллов')})`
+      return `Рейтинг ${nameOf(names, event.target)} ${event.level} (${event.score} ${plural(event.score, 'балл', 'балла', 'баллов')})`
     case 'climate_threshold': {
       const where = nameOf(names, event.target)
       if (event.level === 'unstable')
-        return `Климатическая нестабильность: ${where} теряет ${Math.abs(event.development_delta)} п.п. развития`
+        return `Климатическая нестабильность, ${where} теряет ${Math.abs(event.development_delta)} п.п. развития`
       if (event.level === 'collapse')
-        return `Экологический коллапс: частный капитал исчез, устойчивость всех стран ${signed(event.stability_delta)}`
-      return `Климатическая катастрофа: устойчивость всех стран ${signed(event.stability_delta)}, доходы -20 %`
+        return `Экологический коллапс, частный капитал исчез, устойчивость всех стран ${signed(event.stability_delta)}`
+      return `Климатическая катастрофа, устойчивость всех стран ${signed(event.stability_delta)}, доходы −20 %`
     }
     case 'private_investments_credited':
-      return `Частные инвестиции: +${money(event.amount)}, бюджет ${money(event.budget_after)}`
+      return `Частные инвестиции +${money(event.amount)}, бюджет ${money(event.budget_after)}`
     case 'round_ended':
       return `Раунд завершён. Бюджет ${money(event.budget_after)}, бомб освобождено ${event.bombs_released}, помощь ${money(event.aid_credited)}`
   }
@@ -137,7 +137,7 @@ function describeStrike(
     destroyed: 'город разрушен',
     already_destroyed: 'город уже был разрушен',
   }[event.outcome]
-  return `${who} ядерный удар по ${nameOf(names, event.target)}: ${outcome}`
+  return `${who} ядерный удар по ${nameOf(names, event.target)}, ${outcome}`
 }
 
 /**
@@ -174,7 +174,7 @@ export function describeGroup(group: Group, names: Names = {}): string {
       const list = [...runs.entries()]
         .map(([id, run]) => `${nameOf(names, id)} ${percent(run.before)} → ${percent(run.after)}`)
         .join(', ')
-      return `Развитие городов (${group.events.length}): ${list}`
+      return `Развитие городов (${group.events.length}), ${list}`
     }
     case 'bombs_produced': {
       const count = (group.events as Extract<AnyEvent, { type: 'bombs_produced' }>[]).reduce(
@@ -192,7 +192,7 @@ export function describeGroup(group: Group, names: Names = {}): string {
         0,
       )
       return first.actor
-        ? `Помощь ${money(amount)}: ${nameOf(names, first.actor)} → ${nameOf(names, first.target)} (${plural(group.events.length, 'платёж', 'платежа', 'платежей')})`
+        ? `Помощь ${money(amount)}, ${nameOf(names, first.actor)} → ${nameOf(names, first.target)} (${plural(group.events.length, 'платёж', 'платежа', 'платежей')})`
         : `Получена помощь ${money(amount)} (${plural(group.events.length, 'платёж', 'платежа', 'платежей')})`
     }
     case 'sanction_applied': {
@@ -201,7 +201,7 @@ export function describeGroup(group: Group, names: Names = {}): string {
         0,
       )
       const from = first.actor ? ` от ${nameOf(names, first.actor)} →` : ' против'
-      return `Санкции${from} ${nameOf(names, first.target)}: развитие −${delta} (${plural(group.events.length, 'санкция', 'санкции', 'санкций')})`
+      return `Санкции${from} ${nameOf(names, first.target)}, развитие −${Math.abs(delta)} (${plural(group.events.length, 'санкция', 'санкции', 'санкций')})`
     }
     case 'ecology_changed': {
       const delta = (group.events as Extract<AnyEvent, { type: 'ecology_changed' }>[]).reduce(
@@ -233,7 +233,7 @@ export function describeGroup(group: Group, names: Names = {}): string {
           ),
         ),
       ]
-      return `Построены щиты над городами: ${cities.join(', ')} (${cities.length})`
+      return `Построены щиты над городами ${cities.join(', ')} (${cities.length})`
     }
     case 'nuclear_strike':
       return `${describeStrike(first, names)}${times(group.events.length)}`

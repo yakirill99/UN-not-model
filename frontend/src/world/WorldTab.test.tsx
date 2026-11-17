@@ -99,7 +99,7 @@ describe('WorldTab: the world map', () => {
   it('selects a country and shows the stats the fog of war allows', async () => {
     renderTab()
     fireEvent.click(await screen.findByRole('button', { name: 'США на карте — нейтрал' }))
-    expect(screen.getByText(/Средняя жизнь: 60\.00 %/)).toBeTruthy()
+    expect(screen.getByText(/Средняя жизнь 60\.00 %/)).toBeTruthy()
     expect(screen.getByRole('group', { name: 'Отношение к стране США' })).toBeTruthy()
   })
 
@@ -156,9 +156,9 @@ describe('WorldTab: the city honeycomb', () => {
   it('highlights a city both on the treemap and in the list', async () => {
     renderTab()
     await screen.findByRole('button', { name: 'Россия на карте (это мы)' })
-    fireEvent.click(screen.getByRole('button', { name: 'Москва: жизнь 55.00 %' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Москва, жизнь 55.00 %' }))
     expect(
-      screen.getByRole('button', { name: 'Москва: жизнь 55.00 %' }).getAttribute('aria-pressed'),
+      screen.getByRole('button', { name: 'Москва, жизнь 55.00 %' }).getAttribute('aria-pressed'),
     ).toBe('true')
     // The row in the list below lights up too: two views of one selection.
     const row = screen
@@ -175,7 +175,7 @@ describe('WorldTab: the city honeycomb', () => {
     })
     render(<WorldTab obs={obs} gameId="g9" />)
     await screen.findByRole('button', { name: 'Россия на карте (это мы)' })
-    expect(screen.getByRole('button', { name: 'Петербург: разрушен' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Петербург, разрушен' })).toBeTruthy()
     const facts = screen.getByRole('list', { name: 'Сводка по городам' })
     expect(within(facts).getByText('Разрушено').nextElementSibling?.textContent).toBe('1')
     expect(within(facts).getByText('Городов целы').nextElementSibling?.textContent).toBe('1 из 2')

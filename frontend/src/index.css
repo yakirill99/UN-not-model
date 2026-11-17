@@ -167,6 +167,18 @@ code {
 
 /* The round orders: one action per row on a phone, two columns from a
    laptop up — the form was the narrowest thing on a wide screen. */
+.action-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  min-width: 0;
+}
+.group-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--muted);
+}
 .actions-grid {
   display: grid;
   gap: 0.1rem;
@@ -325,6 +337,7 @@ h2 {
 }
 .aid-hint {
   font-size: 0.85rem;
+  font-style: italic;
   margin: 0.3rem 0 0;
 }
 .action-head {

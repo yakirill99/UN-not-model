@@ -87,14 +87,14 @@ function describe(group: Group, name: Name): Line {
         else runs.set(x.target ?? '', { before: x.development_before, after: x.development_after })
       }
       const list = [...runs.entries()]
-        .map(([id, run]) => `${name(id)}: развитие ${percent(run.before)} → ${percent(run.after)}`)
+        .map(([id, run]) => `${name(id)} развитие ${percent(run.before)} → ${percent(run.after)}`)
         .join(', ')
       return {
         kind: 'build',
         icon: 'invest',
         text:
           runs.size > 1
-            ? `Развитие городов (${n}): ${[...runs.entries()]
+            ? `Развитие городов (${n}), ${[...runs.entries()]
                 .map(([id, run]) => `${name(id)} ${percent(run.before)} → ${percent(run.after)}`)
                 .join(', ')}`
             : `${list}${times(n)}`,
@@ -129,7 +129,7 @@ function describe(group: Group, name: Name): Line {
       return {
         kind: 'war',
         icon: 'bomb',
-        text: `${name(e.actor)} произвела бомб: ${count}${times(n)}`,
+        text: `${name(e.actor)} произвела бомб ${count}${times(n)}`,
       }
     }
     case 'shield_built': {
@@ -145,7 +145,7 @@ function describe(group: Group, name: Name): Line {
         icon: 'shield',
         text:
           cities.length > 1
-            ? `Под ядерным щитом: ${cities.join(', ')} (${plural(cities.length, 'город', 'города', 'городов')})`
+            ? `Под ядерным щитом ${cities.join(', ')} (${plural(cities.length, 'город', 'города', 'городов')})`
             : `${cities[0]} под ядерным щитом`,
       }
     }
@@ -154,7 +154,7 @@ function describe(group: Group, name: Name): Line {
       return {
         kind: 'war',
         icon: 'strike',
-        text: `Ядерный удар по ${name(e.target)}: ${STRIKE[e.outcome]}${times(n)}`,
+        text: `Ядерный удар по ${name(e.target)}, ${STRIKE[e.outcome]}${times(n)}`,
       }
     case 'city_destroyed':
       return { kind: 'war', icon: 'destroyed', text: `Город ${name(e.target)} разрушен` }
@@ -167,7 +167,7 @@ function describe(group: Group, name: Name): Line {
       return {
         kind: 'deal',
         icon: 'sanction',
-        text: `${name(e.actor)} ввела санкции против ${name(e.target)}: развитие −${delta}${times(n)}`,
+        text: `${name(e.actor)} ввела санкции против ${name(e.target)}, развитие −${Math.abs(delta)}${times(n)}`,
       }
     }
     case 'aid_transferred': {
@@ -182,7 +182,7 @@ function describe(group: Group, name: Name): Line {
       }
     }
     case 'laugh_awarded':
-      return { kind: 'deal', icon: 'laugh', text: `Приз за юмор: ${name(e.target)}` }
+      return { kind: 'deal', icon: 'laugh', text: `Приз за юмор у ${name(e.target)}` }
     default:
       return null
   }

@@ -71,6 +71,10 @@ def legal_actions(state: GameState, country_id: str, rules: RuleSet) -> ActionSp
             case "nuclear_tech":
                 if me.nuclear_tech:
                     o.available, o.reason = False, "already_owned"
+                elif state.round < rules.params.tech_from_round:
+                    # Host's call at game start («галка при старте»): the tech
+                    # opens with round 1, 2 or 3 — early nuclear racing is off.
+                    o.available, o.reason = False, "tech_not_yet"
             case "bomb":
                 o.max_count = spec.max_per_round
                 # Feedback #10: the host may lift the cap in the final round —

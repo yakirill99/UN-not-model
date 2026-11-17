@@ -75,7 +75,7 @@ describe('OrdersForm', () => {
       }),
     )
     expect(screen.getAllByText('Москва').length).toBeGreaterThan(0)
-    expect(screen.getByText('США · Нью-Йорк')).toBeTruthy()
+    expect(screen.getByText('США, Нью-Йорк')).toBeTruthy()
   })
 
   it('counts spending as the player picks targets', async () => {
@@ -191,7 +191,7 @@ describe('OrdersForm', () => {
     await userEvent.click(submitButton())
 
     const invest = screen.getByText(/Инвестировать/).closest('section')!
-    expect(within(invest).getByRole('alert').textContent).toBe('Москва: превышен лимит на раунд')
+    expect(within(invest).getByRole('alert').textContent).toBe('Москва, превышен лимит на раунд')
   })
 
   it('joins several rejections of one action', async () => {
@@ -209,7 +209,7 @@ describe('OrdersForm', () => {
 
     const aid = screen.getByText(/Материальная помощь/).closest('section')!
     expect(within(aid).getByRole('alert').textContent).toBe(
-      'США: сумма меньше минимальной; превышен лимит на раунд',
+      'США, сумма меньше минимальной; превышен лимит на раунд',
     )
   })
 
@@ -252,7 +252,7 @@ describe('OrdersForm', () => {
         },
       }),
     )
-    expect(screen.getByText(/Бомбы: 0 из 3/)).toBeTruthy()
+    expect(screen.getByText(/Бомбы 0 из 3/)).toBeTruthy()
   })
 
   it('skips an action the rules do not define at all', () => {
@@ -304,7 +304,7 @@ describe('OrdersForm', () => {
     await userEvent.click(screen.getAllByRole('button', { name: 'Добавить Москва' })[0])
     await userEvent.click(submitButton())
     const strike = screen.getByText(/Нанести ядерный удар/).closest('section')!
-    expect(within(strike).getByRole('alert').textContent).toBe('atlantis: недопустимая цель')
+    expect(within(strike).getByRole('alert').textContent).toBe('atlantis, недопустимая цель')
   })
 
   it('renders an aid field with no targets at all', () => {
@@ -376,7 +376,7 @@ describe('OrdersForm', () => {
     fireEvent.click(plus)
     fireEvent.click(plus)
     fireEvent.click(plus)
-    expect(screen.getByText(/Бомбы: 3 из 3/)).toBeTruthy()
+    expect(screen.getByText(/Бомбы 3 из 3/)).toBeTruthy()
     expect(plus).toHaveProperty('disabled', true)
     expect(screen.getByText(/Потрачено 450 \$ из/)).toBeTruthy()
   })
@@ -540,6 +540,6 @@ describe('OrdersForm when the action space changes under it', () => {
     )
 
     expect(screen.getByText(/Потрачено 150 \$ из/)).toBeTruthy()
-    expect(screen.getByText(/Бомбы: 1 из 1/)).toBeTruthy()
+    expect(screen.getByText(/Бомбы 1 из 1/)).toBeTruthy()
   })
 })

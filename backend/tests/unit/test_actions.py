@@ -113,3 +113,36 @@ def test_last_round_lifts_the_bomb_cap_only_when_enabled() -> None:
     state.round = rules.params.rounds - 1
     a = legal_actions(state, "russia", rules).actions
     assert a["bomb"].max_count == 3
+
+
+def test_tech_from_round_gate() -> None:
+    """The host's option at game start: nuclear tech opens with round 1/2/3."""
+    state, rules = _setup()
+    rules = rules.model_copy(deep=True)
+    rules.params.tech_from_round = 3
+
+    state.round = 1
+    a = legal_actions(state, "russia", rules).actions
+    assert not a["nuclear_tech"].available and a["nuclear_tech"].reason == "tech_not_yet"
+    # The budget rejects the same order with the same reason.
+    from arena.engine.orders import OrderBook
+    from arena.engine.pipeline import resolve_round
+
+    _new, events = resolve_round(
+        state, OrderBook(orders={"russia": CountryOrders(nuclear_tech=True)}), rules, 0
+    )
+    rejected = next(e for e in events if e.type == "order_rejected")
+    assert rejected.reason == "tech_not_yet"
+
+    state.round = 2
+    a = legal_actions(state, "russia", rules).actions
+    assert not a["nuclear_tech"].available and a["nuclear_tech"].reason == "tech_not_yet"
+
+    state.round = 3
+    a = legal_actions(state, "russia", rules).actions
+    assert a["nuclear_tech"].available
+
+    # Default rules open the tech with round one — nothing changes for v1 games.
+    state.round = 1
+    a = legal_actions(state, "russia", _setup()[1]).actions
+    assert a["nuclear_tech"].available

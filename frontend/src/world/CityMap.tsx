@@ -9,15 +9,16 @@ const W = 640
 const H = 400
 
 /**
- * The territory of our state as a true honeycomb (#world): identical cells
- * packed edge to edge, a city owning one contiguous blob. The blob's size
- * follows the city's weight — life level × development — «размер складывался
- * из объёма уровня жизни и развития»; a destroyed city keeps a single red
- * cell. Labels are HTML, not SVG text: they never scale with the map, so the
- * font stays crisp on any monitor — «шрифт плохой, все слова размыты» was the
- * verdict on the scaled-SVG labels. Labels stay horizontal — rotating text to
- * squeeze it into a cell was a bug, not a style. Clicking a cell (or a row in
- * the list below) highlights the city both ways.
+ * The territory of our state on the map (#world): ONE hexagon per city, the
+ * hexagons packed side by side — «сделай их рядом друг с другом», after three
+ * rounds of scattered/overlaid layouts this is the shape that finally reads.
+ * The hexagon's radius follows the city's weight — life level × development —
+ * «размер складывался из объёма уровня жизни и развития»; a destroyed city
+ * keeps one small red hexagon. Labels are HTML, not SVG text: they never scale
+ * with the map, so the font stays crisp on any monitor — and each label sits
+ * in the MIDDLE of its own hexagon («надписи не там» was the verdict on the
+ * wedge layout). Clicking a hexagon (or a row in the list below) highlights
+ * the city both ways.
  */
 export default function CityMap({
   cities,
@@ -41,7 +42,7 @@ export default function CityMap({
   const destroyed = cities.length - alive
   const shields = cities.filter((c) => c.shield && !c.destroyed).length
   // The color reads against the strongest city of the round, not against 100 %:
-  // early rounds would otherwise paint every cell the same pale green.
+  // early rounds would otherwise paint every hexagon the same pale green.
   const maxLife = Math.max(...cities.map((c) => c.life_level), 1)
 
   return (
@@ -76,86 +77,62 @@ export default function CityMap({
         >
           {clusters.map((cluster, i) => {
             const city = cities[i]
+            const hex = cluster.cells[0]
             const ratio = city.destroyed ? 0 : city.life_level / maxLife
             const fill = city.destroyed
               ? 'var(--bad)'
               : `color-mix(in srgb, var(--ok) ${Math.round(Math.min(Math.max(ratio * 78 + 8, 8), 88))}%, var(--card))`
             const selected = selectedId === city.id
             const dimmed = selectedId != null && !selected
-            return cluster.cells.map((cell, j) => (
+            return (
               <polygon
-                key={`${city.id}-${j}`}
+                key={city.id}
                 className={`cell${selected ? ' sel' : dimmed ? ' dim' : ''}`}
-                points={hexPoints(cell)}
+                points={hexPoints(hex)}
                 style={{ fill }}
                 fillOpacity={city.destroyed ? 0.35 : undefined}
-                // One semantic button per city — the first cell of its blob;
-                // the rest stay clickable to the mouse but silent to a screen
-                // reader, so a 20-cell city does not read twenty times over.
-                role={j === 0 ? 'button' : 'presentation'}
+                role="button"
                 aria-label={
                   city.destroyed
-                    ? `${city.name}: разрушен`
-                    : `${city.name}: жизнь ${lifeLevel(city.life_level)}`
+                    ? `${city.name}, разрушен`
+                    : `${city.name}, жизнь ${lifeLevel(city.life_level)}`
                 }
-                aria-pressed={j === 0 ? selected : undefined}
+                aria-pressed={selected}
                 onClick={() => onSelect(selected ? null : city.id)}
               />
-            ))
+            )
           })}
-          {/* Territory borders: every face a cell turns to another city or the
-              void — what makes the honeycomb read as a map of cities. */}
-          <g className="borders" aria-hidden="true">
-            {clusters.flatMap((cluster, i) =>
-              cluster.cells.flatMap((cell, j) =>
-                cell.edges.map((e, k) => (
-                  <line key={`${i}-${j}-${k}`} x1={e[0]} y1={e[1]} x2={e[2]} y2={e[3]} />
-                )),
-              ),
-            )}
-          </g>
         </svg>
 
-        {/* HTML labels: fixed-size type, always crisp, never mirrored. Close
-            centroids (a city hugging another) are nudged apart vertically. */}
-        {(() => {
-          const pos = clusters.map((c) => ({ x: c.cx, y: c.cy }))
-          for (let a = 0; a < pos.length; a++) {
-            for (let b = a + 1; b < pos.length; b++) {
-              if (Math.abs(pos[a].x - pos[b].x) < 150 && Math.abs(pos[a].y - pos[b].y) < 40) {
-                if (pos[a].y <= pos[b].y) pos[b].y = pos[a].y + 42
-                else pos[a].y = pos[b].y + 42
-              }
-            }
-          }
-          return clusters.map((cluster, i) => {
-            const city = cities[i]
-            const r = cluster.cells[0]?.r ?? 0
-            const fitsName = r >= 9
-            const fitsStat = r >= 13
-            if (!fitsName) return null
-            return (
-              <div
-                key={city.id}
-                className="citymap-label"
-                style={{ left: `${(pos[i].x / W) * 100}%`, top: `${(pos[i].y / H) * 100}%` }}
-              >
-                {city.destroyed ? (
-                  <span className="stat bad">разрушен</span>
-                ) : (
-                  <>
-                    <span className="name">{city.name}</span>
-                    {fitsStat && (
-                      <span className="stat">
-                        {`${lifeLevel(city.life_level)} · разв. ${percent(city.development)}`}
-                      </span>
-                    )}
-                  </>
-                )}
-              </div>
-            )
-          })
-        })()}
+        {/* HTML labels: fixed-size type, always crisp. One label per city, dead
+            centre of its hexagon — the packing guarantees the room to fit. */}
+        {clusters.map((cluster, i) => {
+          const city = cities[i]
+          const hex = cluster.cells[0]
+          const fitsName = hex.r >= 26
+          const fitsStat = hex.r >= 34
+          if (!fitsName) return null
+          return (
+            <div
+              key={city.id}
+              className="citymap-label"
+              style={{ left: `${(hex.cx / W) * 100}%`, top: `${(hex.cy / H) * 100}%` }}
+            >
+              {city.destroyed ? (
+                <span className="stat bad">разрушен</span>
+              ) : (
+                <>
+                  <span className="name">{city.name}</span>
+                  {fitsStat && (
+                    <span className="stat">
+                      {`жизнь ${lifeLevel(city.life_level)}, развитие ${percent(city.development)}`}
+                    </span>
+                  )}
+                </>
+              )}
+            </div>
+          )
+        })}
       </div>
 
       <ul className="city-stats">
@@ -178,12 +155,12 @@ export default function CityMap({
                       </span>
                     </>
                   )}
-                  {city.destroyed && <span className="bad"> · разрушен</span>}
+                  {city.destroyed && <span className="bad">, разрушен</span>}
                 </span>
                 <span className="muted">
                   {city.destroyed
                     ? '—'
-                    : `Жизнь ${lifeLevel(city.life_level)} · Развитие ${percent(city.development)}`}
+                    : `Жизнь ${lifeLevel(city.life_level)}, развитие ${percent(city.development)}`}
                 </span>
               </button>
             </li>

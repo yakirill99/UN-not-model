@@ -2306,6 +2306,13 @@
           "stability": {
             "$ref": "#/components/schemas/StabilityParams"
           },
+          "tech_from_round": {
+            "default": 1,
+            "description": "The round nuclear technology opens (the host's option at game start)",
+            "minimum": 1.0,
+            "title": "Tech From Round",
+            "type": "integer"
+          },
           "traits": {
             "$ref": "#/components/schemas/TraitsParams"
           }

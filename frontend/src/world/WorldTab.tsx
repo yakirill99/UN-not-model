@@ -136,9 +136,9 @@ function ForeignCard({
         <span>{unranked ? 'место не разыграно' : `${place} место`}</span>
       </div>
       <p className="muted">
-        Средняя жизнь: {lifeLevel(country.average_life_level)} · Городов целы: {alive} из{' '}
+        Средняя жизнь {lifeLevel(country.average_life_level)}, городов целы {alive} из{' '}
         {country.cities.length}
-        {country.laugh > 0 && ` · смех +${country.laugh}`}
+        {country.laugh > 0 && `, смех +${country.laugh}`}
       </p>
       <div className="relation" role="group" aria-label={`Отношение к стране ${country.name}`}>
         {RELATIONS.map((r) => (
@@ -169,8 +169,8 @@ function MeCard({ me }: { me: Me }) {
         <span className="muted">это мы</span>
       </div>
       <p className="muted">
-        Бюджет: {money(me.budget)} · Средняя жизнь: {lifeLevel(me.average_life_level)} · Городов
-        целы: {alive} из {me.cities.length} · Бомбы: {me.bombs}
+        Бюджет {money(me.budget)}, средняя жизнь {lifeLevel(me.average_life_level)}, городов целы{' '}
+        {alive} из {me.cities.length}, бомбы {me.bombs}
       </p>
     </div>
   )

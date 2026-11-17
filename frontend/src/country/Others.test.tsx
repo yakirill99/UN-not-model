@@ -23,7 +23,7 @@ describe('Others', () => {
       />,
     )
     expect(screen.getByText('США')).toBeTruthy()
-    expect(screen.getByText('Городов целы: 1 из 2')).toBeTruthy()
+    expect(screen.getByText('Городов целы 1 из 2')).toBeTruthy()
     // The chart carries the number now.
     const chart = screen.getByRole('img', { name: 'Рейтинг стран по среднему уровню жизни' })
     expect(within(chart).getByText('60.00 %')).toBeTruthy()
@@ -44,8 +44,8 @@ describe('Others', () => {
     )
     const chips = document.querySelector('.city-chips') as HTMLElement
     expect(chips).toBeTruthy()
-    expect(chips.textContent).toContain('Нью-Йорк · 60.00 %')
-    expect(chips.textContent).toContain('Лос-Анджелес — разрушен')
+    expect(chips.textContent).toContain('Нью-Йорк 60.00 %')
+    expect(chips.textContent).toContain('Лос-Анджелес, разрушен')
   })
 
   it('mentions the laugh bonus only when the country has one', () => {

@@ -67,7 +67,7 @@ describe('feed · what the room may learn', () => {
     const e = line(
       event({ type: 'nuclear_strike', actor: 'russia', target: 'usa-1', outcome: 'destroyed' }),
     )
-    expect(e.text).toBe('Ядерный удар по Вашингтон: город разрушен')
+    expect(e.text).toBe('Ядерный удар по Вашингтон, город разрушен')
     expect(e.text).not.toContain('Россия')
   })
 
@@ -91,7 +91,7 @@ describe('feed · what the room may learn', () => {
   // Sanctions are public by the rules — the victim is told who imposed them.
   it('names the country that imposed sanctions, because the rules make it public', () => {
     const e = line(event({ type: 'sanction_applied', actor: 'usa', target: 'russia', delta: 5 }))
-    expect(e.text).toBe('США ввела санкции против Россия: развитие −5')
+    expect(e.text).toBe('США ввела санкции против Россия, развитие −5')
   })
 
   it('names both sides of an aid transfer', () => {
@@ -105,7 +105,7 @@ describe('feed · wording', () => {
   it.each([
     [
       { type: 'city_invested', target: 'russia-1', development_before: 60, development_after: 75 },
-      'Москва: развитие 60 % → 75 %',
+      'Москва развитие 60 % → 75 %',
     ],
     [
       { type: 'tech_developed', actor: 'russia', tech: 'nuclear' },
@@ -113,12 +113,12 @@ describe('feed · wording', () => {
     ],
     [
       { type: 'bombs_produced', actor: 'russia', count: 2, bombs_pending_after: 2 },
-      'Россия произвела бомб: 2',
+      'Россия произвела бомб 2',
     ],
     [{ type: 'shield_built', target: 'russia-1' }, 'Москва под ядерным щитом'],
     [
       { type: 'laugh_awarded', target: 'russia', bonus: 20, laugh_after: 20 },
-      'Приз за юмор: Россия',
+      'Приз за юмор у Россия',
     ],
   ])('describes %o', (payload, expected) => {
     expect(line(event(payload as never)).text).toBe(expected)
@@ -175,7 +175,7 @@ describe('feed · merged stories', () => {
       NAMES,
     )
     expect(entries).toHaveLength(1)
-    expect(entries[0].text).toBe('Развитие городов (3): Москва 60 % → 85 %, Вашингтон 40 % → 55 %')
+    expect(entries[0].text).toBe('Развитие городов (3), Москва 60 % → 85 %, Вашингтон 40 % → 55 %')
   })
 
   it('sums repeated aid and bombs, counts off shields over several cities', () => {
@@ -192,8 +192,8 @@ describe('feed · merged stories', () => {
     )
     const texts = entries.map((e) => e.text)
     expect(texts).toContain('США передала 500 $ стране Россия (×2)')
-    expect(texts).toContain('США произвела бомб: 3 (×2)')
-    expect(texts).toContain('Под ядерным щитом: Москва, Петербург (2 города)')
+    expect(texts).toContain('США произвела бомб 3 (×2)')
+    expect(texts).toContain('Под ядерным щитом Москва, Петербург (2 города)')
   })
 
   it('counts off a repeated strike on the same target', () => {
@@ -205,7 +205,7 @@ describe('feed · merged stories', () => {
       NAMES,
     )
     expect(entries).toHaveLength(1)
-    expect(entries[0].text).toBe('Ядерный удар по Вашингтон: щит поглотил удар (×2)')
+    expect(entries[0].text).toBe('Ядерный удар по Вашингтон, щит поглотил удар (×2)')
   })
 
   it('keeps strikes on different cities as separate headlines', () => {

@@ -46,6 +46,16 @@ class Planner:
         self.orders.eco_programs += 1
         return True
 
+    def social_program(self) -> bool:
+        """v2 (GAME_RULES_2.md 4): the social program steadies the government.
+        The option only exists in second-edition games, so v1 bots never see it."""
+        o = self.space.actions.get("social_program")
+        if o is None or not o.available or not self.can("social_program"):
+            return False
+        self.left -= o.cost
+        self.orders.social_program = True
+        return True
+
     def nuclear_tech(self) -> bool:
         if self.orders.nuclear_tech or not self.can("nuclear_tech"):
             return False
@@ -153,6 +163,16 @@ def _arm(p: Planner, obs: Observation) -> None:
             pass
 
 
+def _steady_nerves(p: Planner, obs: Observation, below: int) -> None:
+    """v2: a low stability is one lost city away from a power change — bots
+    that care buy the social program while it is cheap insurance. The option
+    is absent in v1 games, so this is a no-op there."""
+    if obs.me.stability is None:
+        return
+    if obs.me.stability < below:
+        p.social_program()
+
+
 # --- bots ---------------------------------------------------------------------
 
 
@@ -174,7 +194,7 @@ class RandomBot(SeededBot):
         others = legal.actions["sanction"].targets or []
         for _ in range(int(rng.integers(0, 8))):
             choice = rng.choice(
-                ["invest", "eco", "tech", "bomb", "shield", "strike", "sanction", "aid"]
+                ["invest", "eco", "tech", "bomb", "shield", "strike", "sanction", "aid", "social"]
             )
             if choice == "invest" and own:
                 p.invest(str(rng.choice(own)))
@@ -192,6 +212,8 @@ class RandomBot(SeededBot):
                 p.sanction(str(rng.choice(others)))
             elif choice == "aid" and others and rng.random() < 0.1:
                 p.aid(str(rng.choice(others)), int(rng.integers(50, 201)))
+            elif choice == "social":
+                p.social_program()
         return p.orders
 
 
@@ -200,6 +222,7 @@ class EconomistBot(SeededBot):
 
     def act(self, obs: Observation, legal: ActionSpace) -> CountryOrders:
         p = Planner(legal)
+        _steady_nerves(p, obs, below=45)
         if _world_is_violent(obs):
             for city in _unshielded_own(obs, self.rng)[:2]:
                 p.shield(city)
@@ -217,6 +240,7 @@ class EcologistBot(SeededBot):
 
     def act(self, obs: Observation, legal: ActionSpace) -> CountryOrders:
         p = Planner(legal)
+        _steady_nerves(p, obs, below=60)
         if obs.ecology < self.threshold:
             for _ in range(self.max_programs):
                 p.eco_program()
@@ -234,6 +258,7 @@ class AggressorBot(SeededBot):
             p.sanction(leader.id)
             for city in _best_cities(leader, obs.me.bombs, self.rng):
                 p.strike(city)
+        _steady_nerves(p, obs, below=30)
         _arm(p, obs)
         for city in _unshielded_own(obs, self.rng)[:1]:
             p.shield(city)
@@ -270,6 +295,7 @@ class AvengerBot(SeededBot):
             if target is not None:
                 for city in _best_cities(target, obs.me.bombs, self.rng):
                     p.strike(city)
+            _steady_nerves(p, obs, below=40)
             _arm(p, obs)
             for city in _unshielded_own(obs, self.rng)[:2]:
                 p.shield(city)

@@ -9,48 +9,48 @@
   },
   "winner": "usa",
   "final_life": {
-   "usa": 4331,
-   "russia": 4166,
-   "dprk": 2970,
-   "france": 1278,
-   "iran": 0
+   "usa": 5568,
+   "russia": 5527,
+   "dprk": 5032,
+   "iran": 2351,
+   "france": 1650
   },
-  "final_ecology": 55,
-  "cities_destroyed": 9,
-  "strikes": 14
+  "final_ecology": 100,
+  "cities_destroyed": 7,
+  "strikes": 12
  },
  "final_state": {
   "round": 7,
-  "ecology": 55,
+  "ecology": 100,
   "countries": [
    {
     "id": "russia",
     "name": "Россия",
-    "budget": 3081,
+    "budget": 2594,
     "cities": [
      {
       "id": "moscow",
       "name": "Москва",
       "development": 75,
-      "shield": false,
+      "shield": true,
       "destroyed": false,
-      "life_level": 4290
+      "life_level": 5775
      },
      {
       "id": "spb",
       "name": "Санкт-Петербург",
-      "development": 90,
-      "shield": false,
+      "development": 75,
+      "shield": true,
       "destroyed": false,
-      "life_level": 4785
+      "life_level": 5775
      },
      {
       "id": "ekaterinburg",
       "name": "Екатеринбург",
       "development": 60,
-      "shield": false,
+      "shield": true,
       "destroyed": false,
-      "life_level": 3795
+      "life_level": 5280
      },
      {
       "id": "rostov",
@@ -58,11 +58,11 @@
       "development": 60,
       "shield": false,
       "destroyed": false,
-      "life_level": 3795
+      "life_level": 5280
      }
     ],
     "nuclear_tech": true,
-    "bombs": 1,
+    "bombs": 2,
     "bombs_pending": 0,
     "laugh": 0,
     "aid_pending": 0,
@@ -84,7 +84,7 @@
    {
     "id": "usa",
     "name": "США",
-    "budget": 724,
+    "budget": 835,
     "cities": [
      {
       "id": "washington",
@@ -97,10 +97,10 @@
      {
       "id": "new_york",
       "name": "Нью-Йорк",
-      "development": 90,
+      "development": 105,
       "shield": false,
       "destroyed": false,
-      "life_level": 4785
+      "life_level": 6765
      },
      {
       "id": "los_angeles",
@@ -108,7 +108,7 @@
       "development": 135,
       "shield": false,
       "destroyed": false,
-      "life_level": 6270
+      "life_level": 7755
      },
      {
       "id": "chicago",
@@ -116,7 +116,7 @@
       "development": 135,
       "shield": false,
       "destroyed": false,
-      "life_level": 6270
+      "life_level": 7755
      }
     ],
     "nuclear_tech": false,
@@ -142,7 +142,7 @@
    {
     "id": "france",
     "name": "Франция",
-    "budget": 304,
+    "budget": 386,
     "cities": [
      {
       "id": "paris",
@@ -174,7 +174,7 @@
       "development": 100,
       "shield": false,
       "destroyed": false,
-      "life_level": 5115
+      "life_level": 6600
      }
     ],
     "nuclear_tech": false,
@@ -200,7 +200,7 @@
    {
     "id": "iran",
     "name": "Иран",
-    "budget": 83,
+    "budget": 453,
     "cities": [
      {
       "id": "tehran",
@@ -229,10 +229,10 @@
      {
       "id": "yazd",
       "name": "Йезд",
-      "development": 0,
+      "development": 185,
       "shield": false,
-      "destroyed": true,
-      "life_level": 0
+      "destroyed": false,
+      "life_level": 9405
      }
     ],
     "nuclear_tech": false,
@@ -246,7 +246,7 @@
     "rating_score": 0,
     "rating": "C",
     "rating_weight": 3,
-    "cities_lost": 4,
+    "cities_lost": 3,
     "cities_lost_this_round": 0,
     "powers_lost": 0,
     "in_transition": false,
@@ -258,39 +258,39 @@
    {
     "id": "dprk",
     "name": "КНДР",
-    "budget": 484,
+    "budget": 899,
     "cities": [
      {
       "id": "pyongyang",
       "name": "Пхеньян",
-      "development": 55,
+      "development": 60,
       "shield": true,
       "destroyed": false,
-      "life_level": 3630
+      "life_level": 5280
      },
      {
       "id": "chongjin",
       "name": "Чхонджин",
-      "development": 70,
+      "development": 60,
       "shield": true,
       "destroyed": false,
-      "life_level": 4125
+      "life_level": 5280
      },
      {
       "id": "nampo",
       "name": "Нампхо",
-      "development": 70,
-      "shield": false,
+      "development": 45,
+      "shield": true,
       "destroyed": false,
-      "life_level": 4125
+      "life_level": 4785
      },
      {
       "id": "kaesong",
       "name": "Кэсон",
-      "development": 0,
-      "shield": false,
-      "destroyed": true,
-      "life_level": 0
+      "development": 45,
+      "shield": true,
+      "destroyed": false,
+      "life_level": 4785
      }
     ],
     "nuclear_tech": true,
@@ -304,7 +304,7 @@
     "rating_score": 0,
     "rating": "C",
     "rating_weight": 3,
-    "cities_lost": 1,
+    "cities_lost": 0,
     "cities_lost_this_round": 0,
     "powers_lost": 0,
     "in_transition": false,

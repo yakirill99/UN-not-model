@@ -58,6 +58,7 @@ describe('NewGamePage', () => {
           { country_id: 'iran', bot: 'economist' },
           { country_id: 'dprk', bot: 'aggressor' },
         ],
+        overrides: { params: { tech_from_round: 1 } },
       },
     })
   })
@@ -70,8 +71,8 @@ describe('NewGamePage', () => {
     const seed = screen.getByLabelText('Seed (для повторяемости)')
     await userEvent.clear(seed)
     await userEvent.type(seed, '7')
-    // The first two comboboxes are the rules and the scenario; the bots follow.
-    const [russia, , france] = screen.getAllByRole('combobox').slice(2)
+    // Rules, scenario and the tech-round select come first; the bots follow.
+    const [russia, , france] = screen.getAllByRole('combobox').slice(3)
     await userEvent.selectOptions(russia, 'random')
     await userEvent.selectOptions(france, '')
     await userEvent.click(screen.getByRole('button', { name: 'Создать' }))
@@ -87,6 +88,16 @@ describe('NewGamePage', () => {
           { country_id: 'dprk', bot: 'aggressor' },
         ],
       },
+    })
+  })
+
+  it('the tech-round select rides to the API as a rules override', async () => {
+    POST.mockResolvedValue({ data: CREATED } as never)
+    setup()
+    await userEvent.selectOptions(screen.getByLabelText('Изучать ядерную технологию с раунда'), '3')
+    await userEvent.click(screen.getByRole('button', { name: 'Создать' }))
+    expect(POST.mock.calls[0][1]).toMatchObject({
+      body: { overrides: { params: { tech_from_round: 3 } } },
     })
   })
 

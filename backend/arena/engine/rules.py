@@ -195,6 +195,11 @@ class Params(ArenaModel):
     budget_priority: list[str] = Field(
         min_length=1, description="Action ids in the order the budget is spent"
     )
+    tech_from_round: int = Field(
+        default=1,
+        ge=1,
+        description="The round nuclear technology opens (the host's option at game start)",
+    )
     last_round: LastRound = Field(default_factory=LastRound)
     # --- v2 (GAME_RULES_2.md): used only by the systems the v2 pipeline names ---
     invest_returns: list[InvestReturn] | None = Field(

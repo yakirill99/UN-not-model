@@ -158,7 +158,7 @@ describe('describeGroup · merged wording', () => {
       }),
     ])
     expect(describeGroup(group, NAMES)).toBe(
-      'Развитие городов (2): Санкт-Петербург 60 % → 70 %, Москва 40 % → 55 %',
+      'Развитие городов (2), Санкт-Петербург 60 % → 70 %, Москва 40 % → 55 %',
     )
   })
 
@@ -167,7 +167,7 @@ describe('describeGroup · merged wording', () => {
       ev('aid_transferred', { actor: 'usa', target: 'bot', amount: 200 }),
       ev('aid_transferred', { actor: 'usa', target: 'bot', amount: 300 }),
     ])
-    expect(describeGroup(group, NAMES)).toBe('Помощь 500 $: США → Ботвания (2 платежа)')
+    expect(describeGroup(group, NAMES)).toBe('Помощь 500 $, США → Ботвания (2 платежа)')
   })
 
   it('sums incoming aid for the player too', () => {
@@ -191,7 +191,7 @@ describe('describeGroup · merged wording', () => {
       ev('sanction_applied', { actor: 'usa', target: 'bot', delta: 5 }),
       ev('sanction_applied', { actor: 'usa', target: 'bot', delta: 10 }),
     ])
-    expect(describeGroup(group, NAMES)).toBe('Санкции от США → Ботвания: развитие −15 (2 санкции)')
+    expect(describeGroup(group, NAMES)).toBe('Санкции от США → Ботвания, развитие −15 (2 санкции)')
   })
 
   it('sums one cause of ecology change and shows the final value', () => {
@@ -210,7 +210,7 @@ describe('describeGroup · merged wording', () => {
       ev('shield_built', { actor: 'bot', target: 'moscow' }),
     ])
     expect(describeGroup(group, NAMES)).toBe(
-      'Построены щиты над городами: Санкт-Петербург, Москва (2)',
+      'Построены щиты над городами Санкт-Петербург, Москва (2)',
     )
   })
 
@@ -220,7 +220,7 @@ describe('describeGroup · merged wording', () => {
       ev('nuclear_strike', { target: 'spb', outcome: 'absorbed' }),
     ])
     expect(describeGroup(group, NAMES)).toBe(
-      'Нанесён ядерный удар по Санкт-Петербург: щит поглотил удар (×2)',
+      'Нанесён ядерный удар по Санкт-Петербург, щит поглотил удар (×2)',
     )
   })
 

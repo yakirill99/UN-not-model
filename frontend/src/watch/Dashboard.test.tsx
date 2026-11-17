@@ -124,7 +124,7 @@ describe('Dashboard · filtering', () => {
     await userEvent.click(chip('Раунд 1'))
     await userEvent.click(chip('Развитие'))
     expect(feedItems()).toHaveLength(1)
-    expect(feedItems()[0]).toContain('Москва: развитие')
+    expect(feedItems()[0]).toContain('Москва развитие')
   })
 })
 

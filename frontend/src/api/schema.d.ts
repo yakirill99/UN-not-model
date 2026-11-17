@@ -842,6 +842,11 @@ export interface components {
        * @default 60
        */
       stability: number
+      /**
+       * Traits
+       * @description v2 trait ids (GAME_RULES_2.md 9); see TRAIT_IDS
+       */
+      traits?: string[]
     }
     /** CountryOrders */
     CountryOrders: {
@@ -1461,6 +1466,13 @@ export interface components {
       /** Rounds */
       rounds: number
       stability?: components['schemas']['StabilityParams']
+      /**
+       * Tech From Round
+       * @description The round nuclear technology opens (the host's option at game start)
+       * @default 1
+       */
+      tech_from_round: number
+      traits?: components['schemas']['TraitsParams']
     }
     /** PlayerInfo */
     PlayerInfo: {
@@ -1982,6 +1994,56 @@ export interface components {
        * @enum {string}
        */
       type: 'tech_developed'
+    }
+    /**
+     * TraitsParams
+     * @description The numbers of the country traits (GAME_RULES_2.md 9). The trait IDS live
+     *     in state.py (TRAIT_IDS) and ride on the scenario's countries; a trait only
+     *     has an effect in games whose rules carry the ``v2_core`` module.
+     */
+    TraitsParams: {
+      /**
+       * Capital Cap
+       * @description capital_limits: the best rating available
+       * @default B
+       */
+      capital_cap: string
+      /**
+       * Eco Agenda Penalty
+       * @description eco_agenda: stability lost per round in the unstable band
+       * @default -5
+       */
+      eco_agenda_penalty: number
+      /**
+       * Electoral Dynamics Percent
+       * @description electoral_cycle: dynamics factor, percent of the life change
+       * @default 75
+       */
+      electoral_dynamics_percent: number
+      /**
+       * Floor Level
+       * @description isolation: the only rating available
+       * @default E
+       */
+      floor_level: string
+      /**
+       * Mobilization Bomb Cost
+       * @description mobilization_economy: the price of one bomb
+       * @default 100
+       */
+      mobilization_bomb_cost: number
+      /**
+       * Resource Income
+       * @description resource_power: flat income bonus
+       * @default 100
+       */
+      resource_income: number
+      /**
+       * Sanction Resist Percent
+       * @description sanctions_experience: percent of the sanction effect left
+       * @default 50
+       */
+      sanction_resist_percent: number
     }
     /** UiSpec */
     UiSpec: {

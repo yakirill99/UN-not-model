@@ -3,128 +3,89 @@ import { hexClusters, hexPoints, type Hex } from './hex'
 
 const BOX = { w: 640, h: 400 }
 
-/** Cells of one cluster touch when their centres sit √3·r apart (flat-top). */
-const TOUCH = (a: Hex, b: Hex) => Math.hypot(a.cx - b.cx, a.cy - b.cy)
-const NEAR = (a: Hex, b: Hex, eps = 0.5) => Math.abs(TOUCH(a, b) - Math.sqrt(3) * a.r) < eps
+/** Two pointy-top hexagons never overlap once their centres sit this far apart. */
+const CLEAR = (a: Hex, b: Hex) => Math.hypot(a.cx - b.cx, a.cy - b.cy)
+const MIN_CLEAR = (a: Hex, b: Hex) => (a.r + b.r) * Math.cos(Math.PI / 6)
 
 describe('hexClusters', () => {
-  it('returns one cluster per value, empty in — empty out', () => {
+  it('returns one hexagon per city, empty in — empty out', () => {
     expect(hexClusters([], BOX)).toEqual([])
-    expect(hexClusters([100], BOX)).toHaveLength(1)
-    expect(hexClusters([100, 50, 25, 0], BOX)).toHaveLength(4)
-  })
-
-  it('centres a lone city in the box with big cells', () => {
     const [city] = hexClusters([100], BOX)
-    // The label sits on the cluster's centroid — near the middle of the card.
-    expect(Math.abs(city.cx - BOX.w / 2)).toBeLessThan(15)
-    expect(Math.abs(city.cy - BOX.h / 2)).toBeLessThan(15)
-    // Few cities get big cells: a lone country is a bold honeycomb, not grain.
-    expect(city.cells[0].r).toBeGreaterThan(25)
+    expect(city.cells).toHaveLength(1)
+    const four = hexClusters([100, 50, 25, 0], BOX)
+    expect(four).toHaveLength(4)
+    expect(four.filter((c) => c.cells.length === 1)).toHaveLength(4)
   })
 
-  it('scales the territory with the weight: more cells for a stronger city', () => {
-    const [big, small] = hexClusters([400, 100], BOX)
-    expect(big.cells.length).toBeGreaterThan(small.cells.length * 3)
+  it('centres the cluster in the box, big hexagons for few cities', () => {
+    const [city] = hexClusters([100], BOX)
+    expect(Math.abs(city.cx - BOX.w / 2)).toBeLessThan(2)
+    expect(Math.abs(city.cy - BOX.h / 2)).toBeLessThan(2)
+    expect(city.cells[0].r).toBeGreaterThan(80) // a lone country fills the card
   })
 
   it('carries the size by BOTH life and development (the caller folds them into the weight)', () => {
     const weight = (life: number, dev: number) => (life / 100) * dev
     const [strong, weak] = hexClusters([weight(7590, 195), weight(3465, 70)], BOX)
-    expect(strong.cells.length).toBeGreaterThan(weak.cells.length)
+    expect(strong.cells[0].r).toBeGreaterThan(weak.cells[0].r)
   })
 
-  it('packs every city as one contiguous blob', () => {
-    const clusters = hexClusters([500, 300, 200, 100, 60, 30], BOX)
-    for (const cluster of clusters) {
-      expect(cluster.cells.length).toBeGreaterThan(0)
-      // Flood-fill from the first cell: every cell must be reachable by steps
-      // between touching neighbours of the same cluster.
-      const seen = new Set([0])
-      const queue = [0]
-      while (queue.length > 0) {
-        const i = queue.pop()!
-        for (let j = 0; j < cluster.cells.length; j++) {
-          if (!seen.has(j) && NEAR(cluster.cells[i], cluster.cells[j])) {
-            seen.add(j)
-            queue.push(j)
-          }
-        }
-      }
-      expect(seen.size).toBe(cluster.cells.length)
-    }
+  it('the strongest city is the biggest, the weakest never smaller than half of it', () => {
+    const clusters = hexClusters([500, 300, 200, 100], BOX)
+    const radii = clusters.map((c) => c.cells[0].r)
+    expect(radii[0]).toBe(Math.max(...radii))
+    expect(Math.min(...radii)).toBeGreaterThanOrEqual(Math.max(...radii) / 2 - 0.01)
   })
 
-  it('lets the cells of different cities touch edge to edge, never overlap', () => {
-    const clusters = hexClusters([500, 300, 200, 100, 60, 30], BOX)
-    const all = clusters.flatMap((c) => c.cells)
+  it('packs hexagons flush side by side: touching, never overlapping', () => {
+    const clusters = hexClusters([500, 300, 200, 100, 60], BOX)
+    const all = clusters.map((c) => c.cells[0])
     for (let i = 0; i < all.length; i++) {
       for (let j = i + 1; j < all.length; j++) {
-        const d = TOUCH(all[i], all[j])
-        // Grid neighbours sit at exactly √3·r; anything closer is an overlap.
-        expect(d).toBeGreaterThanOrEqual(Math.sqrt(3) * all[i].r - 0.05)
+        // No overlap: centres stay one flat-pair apart (small tolerance for
+        // the flush contact itself).
+        expect(CLEAR(all[i], all[j])).toBeGreaterThanOrEqual(MIN_CLEAR(all[i], all[j]) - 0.5)
       }
     }
-    // And the honeycomb is dense: neighbours of a cell are present at √3·r.
-    const touches = all.filter((a) => all.some((b) => b !== a && NEAR(a, b)))
-    expect(touches.length).toBeGreaterThan(all.length / 2)
+    // And every city has a neighbour it touches (the rug is one piece).
+    const touching = all.filter((a) =>
+      all.some((b) => b !== a && CLEAR(a, b) <= (a.r + b.r) * 1.001),
+    )
+    expect(touching.length).toBe(all.length)
   })
 
-  it('keeps every cell inside the box', () => {
-    const clusters = hexClusters([500, 300, 200, 100, 60, 30], BOX)
+  it('keeps every hexagon inside the box', () => {
+    const clusters = hexClusters([500, 300, 200, 100, 60], BOX)
     for (const cluster of clusters) {
       for (const c of cluster.cells) {
-        expect(c.cx - c.r).toBeGreaterThanOrEqual(-0.01)
-        expect(c.cx + c.r).toBeLessThanOrEqual(BOX.w + 0.01)
-        expect(c.cy - (c.r * Math.sqrt(3)) / 2).toBeGreaterThanOrEqual(-0.01)
-        expect(c.cy + (c.r * Math.sqrt(3)) / 2).toBeLessThanOrEqual(BOX.h + 0.01)
+        expect(c.cx - c.r).toBeGreaterThanOrEqual(BOX.w * 0.01)
+        expect(c.cx + c.r).toBeLessThanOrEqual(BOX.w * 0.99)
+        expect(c.cy - c.r).toBeGreaterThanOrEqual(BOX.h * 0.01)
+        expect(c.cy + c.r).toBeLessThanOrEqual(BOX.h * 0.99)
       }
     }
   })
 
-  it('gives a destroyed city one small red cell next to the living blob', () => {
+  it('gives a destroyed city one small hexagon next to the living ones', () => {
     const [alive, dead] = hexClusters([100, 0], BOX)
-    expect(dead.cells).toHaveLength(1)
-    expect(alive.cells.length).toBeGreaterThan(5)
-    // The ruin still touches the country it belonged to.
-    expect(dead.cells.some((dc) => alive.cells.some((ac) => NEAR(dc, ac)))).toBe(true)
+    expect(dead.cells[0].r).toBeLessThan(alive.cells[0].r)
+    // And it touches the living territory, not floating somewhere far.
+    expect(CLEAR(alive.cells[0], dead.cells[0])).toBeLessThan(
+      (alive.cells[0].r + dead.cells[0].r) * 1.01,
+    )
   })
 
-  it('uses the box: a seven-city field fills the card, centred', () => {
-    const clusters = hexClusters([100, 90, 80, 70, 60, 50, 40], BOX)
-    const all = clusters.flatMap((c) => c.cells)
-    const minX = Math.min(...all.map((c) => c.cx - c.r))
-    const maxX = Math.max(...all.map((c) => c.cx + c.r))
-    const minY = Math.min(...all.map((c) => c.cy - (c.r * Math.sqrt(3)) / 2))
-    const maxY = Math.max(...all.map((c) => c.cy + (c.r * Math.sqrt(3)) / 2))
-    // A honeycomb is near-round: it fills the box by height and centres itself
-    // in the width — the card reads as a full territory, not a corner patch.
-    expect(maxX - minX).toBeGreaterThan(BOX.w * 0.5)
-    expect(maxY - minY).toBeGreaterThan(BOX.h * 0.85)
-    expect(Math.abs((minX + maxX) / 2 - BOX.w / 2)).toBeLessThan(2)
-    expect(Math.abs((minY + maxY) / 2 - BOX.h / 2)).toBeLessThan(2)
-  })
-
-  it('marks the sides facing another city as border edges ON the shared face', () => {
-    const clusters = hexClusters([500, 200], BOX)
-    const [first] = clusters
-    // Every edge sits on a real face: its midpoint is √3/2·r from the cell's
-    // centre (halfway to the neighbour), and its length is one full side (r).
-    for (const cluster of clusters) {
-      for (const cell of cluster.cells) {
-        for (const e of cell.edges) {
-          const mid = [(e[0] + e[2]) / 2, (e[1] + e[3]) / 2]
-          expect(Math.hypot(mid[0] - cell.cx, mid[1] - cell.cy)).toBeCloseTo(
-            (Math.sqrt(3) / 2) * cell.r,
-            1,
-          )
-          const length = Math.hypot(e[2] - e[0], e[3] - e[1])
-          expect(length).toBeCloseTo(cell.r, 1)
-        }
-      }
-    }
-    // A two-city map has at least one REAL border between the cities.
-    expect(first.cells.some((c) => c.edges.length > 0)).toBe(true)
+  it('the equal field packs as equal hexagons in a rug', () => {
+    // Round one: every life is 0.00 % — the cities must still read as equal
+    // neighbours, not confetti.
+    const clusters = hexClusters([0, 0, 0, 0], BOX)
+    const radii = clusters.map((c) => c.cells[0].r.toFixed(6))
+    expect(new Set(radii).size).toBe(1)
+    const all = clusters.map((c) => c.cells[0])
+    const touching = all.filter((a) =>
+      all.some((b) => b !== a && CLEAR(a, b) <= (a.r + b.r) * 1.001),
+    )
+    expect(touching.length).toBe(all.length)
   })
 
   it('is deterministic: the same weights give the same picture', () => {
@@ -133,63 +94,29 @@ describe('hexClusters', () => {
     expect(JSON.stringify(a)).toBe(JSON.stringify(b))
   })
 
-  it('never interleaves: the strongest city owns the centre, the rest sit beside it', () => {
-    // «Ромбы наслоены друг на друга» — the previous packer let blobs mix into
-    // one field. Chunked claims grow outward: the biggest blob must be the one
-    // closest to the middle of the box, and no cluster may sit inside another.
-    const clusters = hexClusters([500, 300, 200, 100], BOX)
-    const centre = { x: BOX.w / 2, y: BOX.h / 2 }
-    const distOf = (c: (typeof clusters)[number]) => Math.hypot(c.cx - centre.x, c.cy - centre.y)
-    const [big] = clusters
-    expect(distOf(big)).toBeLessThan(Math.min(...clusters.slice(1).map(distOf)))
-    // And the blobs read as neighbours: each cluster touches at least one other.
-    const near = (a: (typeof clusters)[number], b: (typeof clusters)[number]) =>
-      a.cells.some((ca) => b.cells.some((cb) => NEAR(ca, cb)))
+  it('scales to any box: a narrow card keeps the rug inside', () => {
+    const narrow = { w: 320, h: 220 }
+    const clusters = hexClusters([100, 60, 30, 10], narrow)
     for (const cluster of clusters) {
-      expect(clusters.some((other) => other !== cluster && near(cluster, other))).toBe(true)
+      const c = cluster.cells[0]
+      expect(c.cx - c.r).toBeGreaterThanOrEqual(-0.01)
+      expect(c.cx + c.r).toBeLessThanOrEqual(narrow.w + 0.01)
+      expect(c.cy - c.r).toBeGreaterThanOrEqual(-0.01)
+      expect(c.cy + c.r).toBeLessThanOrEqual(narrow.h + 0.01)
     }
-  })
-
-  it('the equal field packs as adjacent blocks, not interleaved confetti', () => {
-    // Round one: every life is 0.00 %, the weights are equal — the four cities
-    // must still read as four compact regions, cities next to each other.
-    const clusters = hexClusters([0, 0, 0, 0], BOX)
-    expect(clusters).toHaveLength(4)
-    for (const cluster of clusters) {
-      expect(cluster.cells.length).toBeGreaterThanOrEqual(2)
-      // Flood-fill contiguity, same as the main test above.
-      const seen = new Set([0])
-      const queue = [0]
-      while (queue.length > 0) {
-        const i = queue.pop()!
-        for (let j = 0; j < cluster.cells.length; j++) {
-          if (!seen.has(j) && NEAR(cluster.cells[i], cluster.cells[j])) {
-            seen.add(j)
-            queue.push(j)
-          }
-        }
-      }
-      expect(seen.size).toBe(cluster.cells.length)
-    }
-  })
-
-  it('handles the equal field: identical cities share the card fairly', () => {
-    const clusters = hexClusters([50, 50, 50], BOX)
-    const counts = clusters.map((c) => c.cells.length)
-    // Whole rings do not always divide by the city count: the shares differ by
-    // at most one cell, and every cell is the same size.
-    expect(Math.max(...counts) - Math.min(...counts)).toBeLessThanOrEqual(1)
-    expect(new Set(clusters.map((c) => c.cells[0].r.toFixed(6)))).toHaveProperty('size', 1)
   })
 })
 
 describe('hexPoints', () => {
   it('builds six corners around the centre', () => {
-    const pts = hexPoints({ cx: 100, cy: 50, r: 10 }).split(' ')
+    const pts = hexPoints({ cx: 10, cy: 20, r: 5 })
+      .split(' ')
+      .map((p) => p.split(',').map(Number))
     expect(pts).toHaveLength(6)
-    // Flat-top: the first corner sits exactly one radius to the right.
-    const [x, y] = pts[0].split(',').map(Number)
-    expect(x).toBeCloseTo(110, 1)
-    expect(y).toBeCloseTo(50, 1)
+    for (const [x, y] of pts) {
+      expect(Math.hypot(x - 10, y - 20)).toBeCloseTo(5, 2)
+    }
+    // Pointy-top: the first corner sits 30° off the x axis (vertex up, flats left/right).
+    expect(pts[0][0]).toBeCloseTo(10 + 5 * Math.cos(Math.PI / 6), 2)
   })
 })

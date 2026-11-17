@@ -21,7 +21,7 @@ describe('CityList', () => {
     render(<CityList cities={[ownCity({ destroyed: true, development: 70 })]} />)
     const row = screen.getByText(/Москва/).closest('tr')!
     expect(row.className).toContain('destroyed')
-    expect(within(row).getByText('· разрушен')).toBeTruthy()
+    expect(within(row).getByText(', разрушен')).toBeTruthy()
     expect(within(row).getAllByText('—')).toHaveLength(2)
     expect(within(row).queryByText('70 %')).toBeNull()
   })

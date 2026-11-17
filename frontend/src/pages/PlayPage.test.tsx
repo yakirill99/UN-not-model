@@ -111,7 +111,7 @@ describe('PlayPage', () => {
     await screen.findByRole('heading', { name: 'Россия' })
     GET.mockClear()
     await userEvent.click(screen.getByRole('button', { name: 'Обновить' }))
-    await waitFor(() => expect(GET).toHaveBeenCalledTimes(3))
+    await waitFor(() => expect(GET).toHaveBeenCalledTimes(4))
   })
 
   it('disables the refresh button while a reload is in flight', async () => {
@@ -171,7 +171,7 @@ describe('PlayPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Отправить приказы' }))
 
     expect(api.PUT).toHaveBeenCalledOnce()
-    await waitFor(() => expect(GET).toHaveBeenCalledTimes(3))
+    await waitFor(() => expect(GET).toHaveBeenCalledTimes(4))
   })
 
   it('keeps the card alive when the action space is gone between rounds', async () => {

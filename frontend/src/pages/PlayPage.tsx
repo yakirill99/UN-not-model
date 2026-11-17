@@ -40,6 +40,7 @@ export default function PlayPage() {
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [tab, setTab] = useState<TabId>('country')
+  const [rulesVersion, setRulesVersion] = useState<string | undefined>(undefined)
 
   const [banner, setBanner] = useState<number | null>(null)
   const seenRound = useRef<number | null>(null)
@@ -48,38 +49,53 @@ export default function PlayPage() {
   const [prevLife, setPrevLife] = useState<Map<string, number>>(new Map())
   const lastObs = useRef<Observation | null>(null)
 
-  const load = useCallback(async () => {
-    if (!gameId) return
-    setBusy(true)
-    const path = { game_id: gameId }
-    const [observation, actions, round] = await Promise.all([
-      api.GET('/api/games/{game_id}/observation', { params: { path } }),
-      api.GET('/api/games/{game_id}/action-space', { params: { path } }),
-      api.GET('/api/games/{game_id}/round', { params: { path } }),
-    ])
-    setBusy(false)
-    if (!observation.data) return setError(errorMessage(observation.error))
-    setError(null)
-    setObs(observation.data)
-    // A new round deserves a beat of theatre: the banner says the results are
-    // in («анимация перехода между раундами»). The very first load stays quiet.
-    const next = observation.data.round
-    if (seenRound.current != null && next !== seenRound.current) setBanner(next)
-    seenRound.current = next
-    // The round moved: the observation we held until now IS the previous
-    // round's world — snapshot its city life levels for the change colours.
-    const prev = lastObs.current
-    if (prev && prev.round !== next) {
-      const map = new Map<string, number>()
-      for (const c of prev.me.cities) map.set(c.id, c.life_level)
-      for (const o of prev.others) for (const c of o.cities) map.set(c.id, c.life_level)
-      setPrevLife(map)
-    }
-    lastObs.current = observation.data
-    // The action space and the status are absent between rounds — the card stays usable.
-    setSpace(actions.data ?? null)
-    setStatus(round.data ?? null)
-  }, [gameId])
+  /**
+   * `manual` distinguishes the user's own «Обновить» click from the quiet
+   * background poll: only the manual refresh shows «Обновляем…» on the
+   * button — «периодически обновляется сам по себе и скачет иконка с
+   * "обновить" на "обновляем". Это бесит». The background poll stays silent
+   * and still hands every player the new round on its own (the banner below
+   * announces it — no manual F5 marathon).
+   */
+  const load = useCallback(
+    async (manual = false) => {
+      if (!gameId) return
+      if (manual) setBusy(true)
+      const path = { game_id: gameId }
+      const [observation, actions, round, info] = await Promise.all([
+        api.GET('/api/games/{game_id}/observation', { params: { path } }),
+        api.GET('/api/games/{game_id}/action-space', { params: { path } }),
+        api.GET('/api/games/{game_id}/round', { params: { path } }),
+        // The game's rules edition rides along: the «Правила» button opens the
+        // matching rules page (?v=2.0 for a second-edition party).
+        api.GET('/api/games/{game_id}', { params: { path } }),
+      ])
+      if (manual) setBusy(false)
+      if (!observation.data) return setError(errorMessage(observation.error))
+      setError(null)
+      setObs(observation.data)
+      // A new round deserves a beat of theatre: the banner says the results are
+      // in («анимация перехода между раундами»). The very first load stays quiet.
+      const next = observation.data.round
+      if (seenRound.current != null && next !== seenRound.current) setBanner(next)
+      seenRound.current = next
+      // The round moved: the observation we held until now IS the previous
+      // round's world — snapshot its city life levels for the change colours.
+      const prev = lastObs.current
+      if (prev && prev.round !== next) {
+        const map = new Map<string, number>()
+        for (const c of prev.me.cities) map.set(c.id, c.life_level)
+        for (const o of prev.others) for (const c of o.cities) map.set(c.id, c.life_level)
+        setPrevLife(map)
+      }
+      lastObs.current = observation.data
+      if (info.data?.rules_version) setRulesVersion(info.data.rules_version)
+      // The action space and the status are absent between rounds — the card stays usable.
+      setSpace(actions.data ?? null)
+      setStatus(round.data ?? null)
+    },
+    [gameId],
+  )
 
   useEffect(() => {
     void load()
@@ -128,6 +144,7 @@ export default function PlayPage() {
         <Header
           title={obs?.me.name ?? 'Моя страна'}
           subtitle={obs ? `Раунд ${obs.round}` : undefined}
+          rulesVersion={rulesVersion}
         />
 
         {error && (
@@ -147,7 +164,7 @@ export default function PlayPage() {
                 others={obs.others}
                 forecast={obs.income_forecast}
                 action={
-                  <button className="ghost" onClick={() => void load()} disabled={busy}>
+                  <button className="ghost" onClick={() => void load(true)} disabled={busy}>
                     {busy ? 'Обновляем…' : 'Обновить'}
                   </button>
                 }

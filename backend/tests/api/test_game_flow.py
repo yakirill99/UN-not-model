@@ -157,3 +157,38 @@ async def test_openapi_is_complete(client: AsyncClient) -> None:
         "/api/rules/schema",
     ):
         assert p in paths, p
+
+
+async def test_rules_v2_game_coexists_with_v1(client: AsyncClient) -> None:
+    """The host picks the rules version at creation; both versions live side by side."""
+    v2 = await _create(client, rules="v2.0")
+    assert v2["rules_version"] == "2.0.0"
+    v1 = await _create(client)  # default v1.0, untouched
+    assert v1["rules_version"] == "1.0.0"
+
+    gid, code = v2["id"], next(p["join_code"] for p in v2["players"] if p["country_id"] == "usa")
+    usa = await _join(client, code)
+    U = _bearer(usa["token"])
+
+    # The observation carries the v2 numbers; the action space carries the new action.
+    obs = (await client.get(f"/api/games/{gid}/observation", headers=U)).json()
+    assert obs["me"]["stability"] == 60 and obs["me"]["rating"] is not None
+    space = (await client.get(f"/api/games/{gid}/action-space", headers=U)).json()
+    social = space["actions"]["social_program"]
+    assert social["available"] is True and social["cost"] == 150
+
+    # A v2 order with the social program validates and resolves the round.
+    r = await client.put(f"/api/games/{gid}/orders", json={"social_program": True}, headers=U)
+    assert r.status_code == 204, r.text
+    host = await _join(client, v2["host_code"])
+    r = await client.post(f"/api/games/{gid}/rounds/1/resolve", headers=_bearer(host["token"]))
+    assert r.status_code == 200, r.text
+
+    # The same social-program order is impossible in the v1 game.
+    gid1, code1 = v1["id"], next(p["join_code"] for p in v1["players"] if p["country_id"] == "usa")
+    usa1 = await _join(client, code1)
+    r = await client.put(
+        f"/api/games/{gid1}/orders", json={"social_program": True}, headers=_bearer(usa1["token"])
+    )
+    assert r.status_code == 422
+    assert any(e["action"] == "social_program" for e in r.json()["errors"])

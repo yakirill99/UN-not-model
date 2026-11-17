@@ -14,14 +14,14 @@ describe('CityList', () => {
     const row = screen.getByText('Москва').closest('tr')!
     expect(within(row).getByText('70 %')).toBeTruthy()
     expect(within(row).getByText('55.00 %')).toBeTruthy()
-    expect(within(row).getByTitle('Противоракетный щит')).toBeTruthy()
+    expect(within(row).getByTitle('Ядерный щит')).toBeTruthy()
   })
 
   it('keeps a destroyed city on the list but hides its numbers', () => {
     render(<CityList cities={[ownCity({ destroyed: true, development: 70 })]} />)
     const row = screen.getByText(/Москва/).closest('tr')!
     expect(row.className).toContain('destroyed')
-    expect(within(row).getByText('· разрушен')).toBeTruthy()
+    expect(within(row).getByText(', разрушен')).toBeTruthy()
     expect(within(row).getAllByText('—')).toHaveLength(2)
     expect(within(row).queryByText('70 %')).toBeNull()
   })

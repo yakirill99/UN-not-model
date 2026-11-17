@@ -30,12 +30,12 @@ describe('MyCountry', () => {
 
   it('counts only ready bombs when nothing is in production', () => {
     render(<MyCountry me={me({ bombs: 2, bombs_pending: 0 })} />)
-    expect(screen.getByText('Бомбы: 2 готовы')).toBeTruthy()
+    expect(screen.getByText('Бомбы 2 готовы')).toBeTruthy()
   })
 
   it('never sums ready bombs with the ones still in production', () => {
     render(<MyCountry me={me({ bombs: 1, bombs_pending: 3 })} />)
-    expect(screen.getByText('Бомбы: 1 готовы, ещё 3 будут готовы в следующем раунде')).toBeTruthy()
+    expect(screen.getByText('Бомбы 1 готовы, ещё 3 будут готовы в следующем раунде')).toBeTruthy()
   })
 
   it('warns that aid is credited only next round', () => {
@@ -45,7 +45,7 @@ describe('MyCountry', () => {
 
   it('names who sanctioned us', () => {
     render(<MyCountry me={me({ sanctioned_by: ['usa', 'france'] })} />)
-    expect(screen.getByText('Санкции против нас: usa, france')).toBeTruthy()
+    expect(screen.getByText('Санкции против нас наложили usa, france')).toBeTruthy()
   })
 
   it('omits aid and sanction lines when there are none', () => {

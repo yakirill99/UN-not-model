@@ -46,5 +46,5 @@ export function foreign(over: Partial<Foreign> = {}): Foreign {
 }
 
 export function observation(over: Partial<Observation> = {}): Observation {
-  return { round: 2, ecology: 72, me: me(), others: [], news: [], ...over }
+  return { round: 2, ecology: 72, me: me(), others: [], news: [], income_forecast: 615, ...over }
 }

@@ -27,6 +27,16 @@ export function country(over: Partial<Country> & { id: string }): Country {
     laugh: 0,
     aid_pending: 0,
     sanctioned_by: [],
+    // v2 fields: the log's Country declares them, so the builder carries the defaults.
+    stability: 60,
+    average_life_prev: null,
+    rating_score: 0,
+    rating: 'C',
+    rating_weight: 3,
+    cities_lost: 0,
+    cities_lost_this_round: 0,
+    powers_lost: 0,
+    in_transition: false,
     ...over,
   }
 }

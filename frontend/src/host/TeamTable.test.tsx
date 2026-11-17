@@ -5,8 +5,20 @@ import { gameInfo, hostStatus } from '../test/host'
 import { teams } from './core'
 import TeamTable from './TeamTable'
 
-const render_ = (status = hostStatus(), onLaugh = vi.fn(), busy = false) => {
-  render(<TeamTable list={teams(gameInfo(), status)} onLaugh={onLaugh} busy={busy} />)
+const render_ = (
+  status = hostStatus(),
+  onLaugh = vi.fn(),
+  busy = false,
+  pickLabel = 'Приз за юмор',
+) => {
+  render(
+    <TeamTable
+      list={teams(gameInfo(), status)}
+      onLaugh={onLaugh}
+      busy={busy}
+      pickLabel={pickLabel}
+    />,
+  )
   return onLaugh
 }
 const rowOf = (name: string) => screen.getByText(new RegExp(name)).closest('tr')!
@@ -43,8 +55,14 @@ describe('TeamTable', () => {
     const onLaugh = render_(hostStatus({ laugh_winner: 'russia' }))
     const row = rowOf('Россия')
     expect(within(row).getByTitle('Приз за юмор')).toBeTruthy()
-    await userEvent.click(within(row).getByRole('button', { name: 'Снять приз' }))
+    await userEvent.click(within(row).getByRole('button', { name: 'Снять' }))
     expect(onLaugh).toHaveBeenCalledWith(null)
+  })
+
+  it('names the host pick after the rules version', () => {
+    // v2: the same pick is the charisma of the round (+stability), not the laugh prize.
+    render_(hostStatus(), vi.fn(), false, 'Харизма раунда')
+    expect(within(rowOf('Россия')).getByRole('button', { name: 'Харизма раунда' })).toBeTruthy()
   })
 
   it('locks the prize buttons while a request is in flight', () => {

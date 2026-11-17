@@ -1,0 +1,76 @@
+# World Arena — rules v2.0 (GAME_RULES_2.md, разделы 4-7 и 13; порядок внедрения 20)
+# Первая версия второй редакции: устойчивость, социальная программа, харизма,
+# климатические пороги, инвестиционный рейтинг, частный капитал, убывающая отдача.
+# Резолюции ООН, колода событий, черты стран, технологии и мегапроект — следующие
+# шаги внедрения (v2.1+); их систем пока нет в движке, поэтому и в пайплайне их нет.
+#
+# The engine refuses unknown keys, so every number here is a real parameter, and
+# a typo cannot silently fall back to a default (ADR 0003).
+
+version: "2.0.0"
+extends: v1.0
+# v2_core switches the v2 behaviour of shared systems (income modifiers) — the
+# new state fields stay inert in v1 games (defaults, never touched).
+modules: [core, v2_core]
+
+# GAME_RULES_2.md, section 15: resolutions (2) are not implemented yet; the rest
+# follows the documented order: budget -> aid -> build -> develop -> strikes ->
+# sanctions -> climate thresholds -> clamp -> life level -> stability -> rating ->
+# income -> private capital -> charisma -> end of round.
+pipeline:
+  - budget
+  - aid
+  - build
+  - develop
+  - strikes
+  - sanctions
+  - climate
+  - clamp
+  - life_level
+  - stability
+  - rating
+  - income
+  - capital
+  - charisma
+  - end_of_round
+
+params:
+  # Уровень жизни: смех больше не входит в формулу (харизма — в устойчивость).
+  life_weights: {development: 50, ecology: 50, laugh: 0}
+  laugh_bonus: 0
+  charisma_bonus: 5
+  budget_priority: [shield, invest, eco_program, nuclear_tech, bomb, aid, social_program]
+
+  # Инвестиция: убывающая отдача — отстающие города выгоднее лидера (13).
+  invest_returns:
+    - {up_to: 100, gain: 15}
+    - {up_to: 150, gain: 10}
+    - {up_to: null, gain: 5}
+
+  # Климатические пороги (7): пороги и последствия.
+  climate: {}
+
+  # Инвестиционный рейтинг (5): модификаторы оценки и уровни A-E.
+  rating: {}
+
+  # Мировой пул частного капитала (5): 1000$ x экология/100, колебания ±10 %.
+  private_pool: {}
+
+  # Политическая устойчивость (4): формула раунда, смена власти, кризис.
+  stability: {}
+
+  # Черты стран (9): числа бонусов и ограничений; сами черты перечислены в
+  # сценариях (scenarios/*.yaml), их ids проверяются при загрузке.
+  traits: {}
+
+actions:
+  # Новое действие v2: поддержка устойчивости, раз за раунд (4).
+  social_program:
+    cost: 150
+    effect: {stability: 10}
+    max_per_round: 1
+    ui: {title: "Социальная программа", emoji: "🏥"}
+
+  nuclear_tech:
+    # +3 к устойчивости при разработке — национальная гордость (4).
+    effect: {ecology: -5, stability: 3}

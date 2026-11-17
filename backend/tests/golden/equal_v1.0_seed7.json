@@ -45,7 +45,20 @@
    "bombs_pending": 0,
    "laugh": 0,
    "aid_pending": 0,
-   "sanctioned_by": []
+   "sanctioned_by": [],
+   "stability": 60,
+   "average_life_prev": null,
+   "rating_score": 0,
+   "rating": "C",
+   "rating_weight": 3,
+   "cities_lost": 1,
+   "cities_lost_this_round": 0,
+   "powers_lost": 0,
+   "in_transition": false,
+   "traits": [
+    "resource_power",
+    "raw_dependency"
+   ]
   },
   {
    "id": "usa",
@@ -90,7 +103,20 @@
    "bombs_pending": 0,
    "laugh": 0,
    "aid_pending": 0,
-   "sanctioned_by": []
+   "sanctioned_by": [],
+   "stability": 60,
+   "average_life_prev": null,
+   "rating_score": 0,
+   "rating": "C",
+   "rating_weight": 3,
+   "cities_lost": 0,
+   "cities_lost_this_round": 0,
+   "powers_lost": 0,
+   "in_transition": false,
+   "traits": [
+    "financial_center",
+    "electoral_cycle"
+   ]
   },
   {
    "id": "france",
@@ -135,7 +161,20 @@
    "bombs_pending": 0,
    "laugh": 0,
    "aid_pending": 0,
-   "sanctioned_by": []
+   "sanctioned_by": [],
+   "stability": 60,
+   "average_life_prev": null,
+   "rating_score": 0,
+   "rating": "C",
+   "rating_weight": 3,
+   "cities_lost": 0,
+   "cities_lost_this_round": 0,
+   "powers_lost": 0,
+   "in_transition": false,
+   "traits": [
+    "diplomatic_tradition",
+    "eco_agenda"
+   ]
   },
   {
    "id": "iran",
@@ -180,7 +219,20 @@
    "bombs_pending": 0,
    "laugh": 20,
    "aid_pending": 0,
-   "sanctioned_by": []
+   "sanctioned_by": [],
+   "stability": 60,
+   "average_life_prev": null,
+   "rating_score": 0,
+   "rating": "C",
+   "rating_weight": 3,
+   "cities_lost": 0,
+   "cities_lost_this_round": 0,
+   "powers_lost": 0,
+   "in_transition": false,
+   "traits": [
+    "sanctions_experience",
+    "capital_limits"
+   ]
   },
   {
    "id": "dprk",
@@ -225,9 +277,22 @@
    "bombs_pending": 0,
    "laugh": 40,
    "aid_pending": 0,
-   "sanctioned_by": []
+   "sanctioned_by": [],
+   "stability": 70,
+   "average_life_prev": null,
+   "rating_score": 0,
+   "rating": "C",
+   "rating_weight": 3,
+   "cities_lost": 0,
+   "cities_lost_this_round": 0,
+   "powers_lost": 0,
+   "in_transition": false,
+   "traits": [
+    "mobilization_economy",
+    "isolation"
+   ]
   }
  ],
  "modules": {},
- "state_schema_version": 1
+ "state_schema_version": 2
 }

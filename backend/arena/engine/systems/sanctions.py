@@ -10,7 +10,7 @@ from __future__ import annotations
 from arena.engine.events import Event, OrderRejected, SanctionApplied
 from arena.engine.orders import OrderBook
 from arena.engine.state import GameState
-from arena.engine.systems.base import BaseSystem, RoundContext, register
+from arena.engine.systems.base import BaseSystem, RoundContext, register, round_half_away
 
 
 @register("sanctions")
@@ -42,10 +42,19 @@ class SanctionsSystem(BaseSystem):
                     continue
                 seen.add(target_id)
                 target = state.country(target_id)
+                # v2 trait (GAME_RULES_2.md 9): «Опыт жизни под санкциями» —
+                # Iran has lived under them for decades, they bite half as hard.
+                effective = delta
+                if self.rules.is_v2() and target.has("sanctions_experience"):
+                    effective = round_half_away(
+                        delta * self.rules.params.traits.sanction_resist_percent, 100
+                    )
                 for city in target.alive_cities:
-                    city.development += delta
+                    city.development += effective
                 target.sanctioned_by.append(actor.id)
                 events.append(
-                    SanctionApplied(round=ctx.round, actor=actor.id, target=target_id, delta=delta)
+                    SanctionApplied(
+                        round=ctx.round, actor=actor.id, target=target_id, delta=effective
+                    )
                 )
         return events

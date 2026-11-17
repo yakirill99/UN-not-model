@@ -24,7 +24,7 @@ from arena.engine.events import Event, dump_events, load_events
 from arena.engine.observe import Observation, observe
 from arena.engine.orders import CountryOrders, HostInput, OrderBook
 from arena.engine.pipeline import resolve_round as engine_resolve
-from arena.engine.state import STATE_SCHEMA_VERSION, GameState
+from arena.engine.state import STATE_SCHEMA_VERSION, GameState, score_of
 from arena.services.errors import Conflict, InvalidInput, NotFound
 from arena.services.games import get_game, load_state, rules_of
 
@@ -70,7 +70,7 @@ async def get_observation(
     state = await load_state(session, game_id)
     _check_country(state, country_id)
     news = await load_round_events(session, game_id, game.current_round - 1)
-    return observe(state, country_id, news)
+    return observe(state, country_id, news, rules=rules_of(game))
 
 
 async def load_round_events(
@@ -251,8 +251,10 @@ async def resolve_round(
         session.add(Round(game_id=game_id, number=game.current_round))
         next_round = game.current_round
     await session.commit()
+    # The same score the GameLog uses: average life in v1, итоговый счёт in v2.
+    major = int(rules.version.split(".")[0])
     standings = sorted(
-        ((c.id, c.average_life_level) for c in new_state.countries), key=lambda x: -x[1]
+        ((c.id, score_of(c, major)) for c in new_state.countries), key=lambda x: -x[1]
     )
     return RoundResult(
         round=rnd.number,
@@ -315,6 +317,6 @@ async def _collect_orders(
             # Bots are re-created every round from the persisted config: they keep no memory
             # between HTTP requests (Avenger's grudges reset each round - accepted for v1.0).
             bot = make_bot(str(p.agent_config.get("bot", "idle")), seed=game.seed * 100 + i)
-            obs = observe(state, p.country_id, news)
+            obs = observe(state, p.country_id, news, rules=rules)
             book[p.country_id] = bot.act(obs, legal_actions(state, p.country_id, rules))
     return OrderBook(orders=book)

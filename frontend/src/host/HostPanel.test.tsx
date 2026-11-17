@@ -140,7 +140,7 @@ describe('HostPanel', () => {
 
   it('sends an empty query to take the prize back', async () => {
     setup({ status: hostStatus({ laugh_winner: 'russia' }) })
-    await userEvent.click(screen.getByRole('button', { name: 'Снять приз' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Снять' }))
     expect(POST).toHaveBeenCalledWith('/api/games/{game_id}/rounds/{number}/laugh', {
       params: { path: { game_id: 'g1', number: 1 }, query: {} },
     })

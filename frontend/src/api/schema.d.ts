@@ -549,6 +549,38 @@ export interface components {
        */
       type: 'budget_spent'
     }
+    /**
+     * CharismaAwarded
+     * @description v2: the host named ``target`` the most vivid team; it gains stability (GAME_RULES_2.md 4).
+     */
+    CharismaAwarded: {
+      /**
+       * Actor
+       * @description Country id that caused the event
+       */
+      actor?: string | null
+      /** Bonus */
+      bonus: number
+      /** Round */
+      round: number
+      /**
+       * Schema Version
+       * @default 1
+       */
+      schema_version: number
+      /** Stability After */
+      stability_after: number
+      /**
+       * Target
+       * @description Country or city id affected
+       */
+      target?: string | null
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'charisma_awarded'
+    }
     /** City */
     City: {
       /**
@@ -633,6 +665,89 @@ export interface components {
        */
       type: 'city_invested'
     }
+    /**
+     * ClimateParams
+     * @description Climate thresholds (GAME_RULES_2.md 7): ecology 60-100 fine, below — trouble.
+     */
+    ClimateParams: {
+      /**
+       * Catastrophe Below
+       * @description Ecology below this is a catastrophe
+       * @default 30
+       */
+      catastrophe_below: number
+      /**
+       * Catastrophe Income
+       * @description Income penalty in percent
+       * @default -20
+       */
+      catastrophe_income: number
+      /**
+       * Catastrophe Stability
+       * @description Stability delta for everyone
+       * @default -10
+       */
+      catastrophe_stability: number
+      /**
+       * Unstable Below
+       * @description Ecology below this is unstable
+       * @default 60
+       */
+      unstable_below: number
+      /**
+       * Unstable City Loss
+       * @description Development lost by one random city
+       * @default 5
+       */
+      unstable_city_loss: number
+    }
+    /**
+     * ClimateThreshold
+     * @description v2: a climate threshold crossed (GAME_RULES_2.md 7).
+     *
+     *     ``level``: unstable (30-59 %), catastrophe (1-29 %) or collapse (0 %). In the
+     *     unstable band ``target`` is the city that lost development; in a catastrophe
+     *     it is the country that lost stability.
+     */
+    ClimateThreshold: {
+      /**
+       * Actor
+       * @description Country id that caused the event
+       */
+      actor?: string | null
+      /**
+       * Development Delta
+       * @default 0
+       */
+      development_delta: number
+      /**
+       * Level
+       * @enum {string}
+       */
+      level: 'unstable' | 'catastrophe' | 'collapse'
+      /** Round */
+      round: number
+      /**
+       * Schema Version
+       * @default 1
+       */
+      schema_version: number
+      /**
+       * Stability Delta
+       * @default 0
+       */
+      stability_delta: number
+      /**
+       * Target
+       * @description Country or city id affected
+       */
+      target?: string | null
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'climate_threshold'
+    }
     /** Country */
     Country: {
       /**
@@ -641,6 +756,11 @@ export interface components {
        * @default 0
        */
       aid_pending: number
+      /**
+       * Average Life Prev
+       * @description Average life of the previous round, for the dynamics term
+       */
+      average_life_prev?: number | null
       /**
        * Bombs
        * @description Bombs ready to use this round
@@ -657,8 +777,26 @@ export interface components {
       budget: number
       /** Cities */
       cities: components['schemas']['City'][]
+      /**
+       * Cities Lost
+       * @description Cities lost in the whole game
+       * @default 0
+       */
+      cities_lost: number
+      /**
+       * Cities Lost This Round
+       * @description Cities lost this round, consumed by the stability system
+       * @default 0
+       */
+      cities_lost_this_round: number
       /** Id */
       id: string
+      /**
+       * In Transition
+       * @description New government: strikes (and votes) are refused this round
+       * @default false
+       */
+      in_transition: boolean
       /**
        * Laugh
        * @description Laugh coefficient, percentage points
@@ -672,8 +810,43 @@ export interface components {
        * @default false
        */
       nuclear_tech: boolean
+      /**
+       * Powers Lost
+       * @description Power changes over the game
+       * @default 0
+       */
+      powers_lost: number
+      /**
+       * Rating
+       * @description Investment rating level, A-E
+       * @default C
+       */
+      rating: string
+      /**
+       * Rating Score
+       * @description Investment rating score (points)
+       * @default 0
+       */
+      rating_score: number
+      /**
+       * Rating Weight
+       * @description Share weight in the private pool
+       * @default 3
+       */
+      rating_weight: number
       /** Sanctioned By */
       sanctioned_by?: string[]
+      /**
+       * Stability
+       * @description Political stability, 0-100
+       * @default 60
+       */
+      stability: number
+      /**
+       * Traits
+       * @description v2 trait ids (GAME_RULES_2.md 9); see TRAIT_IDS
+       */
+      traits?: string[]
     }
     /** CountryOrders */
     CountryOrders: {
@@ -714,6 +887,12 @@ export interface components {
        * @description Own city ids
        */
       shields?: string[]
+      /**
+       * Social Program
+       * @description v2: support the people, once per round (GAME_RULES_2.md 4)
+       * @default false
+       */
+      social_program: boolean
       /**
        * Strikes
        * @description Foreign city ids
@@ -842,6 +1021,12 @@ export interface components {
       laugh: number
       /** Name */
       name: string
+      /** Rating */
+      rating?: string | null
+      /** Rating Score */
+      rating_score?: number | null
+      /** Stability */
+      stability?: number | null
     }
     /** GameInfo */
     GameInfo: {
@@ -914,7 +1099,7 @@ export interface components {
       round: number
       /**
        * State Schema Version
-       * @default 1
+       * @default 2
        */
       state_schema_version: number
     }
@@ -927,7 +1112,7 @@ export interface components {
     HostInput: {
       /**
        * Laugh Winner
-       * @description Country id chosen by the host
+       * @description Country id chosen by the host: the laugh prize in v1, the charisma of the round (+stability) in v2 — one host pick serves both versions
        */
       laugh_winner?: string | null
     }
@@ -970,6 +1155,19 @@ export interface components {
        */
       type: 'income_credited'
     }
+    /**
+     * InvestReturn
+     * @description One tier of diminishing returns on city investment (GAME_RULES_2.md 13).
+     *
+     *     ``gain`` applies while the city's development is strictly below ``up_to``
+     *     (``None`` = the last, open-ended tier). The first matching tier wins.
+     */
+    InvestReturn: {
+      /** Gain */
+      gain: number
+      /** Up To */
+      up_to?: number | null
+    }
     /** JoinRequest */
     JoinRequest: {
       /** Code */
@@ -980,6 +1178,20 @@ export interface components {
       principal: components['schemas']['Principal']
       /** Token */
       token: string
+    }
+    /**
+     * LastRound
+     * @description Overrides for the final round. The playtest's ask #10: «на последнем
+     *     раунде можно было сколько угодно кинуть, чтобы всё могло поменяться в
+     *     последний момент». Off by default — the host decides per rules version.
+     */
+    LastRound: {
+      /**
+       * Unlimited Bombs
+       * @description Lift the per-round bomb cap in the final round
+       * @default false
+       */
+      unlimited_bombs: boolean
     }
     /**
      * LaughAwarded
@@ -1092,6 +1304,12 @@ export interface components {
     Observation: {
       /** Ecology */
       ecology: number
+      /**
+       * Income Forecast
+       * @description Income the current indicators will earn at the end of this round, before anyone acts; foreign strikes and sanctions will move it
+       * @default 0
+       */
+      income_forecast: number
       me: components['schemas']['OwnCountryView']
       /**
        * News
@@ -1112,6 +1330,12 @@ export interface components {
         | components['schemas']['CityDestroyed']
         | components['schemas']['SanctionApplied']
         | components['schemas']['LaughAwarded']
+        | components['schemas']['CharismaAwarded']
+        | components['schemas']['StabilityChanged']
+        | components['schemas']['PowerChanged']
+        | components['schemas']['RatingUpdated']
+        | components['schemas']['ClimateThreshold']
+        | components['schemas']['PrivateInvestmentsCredited']
         | components['schemas']['RoundEnded']
       )[]
       /** Others */
@@ -1200,8 +1424,14 @@ export interface components {
       name: string
       /** Nuclear Tech */
       nuclear_tech: boolean
+      /** Rating */
+      rating?: string | null
+      /** Rating Score */
+      rating_score?: number | null
       /** Sanctioned By */
       sanctioned_by: string[]
+      /** Stability */
+      stability?: number | null
     }
     /** Params */
     Params: {
@@ -1210,16 +1440,39 @@ export interface components {
        * @description Action ids in the order the budget is spent
        */
       budget_priority: string[]
+      /**
+       * Charisma Bonus
+       * @description Stability points of the charisma winner
+       * @default 5
+       */
+      charisma_bonus: number
+      climate?: components['schemas']['ClimateParams']
       ecology: components['schemas']['Range']
       income: components['schemas']['IncomeCoefficients']
+      /**
+       * Invest Returns
+       * @description Diminishing returns tiers; None = flat effect of the action
+       */
+      invest_returns?: components['schemas']['InvestReturn'][] | null
+      last_round?: components['schemas']['LastRound']
       /**
        * Laugh Bonus
        * @description Percentage points added to the laugh winner
        */
       laugh_bonus: number
       life_weights: components['schemas']['LifeWeights']
+      private_pool?: components['schemas']['PrivatePoolParams']
+      rating?: components['schemas']['RatingParams']
       /** Rounds */
       rounds: number
+      stability?: components['schemas']['StabilityParams']
+      /**
+       * Tech From Round
+       * @description The round nuclear technology opens (the host's option at game start)
+       * @default 1
+       */
+      tech_from_round: number
+      traits?: components['schemas']['TraitsParams']
     }
     /** PlayerInfo */
     PlayerInfo: {
@@ -1233,6 +1486,41 @@ export interface components {
       kind: string
       /** Name */
       name: string
+    }
+    /**
+     * PowerChanged
+     * @description v2: stability hit 0 — the government falls (GAME_RULES_2.md 4, «Смена власти»).
+     *
+     *     The team does not leave the game: the budget halves, strikes are refused the
+     *     next round and stability restarts from ``stability_reset``.
+     */
+    PowerChanged: {
+      /**
+       * Actor
+       * @description Country id that caused the event
+       */
+      actor?: string | null
+      /** Budget After */
+      budget_after: number
+      /** Round */
+      round: number
+      /**
+       * Schema Version
+       * @default 1
+       */
+      schema_version: number
+      /** Stability Reset */
+      stability_reset: number
+      /**
+       * Target
+       * @description Country or city id affected
+       */
+      target?: string | null
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'power_changed'
     }
     /**
      * Principal
@@ -1252,12 +1540,139 @@ export interface components {
        */
       role: 'host' | 'player'
     }
+    /**
+     * PrivateInvestmentsCredited
+     * @description v2: the country's share of the world pool of private capital (GAME_RULES_2.md 5).
+     *
+     *     Private like ``IncomeCredited``: only the recipient sees the amount.
+     */
+    PrivateInvestmentsCredited: {
+      /**
+       * Actor
+       * @description Country id that caused the event
+       */
+      actor?: string | null
+      /** Amount */
+      amount: number
+      /** Budget After */
+      budget_after: number
+      /** Pool */
+      pool: number
+      /** Round */
+      round: number
+      /**
+       * Schema Version
+       * @default 1
+       */
+      schema_version: number
+      /**
+       * Target
+       * @description Country or city id affected
+       */
+      target?: string | null
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'private_investments_credited'
+    }
+    /**
+     * PrivatePoolParams
+     * @description The world pool of private capital (GAME_RULES_2.md 5): base x ecology/100.
+     */
+    PrivatePoolParams: {
+      /**
+       * Base
+       * @default 1000
+       */
+      base: number
+      /**
+       * Jitter Percent
+       * @description Market noise, +/- this percent
+       * @default 10
+       */
+      jitter_percent: number
+    }
     /** Range */
     Range: {
       /** Max */
       max: number
       /** Min */
       min: number
+    }
+    /**
+     * RatingLevel
+     * @description A rating band: score >= min gives ``level`` with pool ``weight``.
+     */
+    RatingLevel: {
+      /** Level */
+      level: string
+      /** Min */
+      min: number
+      /** Weight */
+      weight: number
+    }
+    /**
+     * RatingParams
+     * @description Investment rating (GAME_RULES_2.md 5): score = 0.5 x stability + 0.5 x life + modifiers.
+     */
+    RatingParams: {
+      /**
+       * Bomb
+       * @default -5
+       */
+      bomb: number
+      /**
+       * Eco Program
+       * @default 5
+       */
+      eco_program: number
+      /** Levels */
+      levels?: components['schemas']['RatingLevel'][]
+      /**
+       * Nuclear Tech
+       * @default -10
+       */
+      nuclear_tech: number
+      /**
+       * Sanction
+       * @default -10
+       */
+      sanction: number
+    }
+    /**
+     * RatingUpdated
+     * @description v2: the investment rating recomputed (GAME_RULES_2.md 5) — public news.
+     */
+    RatingUpdated: {
+      /**
+       * Actor
+       * @description Country id that caused the event
+       */
+      actor?: string | null
+      /** Level */
+      level: string
+      /** Round */
+      round: number
+      /**
+       * Schema Version
+       * @default 1
+       */
+      schema_version: number
+      /** Score */
+      score: number
+      /**
+       * Target
+       * @description Country or city id affected
+       */
+      target?: string | null
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'rating_updated'
+      /** Weight */
+      weight: number
     }
     /**
      * RoundEnded
@@ -1313,6 +1728,12 @@ export interface components {
         | components['schemas']['CityDestroyed']
         | components['schemas']['SanctionApplied']
         | components['schemas']['LaughAwarded']
+        | components['schemas']['CharismaAwarded']
+        | components['schemas']['StabilityChanged']
+        | components['schemas']['PowerChanged']
+        | components['schemas']['RatingUpdated']
+        | components['schemas']['ClimateThreshold']
+        | components['schemas']['PrivateInvestmentsCredited']
         | components['schemas']['RoundEnded']
       )[]
       orders: components['schemas']['OrderBook']
@@ -1419,6 +1840,134 @@ export interface components {
        */
       type: 'shield_built'
     }
+    /**
+     * StabilityChanged
+     * @description v2: the round's stability update with its breakdown (GAME_RULES_2.md 4, 17).
+     *
+     *     Every term is public: the расшифровка is what lets a team understand «почему
+     *     упала устойчивость» without doing any math itself.
+     */
+    StabilityChanged: {
+      /**
+       * Actions
+       * @default 0
+       */
+      actions: number
+      /**
+       * Actor
+       * @description Country id that caused the event
+       */
+      actor?: string | null
+      /**
+       * Dynamics
+       * @default 0
+       */
+      dynamics: number
+      /**
+       * Level Effect
+       * @default 0
+       */
+      level_effect: number
+      /** Round */
+      round: number
+      /**
+       * Schema Version
+       * @default 1
+       */
+      schema_version: number
+      /**
+       * Shocks
+       * @default 0
+       */
+      shocks: number
+      /**
+       * Target
+       * @description Country or city id affected
+       */
+      target?: string | null
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'stability_changed'
+      /** Value After */
+      value_after: number
+      /** Value Before */
+      value_before: number
+    }
+    /**
+     * StabilityLevel
+     * @description Income modifier for a stability band: stability >= min -> ``income_percent``.
+     */
+    StabilityLevel: {
+      /** Income Percent */
+      income_percent: number
+      /** Min */
+      min: number
+    }
+    /**
+     * StabilityParams
+     * @description Political stability (GAME_RULES_2.md 4): the numbers of the round formula.
+     */
+    StabilityParams: {
+      /**
+       * City Loss
+       * @default -15
+       */
+      city_loss: number
+      /**
+       * Crisis Below
+       * @description Stability below this: strikes are refused
+       * @default 20
+       */
+      crisis_below: number
+      /**
+       * Dynamics Percent
+       * @description Percent of the life-level change the people react to
+       * @default 50
+       */
+      dynamics_percent: number
+      /**
+       * First City Loss
+       * @default -5
+       */
+      first_city_loss: number
+      /**
+       * Good Bonus
+       * @default 2
+       */
+      good_bonus: number
+      /**
+       * Good Life
+       * @description Average life (percent) from which stability grows
+       * @default 50
+       */
+      good_life: number
+      /** Income Levels */
+      income_levels?: components['schemas']['StabilityLevel'][]
+      /**
+       * Poor Life
+       * @description Average life (percent) below which stability sinks
+       * @default 30
+       */
+      poor_life: number
+      /**
+       * Poor Penalty
+       * @default -3
+       */
+      poor_penalty: number
+      /**
+       * Sanction Penalty
+       * @default -3
+       */
+      sanction_penalty: number
+      /**
+       * Transition Stability
+       * @description Stability after a power change (the reset value)
+       * @default 40
+       */
+      transition_stability: number
+    }
     /** TechDeveloped */
     TechDeveloped: {
       /**
@@ -1445,6 +1994,56 @@ export interface components {
        * @enum {string}
        */
       type: 'tech_developed'
+    }
+    /**
+     * TraitsParams
+     * @description The numbers of the country traits (GAME_RULES_2.md 9). The trait IDS live
+     *     in state.py (TRAIT_IDS) and ride on the scenario's countries; a trait only
+     *     has an effect in games whose rules carry the ``v2_core`` module.
+     */
+    TraitsParams: {
+      /**
+       * Capital Cap
+       * @description capital_limits: the best rating available
+       * @default B
+       */
+      capital_cap: string
+      /**
+       * Eco Agenda Penalty
+       * @description eco_agenda: stability lost per round in the unstable band
+       * @default -5
+       */
+      eco_agenda_penalty: number
+      /**
+       * Electoral Dynamics Percent
+       * @description electoral_cycle: dynamics factor, percent of the life change
+       * @default 75
+       */
+      electoral_dynamics_percent: number
+      /**
+       * Floor Level
+       * @description isolation: the only rating available
+       * @default E
+       */
+      floor_level: string
+      /**
+       * Mobilization Bomb Cost
+       * @description mobilization_economy: the price of one bomb
+       * @default 100
+       */
+      mobilization_bomb_cost: number
+      /**
+       * Resource Income
+       * @description resource_power: flat income bonus
+       * @default 100
+       */
+      resource_income: number
+      /**
+       * Sanction Resist Percent
+       * @description sanctions_experience: percent of the sanction effect left
+       * @default 50
+       */
+      sanction_resist_percent: number
     }
     /** UiSpec */
     UiSpec: {
@@ -1683,6 +2282,12 @@ export interface operations {
             | components['schemas']['CityDestroyed']
             | components['schemas']['SanctionApplied']
             | components['schemas']['LaughAwarded']
+            | components['schemas']['CharismaAwarded']
+            | components['schemas']['StabilityChanged']
+            | components['schemas']['PowerChanged']
+            | components['schemas']['RatingUpdated']
+            | components['schemas']['ClimateThreshold']
+            | components['schemas']['PrivateInvestmentsCredited']
             | components['schemas']['RoundEnded']
           )[]
         }

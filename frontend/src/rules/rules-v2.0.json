@@ -1,0 +1,248 @@
+{
+  "version": "2.0.0",
+  "rounds": 6,
+  "ecology": {
+    "min": 0,
+    "max": 100
+  },
+  "life_weights": {
+    "development": 50,
+    "ecology": 50,
+    "laugh": 0
+  },
+  "income": {
+    "k_development": 100,
+    "k_ecology": 150
+  },
+  "laugh_bonus": 0,
+  "budget_priority": [
+    "shield",
+    "invest",
+    "eco_program",
+    "nuclear_tech",
+    "bomb",
+    "aid",
+    "social_program"
+  ],
+  "last_round": {
+    "unlimited_bombs": false
+  },
+  "pipeline": [
+    "budget",
+    "aid",
+    "build",
+    "develop",
+    "strikes",
+    "sanctions",
+    "climate",
+    "clamp",
+    "life_level",
+    "stability",
+    "rating",
+    "income",
+    "capital",
+    "charisma",
+    "end_of_round"
+  ],
+  "tech_from_round": 1,
+  "actions": {
+    "invest": {
+      "id": "invest",
+      "title": "Инвестировать в развитие города",
+      "emoji": "🌆",
+      "cost": 150,
+      "effect": {
+        "development": 15
+      },
+      "target": "own_city",
+      "once_per_game": false
+    },
+    "eco_program": {
+      "id": "eco_program",
+      "title": "Запустить экологическую программу",
+      "emoji": "♻️",
+      "cost": 200,
+      "effect": {
+        "ecology": 30
+      },
+      "once_per_game": false
+    },
+    "nuclear_tech": {
+      "id": "nuclear_tech",
+      "title": "Разработать ядерную технологию",
+      "emoji": "☢️",
+      "cost": 500,
+      "effect": {
+        "ecology": -5,
+        "stability": 3
+      },
+      "once_per_game": true
+    },
+    "bomb": {
+      "id": "bomb",
+      "title": "Произвести ядерные бомбы",
+      "emoji": "💣",
+      "cost": 150,
+      "effect": {
+        "ecology": -5
+      },
+      "max_per_round": 3,
+      "requires": "nuclear_tech",
+      "once_per_game": false,
+      "usable": "next_round"
+    },
+    "strike": {
+      "id": "strike",
+      "title": "Нанести ядерный удар",
+      "emoji": "🚀",
+      "cost": 0,
+      "effect": {
+        "ecology": -5
+      },
+      "max_per_round": 3,
+      "max_per_target_city_per_round": 1,
+      "requires": "bomb",
+      "once_per_game": false
+    },
+    "shield": {
+      "id": "shield",
+      "title": "Построить ядерный щит",
+      "emoji": "🛡️",
+      "cost": 300,
+      "effect": {},
+      "target": "own_city",
+      "once_per_game": false,
+      "active": "same_round"
+    },
+    "sanction": {
+      "id": "sanction",
+      "title": "Наложить экономические санкции",
+      "emoji": "❌",
+      "cost": 0,
+      "effect": {
+        "development_all_cities": -5
+      },
+      "once_per_game": false,
+      "duration_rounds": 1
+    },
+    "aid": {
+      "id": "aid",
+      "title": "Материальная помощь",
+      "emoji": "💸",
+      "cost": 0,
+      "effect": {},
+      "min_amount": 1,
+      "once_per_game": false,
+      "available": "next_round"
+    },
+    "social_program": {
+      "id": "social_program",
+      "title": "Социальная программа",
+      "emoji": "🏥",
+      "cost": 150,
+      "effect": {
+        "stability": 10
+      },
+      "max_per_round": 1,
+      "once_per_game": false
+    }
+  },
+  "stability": {
+    "dynamics_percent": 50,
+    "good_life": 50,
+    "good_bonus": 2,
+    "poor_life": 30,
+    "poor_penalty": -3,
+    "sanction_penalty": -3,
+    "first_city_loss": -5,
+    "city_loss": -15,
+    "crisis_below": 20,
+    "transition_stability": 40,
+    "income_levels": [
+      {
+        "min": 70,
+        "income_percent": 10
+      },
+      {
+        "min": 40,
+        "income_percent": 0
+      },
+      {
+        "min": 20,
+        "income_percent": -15
+      },
+      {
+        "min": 1,
+        "income_percent": -30
+      }
+    ]
+  },
+  "rating": {
+    "sanction": -10,
+    "nuclear_tech": -10,
+    "bomb": -5,
+    "eco_program": 5,
+    "levels": [
+      {
+        "min": 75,
+        "level": "A",
+        "weight": 5
+      },
+      {
+        "min": 60,
+        "level": "B",
+        "weight": 4
+      },
+      {
+        "min": 45,
+        "level": "C",
+        "weight": 3
+      },
+      {
+        "min": 30,
+        "level": "D",
+        "weight": 2
+      },
+      {
+        "min": 0,
+        "level": "E",
+        "weight": 1
+      }
+    ]
+  },
+  "private_pool": {
+    "base": 1000,
+    "jitter_percent": 10
+  },
+  "climate": {
+    "unstable_below": 60,
+    "catastrophe_below": 30,
+    "unstable_city_loss": 5,
+    "catastrophe_stability": -10,
+    "catastrophe_income": -20
+  },
+  "traits": {
+    "resource_income": 100,
+    "electoral_dynamics_percent": 75,
+    "eco_agenda_penalty": -5,
+    "sanction_resist_percent": 50,
+    "mobilization_bomb_cost": 100,
+    "capital_cap": "B",
+    "floor_level": "E"
+  },
+  "invest_returns": [
+    {
+      "up_to": 100,
+      "gain": 15
+    },
+    {
+      "up_to": 150,
+      "gain": 10
+    },
+    {
+      "up_to": null,
+      "gain": 5
+    }
+  ],
+  "charisma_bonus": 5
+}

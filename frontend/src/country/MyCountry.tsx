@@ -19,6 +19,20 @@ export default function MyCountry({ me }: { me: Me }) {
         <span className="muted">Средний уровень жизни</span>
         <strong>{lifeLevel(me.average_life_level)}</strong>
       </div>
+      {me.stability != null && (
+        <div className="row">
+          <span className="muted">Устойчивость</span>
+          <strong>{me.stability}</strong>
+        </div>
+      )}
+      {me.rating != null && (
+        <div className="row">
+          <span className="muted">Инвестиционный рейтинг</span>
+          <strong>
+            {me.rating} {me.rating_score}
+          </strong>
+        </div>
+      )}
       {me.laugh > 0 && (
         <div className="row">
           <span className="muted">Коэффициент смеха</span>
@@ -30,7 +44,7 @@ export default function MyCountry({ me }: { me: Me }) {
 
       <ul className="facts">
         <li>
-          Ядерная технология:{' '}
+          Ядерная технология
           {me.nuclear_tech ? <span className="ok">есть</span> : <span className="muted">нет</span>}
         </li>
         <li>{bombsLine(me)}</li>
@@ -38,7 +52,7 @@ export default function MyCountry({ me }: { me: Me }) {
           <li className="muted">{`Помощь ${money(me.aid_pending)} зачислится в начале следующего раунда`}</li>
         )}
         {me.sanctioned_by.length > 0 && (
-          <li className="bad">{`Санкции против нас: ${me.sanctioned_by.join(', ')}`}</li>
+          <li className="bad">{`Санкции против нас наложили ${me.sanctioned_by.join(', ')}`}</li>
         )}
       </ul>
     </section>
@@ -47,7 +61,7 @@ export default function MyCountry({ me }: { me: Me }) {
 
 /** Ready bombs and the ones still in production are different resources — never sum them. */
 function bombsLine(me: Me): string {
-  const ready = `Бомбы: ${me.bombs} готовы`
+  const ready = `Бомбы ${me.bombs} готовы`
   return me.bombs_pending > 0
     ? `${ready}, ещё ${me.bombs_pending} будут готовы в следующем раунде`
     : ready

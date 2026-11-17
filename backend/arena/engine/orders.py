@@ -23,6 +23,9 @@ class CountryOrders(ArenaModel):
     shields: list[str] = Field(default_factory=list, description="Own city ids")
     sanctions: list[str] = Field(default_factory=list, description="Country ids")
     aid: dict[str, int] = Field(default_factory=dict, description="Country id -> amount")
+    social_program: bool = Field(
+        default=False, description="v2: support the people, once per round (GAME_RULES_2.md 4)"
+    )
 
     @model_validator(mode="after")
     def _positive_aid(self) -> CountryOrders:
@@ -42,11 +45,16 @@ class CountryOrders(ArenaModel):
             or self.shields
             or self.sanctions
             or self.aid
+            or self.social_program
         )
 
 
 class HostInput(ArenaModel):
-    laugh_winner: str | None = Field(default=None, description="Country id chosen by the host")
+    laugh_winner: str | None = Field(
+        default=None,
+        description="Country id chosen by the host: the laugh prize in v1, the charisma "
+        "of the round (+stability) in v2 — one host pick serves both versions",
+    )
 
 
 class OrderBook(ArenaModel):

@@ -4,6 +4,7 @@ title: "Соревновательный старт (равные условия
 ecology: 100
 countries:
   - id: russia
+    traits: [resource_power, raw_dependency]  # Ресурсная держава / Сырьевая зависимость (события — след. этап)
     name: Россия
     budget: 1000
     cities:
@@ -12,6 +13,7 @@ countries:
       - {id: ekaterinburg, name: Екатеринбург, development: 60}
       - {id: rostov, name: Ростов-на-Дону, development: 60}
   - id: usa
+    traits: [financial_center, electoral_cycle]  # Финансовый центр / Избирательный цикл
     name: США
     budget: 1000
     cities:
@@ -20,6 +22,7 @@ countries:
       - {id: los_angeles, name: Лос-Анджелес, development: 60}
       - {id: chicago, name: Чикаго, development: 60}
   - id: france
+    traits: [diplomatic_tradition, eco_agenda]  # Дипломатическая традиция (резолюции — след. этап) / Экологическая повестка
     name: Франция
     budget: 1000
     cities:
@@ -28,6 +31,7 @@ countries:
       - {id: nice, name: Ницца, development: 60}
       - {id: toulouse, name: Тулуза, development: 60}
   - id: iran
+    traits: [sanctions_experience, capital_limits]  # Опыт жизни под санкциями / Ограниченный доступ к капиталу
     name: Иран
     budget: 1000
     cities:
@@ -36,6 +40,8 @@ countries:
       - {id: isfahan, name: Исфахан, development: 60}
       - {id: yazd, name: Йезд, development: 60}
   - id: dprk
+    traits: [mobilization_economy, isolation]  # Мобилизационная экономика / Изоляция
+    stability: 70  # старт с устойчивостью 70 (GAME_RULES_2.md 9)
     name: КНДР
     budget: 1000
     cities:

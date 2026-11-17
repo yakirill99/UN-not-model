@@ -17,6 +17,7 @@ export type Draft = {
   shields: string[]
   sanctions: string[]
   aid: Record<string, number>
+  social_program: boolean
 }
 
 export function emptyDraft(): Draft {
@@ -29,6 +30,7 @@ export function emptyDraft(): Draft {
     shields: [],
     sanctions: [],
     aid: {},
+    social_program: false,
   }
 }
 
@@ -41,7 +43,8 @@ export function isEmpty(draft: Draft): boolean {
     draft.strikes.length === 0 &&
     draft.shields.length === 0 &&
     draft.sanctions.length === 0 &&
-    Object.keys(draft.aid).length === 0
+    Object.keys(draft.aid).length === 0 &&
+    !draft.social_program
   )
 }
 
@@ -76,15 +79,24 @@ export function pruneDraft(draft: Draft, space: ActionSpace): Draft {
       )
     : {}
 
+  // A count may also become too high: the cap depends on the round (last-round bombs),
+  // and the space can change while the draft is open. Keep it inside max_count.
+  const capped = (v: number, id: string): number => {
+    if (!live(id)) return 0
+    const max = space.actions[id].max_count
+    return max == null ? v : Math.min(v, max)
+  }
+
   const next: Draft = {
     invest: legal('invest', draft.invest),
-    eco_programs: live('eco_program') ? draft.eco_programs : 0,
+    eco_programs: capped(draft.eco_programs, 'eco_program'),
     nuclear_tech: live('nuclear_tech') && draft.nuclear_tech,
-    bombs: live('bomb') ? draft.bombs : 0,
+    bombs: capped(draft.bombs, 'bomb'),
     strikes: legal('strike', draft.strikes),
     shields: legal('shield', draft.shields),
     sanctions: legal('sanction', draft.sanctions),
     aid,
+    social_program: live('social_program') && draft.social_program,
   }
 
   return same(draft, next) ? draft : next
@@ -102,7 +114,8 @@ function same(a: Draft, b: Draft): boolean {
     list(a.shields, b.shields) &&
     list(a.sanctions, b.sanctions) &&
     keys.length === Object.keys(b.aid).length &&
-    keys.every((k) => a.aid[k] === b.aid[k])
+    keys.every((k) => a.aid[k] === b.aid[k]) &&
+    a.social_program === b.social_program
   )
 }
 
@@ -110,11 +123,21 @@ export function costOf(space: ActionSpace, id: string): number {
   return space.actions[id]?.cost ?? 0
 }
 
+/**
+ * One click of the aid stepper moves this much money — it IS the aid, not a
+ * fee. The header and the hint below the targets read the same number, so
+ * «по 50 $ за шаг» never disagrees with what the + button actually adds.
+ */
+export function aidStep(option: ActionOption): number {
+  return Math.max(50, option.min_amount ?? 1)
+}
+
 /** Same sum the backend checks against the budget: strikes and sanctions are free. */
 export function totalCost(draft: Draft, space: ActionSpace): number {
   return (
     draft.invest.length * costOf(space, 'invest') +
     draft.eco_programs * costOf(space, 'eco_program') +
+    (draft.social_program ? costOf(space, 'social_program') : 0) +
     (draft.nuclear_tech ? costOf(space, 'nuclear_tech') : 0) +
     draft.bombs * costOf(space, 'bomb') +
     draft.shields.length * costOf(space, 'shield') +
@@ -129,6 +152,8 @@ export function usedCount(draft: Draft, id: string): number {
       return draft.invest.length
     case 'eco_program':
       return draft.eco_programs
+    case 'social_program':
+      return draft.social_program ? 1 : 0
     case 'nuclear_tech':
       return draft.nuclear_tech ? 1 : 0
     case 'bomb':
@@ -152,8 +177,17 @@ export function countLeft(option: ActionOption, used: number): number | null {
 /** Reasons the engine returns, in the player's language (unknown codes pass through). */
 export const REASONS: Record<string, string> = {
   already_owned: 'уже есть',
+  tech_not_yet: 'ядерная технология откроется позже — задано при старте партии',
   requires_nuclear_tech: 'нужна ядерная технология',
   no_bombs: 'нет готовых бомб',
+  no_government: 'новое правительство ещё не признано',
+  army_refuses: 'кризис: армия отказывается выполнять приказ',
+  own_city: 'цель — свой город',
+  unknown_city: 'неизвестный город',
+  city_destroyed: 'город уже разрушен',
+  self_target: 'нельзя против себя',
+  unknown_country: 'неизвестная страна',
+  duplicate: 'повтор в приказе',
   insufficient_budget: 'не хватает бюджета',
   no_targets: 'нет доступных целей',
   unsupported_by_engine: 'пока не поддерживается движком',

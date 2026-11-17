@@ -17,7 +17,7 @@ from arena.engine.events import (
     load_events,
 )
 from arena.engine.orders import CountryOrders, OrderBook
-from arena.engine.state import City, Country, GameState
+from arena.engine.state import STATE_SCHEMA_VERSION, City, Country, GameState
 
 
 def _state() -> GameState:
@@ -47,7 +47,7 @@ def _state() -> GameState:
 def test_state_round_trip() -> None:
     s = _state()
     assert GameState.model_validate_json(s.model_dump_json()) == s
-    assert s.state_schema_version == 1
+    assert s.state_schema_version == STATE_SCHEMA_VERSION
 
 
 def test_state_rejects_unknown_field() -> None:

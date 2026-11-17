@@ -1,9 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import { event, playedLog } from '../test/log'
 import { names } from './core'
-import { feed, filterKinds, KINDS, type Kind } from './feed'
+import { feed, filterKinds, KINDS } from './feed'
 
-const NAMES = { russia: 'Россия', usa: 'США', 'usa-1': 'Вашингтон', 'russia-1': 'Москва' }
+const NAMES = {
+  russia: 'Россия',
+  usa: 'США',
+  'usa-1': 'Вашингтон',
+  'russia-1': 'Москва',
+  'russia-2': 'Петербург',
+}
 const line = (e: ReturnType<typeof event>) => feed([e], NAMES)[0]
 
 describe('feed', () => {
@@ -61,7 +67,7 @@ describe('feed · what the room may learn', () => {
     const e = line(
       event({ type: 'nuclear_strike', actor: 'russia', target: 'usa-1', outcome: 'destroyed' }),
     )
-    expect(e.text).toBe('Ядерный удар по Вашингтон: город разрушен')
+    expect(e.text).toBe('Ядерный удар по Вашингтон, город разрушен')
     expect(e.text).not.toContain('Россия')
   })
 
@@ -85,7 +91,7 @@ describe('feed · what the room may learn', () => {
   // Sanctions are public by the rules — the victim is told who imposed them.
   it('names the country that imposed sanctions, because the rules make it public', () => {
     const e = line(event({ type: 'sanction_applied', actor: 'usa', target: 'russia', delta: 5 }))
-    expect(e.text).toBe('США ввела санкции против Россия: развитие −5')
+    expect(e.text).toBe('США ввела санкции против Россия, развитие −5')
   })
 
   it('names both sides of an aid transfer', () => {
@@ -99,7 +105,7 @@ describe('feed · wording', () => {
   it.each([
     [
       { type: 'city_invested', target: 'russia-1', development_before: 60, development_after: 75 },
-      'Москва: развитие 60 % → 75 %',
+      'Москва развитие 60 % → 75 %',
     ],
     [
       { type: 'tech_developed', actor: 'russia', tech: 'nuclear' },
@@ -107,12 +113,12 @@ describe('feed · wording', () => {
     ],
     [
       { type: 'bombs_produced', actor: 'russia', count: 2, bombs_pending_after: 2 },
-      'Россия произвела бомб: 2',
+      'Россия произвела бомб 2',
     ],
     [{ type: 'shield_built', target: 'russia-1' }, 'Москва под ядерным щитом'],
     [
       { type: 'laugh_awarded', target: 'russia', bonus: 20, laugh_after: 20 },
-      'Приз за юмор: Россия',
+      'Приз за юмор у Россия',
     ],
   ])('describes %o', (payload, expected) => {
     expect(line(event(payload as never)).text).toBe(expected)
@@ -122,12 +128,12 @@ describe('feed · wording', () => {
     const down = line(
       event({ type: 'ecology_changed', cause: 'bomb_production', delta: -15, ecology_after: 85 }),
     )
-    expect(down).toMatchObject({ icon: '☁️', text: 'Экология -15 → 85 %' })
+    expect(down).toMatchObject({ icon: 'cloud', text: 'Экология -15 → 85 %' })
 
     const up = line(
       event({ type: 'ecology_changed', cause: 'eco_program', delta: 30, ecology_after: 100 }),
     )
-    expect(up).toMatchObject({ icon: '♻️', text: 'Экология +30 → 100 %' })
+    expect(up).toMatchObject({ icon: 'eco_program', text: 'Экология +30 → 100 %' })
   })
 
   it('falls back to the raw id when a name is unknown', () => {
@@ -140,6 +146,77 @@ describe('feed · wording', () => {
     expect(line(event({ type: 'tech_developed', actor: null, tech: 'nuclear' })).text).toBe(
       '— освоила ядерную технологию',
     )
+  })
+})
+
+describe('feed · merged stories', () => {
+  it('folds a bot investing three times into one line about growth', () => {
+    const entries = feed(
+      [
+        event({
+          type: 'city_invested',
+          target: 'russia-1',
+          development_before: 60,
+          development_after: 70,
+        }),
+        event({
+          type: 'city_invested',
+          target: 'usa-1',
+          development_before: 40,
+          development_after: 55,
+        }),
+        event({
+          type: 'city_invested',
+          target: 'russia-1',
+          development_before: 70,
+          development_after: 85,
+        }),
+      ],
+      NAMES,
+    )
+    expect(entries).toHaveLength(1)
+    expect(entries[0].text).toBe('Развитие городов (3), Москва 60 % → 85 %, Вашингтон 40 % → 55 %')
+  })
+
+  it('sums repeated aid and bombs, counts off shields over several cities', () => {
+    const entries = feed(
+      [
+        event({ type: 'aid_transferred', actor: 'usa', target: 'russia', amount: 200 }),
+        event({ type: 'aid_transferred', actor: 'usa', target: 'russia', amount: 300 }),
+        event({ type: 'bombs_produced', actor: 'usa', count: 2, bombs_pending_after: 3 }),
+        event({ type: 'bombs_produced', actor: 'usa', count: 1, bombs_pending_after: 4 }),
+        event({ type: 'shield_built', target: 'russia-1' }),
+        event({ type: 'shield_built', target: 'russia-2' }),
+      ],
+      NAMES,
+    )
+    const texts = entries.map((e) => e.text)
+    expect(texts).toContain('США передала 500 $ стране Россия (×2)')
+    expect(texts).toContain('США произвела бомб 3 (×2)')
+    expect(texts).toContain('Под ядерным щитом Москва, Петербург (2 города)')
+  })
+
+  it('counts off a repeated strike on the same target', () => {
+    const entries = feed(
+      [
+        event({ type: 'nuclear_strike', target: 'usa-1', outcome: 'absorbed' }),
+        event({ type: 'nuclear_strike', target: 'usa-1', outcome: 'absorbed' }),
+      ],
+      NAMES,
+    )
+    expect(entries).toHaveLength(1)
+    expect(entries[0].text).toBe('Ядерный удар по Вашингтон, щит поглотил удар (×2)')
+  })
+
+  it('keeps strikes on different cities as separate headlines', () => {
+    const entries = feed(
+      [
+        event({ type: 'nuclear_strike', target: 'usa-1', outcome: 'destroyed' }),
+        event({ type: 'nuclear_strike', target: 'usa-2', outcome: 'destroyed' }),
+      ],
+      NAMES,
+    )
+    expect(entries).toHaveLength(2)
   })
 })
 
@@ -159,7 +236,7 @@ describe('filterKinds', () => {
   )
 
   it('keeps everything when nothing is selected', () => {
-    expect(filterKinds(entries, new Set())).toHaveLength(3)
+    expect(filterKinds(entries, null)).toHaveLength(3)
   })
 
   it.each([
@@ -167,12 +244,8 @@ describe('filterKinds', () => {
     ['war', 1],
     ['deal', 1],
     ['eco', 0],
-  ] as const)('keeps only %s', (kind, expected) => {
-    expect(filterKinds(entries, new Set<Kind>([kind]))).toHaveLength(expected)
-  })
-
-  it('combines several kinds', () => {
-    expect(filterKinds(entries, new Set<Kind>(['build', 'war']))).toHaveLength(2)
+  ] as const)('shows only the selected kind %s', (kind, expected) => {
+    expect(filterKinds(entries, kind)).toHaveLength(expected)
   })
 })
 

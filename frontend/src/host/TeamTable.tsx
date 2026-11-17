@@ -1,17 +1,23 @@
 import type { Team } from './core'
+import { Icon } from '../ui/Icon'
 
 /**
  * The host's table: a code to read out loud, whether the team joined, whether its
  * orders are in. Codes of bots are intentionally absent — nobody logs in as a bot.
+ *
+ * The host pick is one action for both rules versions: «Приз за юмор» in v1,
+ * «Харизма раунда» (+stability) in v2 — the label follows the game's rules.
  */
 export default function TeamTable({
   list,
   onLaugh,
   busy,
+  pickLabel,
 }: {
   list: Team[]
   onLaugh: (countryId: string | null) => void
   busy: boolean
+  pickLabel: string
 }) {
   return (
     <table className="codes">
@@ -20,7 +26,12 @@ export default function TeamTable({
           <tr key={team.id}>
             <td>
               {team.name}
-              {team.laughWinner && <span title="Приз за юмор"> 😄</span>}
+              {team.laughWinner && (
+                <span title={pickLabel}>
+                  {' '}
+                  <Icon name="laugh" size={16} />
+                </span>
+              )}
             </td>
             <td>
               {team.isBot ? (
@@ -38,7 +49,7 @@ export default function TeamTable({
                   disabled={busy}
                   onClick={() => onLaugh(team.laughWinner ? null : team.id)}
                 >
-                  {team.laughWinner ? 'Снять приз' : 'Приз за юмор'}
+                  {team.laughWinner ? 'Снять' : pickLabel}
                 </button>
               )}
             </td>

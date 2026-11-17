@@ -60,6 +60,17 @@ class BaseSystem:
 SYSTEMS: dict[str, type[System]] = {}
 
 
+def round_half_away(num: int, den: int) -> int:
+    """Round ``num / den`` half away from zero — the rules' own convention.
+
+    GAME_RULES_2.md 18: «0,5 x (50 - 55) = -2,5 → -3», so +2,5 goes to 3 as well.
+    Integer arithmetic only: no float drift in a deterministic engine.
+    """
+    q, r = divmod(abs(num), den)
+    out = q + (1 if 2 * r >= den else 0)
+    return -out if num < 0 else out
+
+
 def register(name: str) -> Callable[[type[System]], type[System]]:
     """Add a system class to the registry under ``name`` (the id used in ``pipeline:``)."""
 

@@ -19,17 +19,22 @@ describe('nameOf', () => {
 
 describe('ActionHeader', () => {
   it('shows the price of an available action', () => {
-    render(<ActionHeader option={option({ id: 'invest', cost: 150 })} />)
+    render(<ActionHeader option={option({ id: 'invest', cost: 150 })} id="invest" />)
     expect(screen.getByText('150 $')).toBeTruthy()
   })
 
   it('calls a free action free', () => {
-    render(<ActionHeader option={option({ id: 'strike', cost: 0 })} />)
+    render(<ActionHeader option={option({ id: 'strike', cost: 0 })} id="strike" />)
     expect(screen.getByText('бесплатно')).toBeTruthy()
   })
 
   it('explains why a blocked action is blocked', () => {
-    render(<ActionHeader option={option({ id: 'bomb', available: false, reason: 'no_bombs' })} />)
+    render(
+      <ActionHeader
+        option={option({ id: 'bomb', available: false, reason: 'no_bombs' })}
+        id="bomb"
+      />,
+    )
     expect(screen.getByText('нет готовых бомб')).toBeTruthy()
   })
 })
@@ -179,53 +184,119 @@ describe('TargetToggles', () => {
 describe('AidFields', () => {
   const aid = option({ id: 'aid', targets: ['usa'], min_amount: 1 })
 
-  it('records an amount per recipient', async () => {
+  it('adds a step of 50 per click and formats it as money', async () => {
     const onChange = vi.fn()
-    render(<AidFields option={aid} names={names} aid={{}} onChange={onChange} />)
-    await userEvent.type(screen.getByLabelText('США'), '5')
-    expect(onChange).toHaveBeenCalledWith({ usa: 5 })
+    render(<AidFields option={aid} names={names} aid={{}} onChange={onChange} budgetLeft={1000} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Добавить помощь США' }))
+    expect(onChange).toHaveBeenCalledWith({ usa: 50 })
+    expect(screen.getByLabelText('Сумма помощи США').textContent).toBe('0 $')
   })
 
-  it('drops the recipient when the field is cleared', async () => {
+  it('drops the recipient once the amount is back to zero', async () => {
     const onChange = vi.fn()
-    render(<AidFields option={aid} names={names} aid={{ usa: 5 }} onChange={onChange} />)
-    await userEvent.clear(screen.getByLabelText('США'))
+    render(
+      <AidFields
+        option={aid}
+        names={names}
+        aid={{ usa: 50 }}
+        onChange={onChange}
+        budgetLeft={950}
+      />,
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Убрать помощь США' }))
     expect(onChange).toHaveBeenCalledWith({})
   })
 
-  it('treats zero as no aid rather than a zero transfer', async () => {
+  it('never offers more than the budget still has', async () => {
     const onChange = vi.fn()
-    render(<AidFields option={aid} names={names} aid={{}} onChange={onChange} />)
-    await userEvent.type(screen.getByLabelText('США'), '0')
-    expect(onChange).toHaveBeenLastCalledWith({})
+    const { rerender } = render(
+      <AidFields option={aid} names={names} aid={{}} onChange={onChange} budgetLeft={80} />,
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Добавить помощь США' }))
+    expect(onChange).toHaveBeenLastCalledWith({ usa: 50 })
+
+    // The parent stores the draft and hands it back: the rerender is the flow
+    // OrdersForm runs through, and it shrinks what the budget can still give.
+    rerender(
+      <AidFields
+        option={aid}
+        names={names}
+        aid={{ usa: 50 }}
+        onChange={onChange}
+        budgetLeft={30}
+      />,
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Добавить помощь США' }))
+    // 50 + 50 would overshoot the 30 $ left, so the click lands exactly on 80.
+    expect(onChange).toHaveBeenLastCalledWith({ usa: 80 })
+
+    rerender(
+      <AidFields option={aid} names={names} aid={{ usa: 80 }} onChange={onChange} budgetLeft={0} />,
+    )
+    expect(screen.getByRole('button', { name: 'Добавить помощь США' })).toHaveProperty(
+      'disabled',
+      true,
+    )
   })
 
-  it('offers the minimum the rules require', () => {
+  it('steps by the minimum the rules require', async () => {
+    const onChange = vi.fn()
     render(
       <AidFields
-        option={option({ id: 'aid', targets: ['usa'], min_amount: 10 })}
+        option={option({ id: 'aid', targets: ['usa'], min_amount: 100 })}
+        names={names}
+        aid={{}}
+        onChange={onChange}
+        budgetLeft={1000}
+      />,
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Добавить помощь США' }))
+    expect(onChange).toHaveBeenCalledWith({ usa: 100 })
+  })
+
+  it('cannot send a cent once the budget is gone', () => {
+    render(<AidFields option={aid} names={names} aid={{}} onChange={vi.fn()} budgetLeft={0} />)
+    expect(screen.getByRole('button', { name: 'Добавить помощь США' })).toHaveProperty(
+      'disabled',
+      true,
+    )
+    expect(screen.getByRole('button', { name: 'Убрать помощь США' })).toHaveProperty(
+      'disabled',
+      true,
+    )
+  })
+
+  it('locks both buttons while the form is busy', () => {
+    render(
+      <AidFields
+        option={aid}
         names={names}
         aid={{}}
         onChange={vi.fn()}
+        budgetLeft={100}
+        disabled
       />,
     )
-    expect(screen.getByLabelText('США').getAttribute('min')).toBe('10')
+    expect(screen.getByRole('button', { name: 'Добавить помощь США' })).toHaveProperty(
+      'disabled',
+      true,
+    )
+    expect(screen.getByRole('button', { name: 'Убрать помощь США' })).toHaveProperty(
+      'disabled',
+      true,
+    )
   })
 
-  it('falls back to a minimum of 1 when the rules omit it', () => {
-    render(
+  it('renders nothing when the engine offers no targets', () => {
+    const { container } = render(
       <AidFields
-        option={option({ id: 'aid', targets: ['usa'] })}
+        option={option({ id: 'aid', targets: null })}
         names={names}
         aid={{}}
         onChange={vi.fn()}
+        budgetLeft={100}
       />,
     )
-    expect(screen.getByLabelText('США').getAttribute('min')).toBe('1')
-  })
-
-  it('locks while busy', () => {
-    render(<AidFields option={aid} names={names} aid={{}} onChange={vi.fn()} disabled />)
-    expect(screen.getByLabelText('США')).toHaveProperty('disabled', true)
+    expect(container.querySelectorAll('button')).toHaveLength(0)
   })
 })

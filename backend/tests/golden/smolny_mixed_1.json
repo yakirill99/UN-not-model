@@ -9,24 +9,24 @@
   },
   "winner": "iran",
   "final_life": {
-   "iran": 6930,
-   "usa": 4785,
-   "russia": 3588,
-   "france": 2805,
-   "dprk": 1773
+   "iran": 7383,
+   "usa": 6022,
+   "russia": 3877,
+   "france": 2475,
+   "dprk": 2351
   },
-  "final_ecology": 60,
+  "final_ecology": 85,
   "cities_destroyed": 8,
-  "strikes": 13
+  "strikes": 12
  },
  "final_state": {
   "round": 7,
-  "ecology": 60,
+  "ecology": 85,
   "countries": [
    {
     "id": "russia",
     "name": "Россия",
-    "budget": 2430,
+    "budget": 3426,
     "cities": [
      {
       "id": "moscow",
@@ -39,10 +39,10 @@
      {
       "id": "spb",
       "name": "Санкт-Петербург",
-      "development": 110,
-      "shield": true,
+      "development": 95,
+      "shield": false,
       "destroyed": false,
-      "life_level": 5610
+      "life_level": 5940
      },
      {
       "id": "ekaterinburg",
@@ -50,7 +50,7 @@
       "development": 205,
       "shield": false,
       "destroyed": false,
-      "life_level": 8745
+      "life_level": 9570
      },
      {
       "id": "rostov",
@@ -62,48 +62,61 @@
      }
     ],
     "nuclear_tech": true,
-    "bombs": 2,
+    "bombs": 0,
     "bombs_pending": 0,
     "laugh": 0,
     "aid_pending": 0,
-    "sanctioned_by": []
+    "sanctioned_by": [],
+    "stability": 60,
+    "average_life_prev": null,
+    "rating_score": 0,
+    "rating": "C",
+    "rating_weight": 3,
+    "cities_lost": 2,
+    "cities_lost_this_round": 0,
+    "powers_lost": 0,
+    "in_transition": false,
+    "traits": [
+     "resource_power",
+     "raw_dependency"
+    ]
    },
    {
     "id": "usa",
     "name": "США",
-    "budget": 839,
+    "budget": 1027,
     "cities": [
      {
       "id": "washington",
       "name": "Вашингтон",
-      "development": 65,
-      "shield": false,
+      "development": 100,
+      "shield": true,
       "destroyed": false,
-      "life_level": 4125
+      "life_level": 6105
      },
      {
       "id": "new_york",
       "name": "Нью-Йорк",
-      "development": 105,
+      "development": 110,
+      "shield": true,
+      "destroyed": false,
+      "life_level": 6435
+     },
+     {
+      "id": "los_angeles",
+      "name": "Лос-Анджелес",
+      "development": 80,
       "shield": true,
       "destroyed": false,
       "life_level": 5445
      },
      {
-      "id": "los_angeles",
-      "name": "Лос-Анджелес",
-      "development": 75,
-      "shield": true,
-      "destroyed": false,
-      "life_level": 4455
-     },
-     {
       "id": "chicago",
       "name": "Чикаго",
-      "development": 95,
+      "development": 100,
       "shield": true,
       "destroyed": false,
-      "life_level": 5115
+      "life_level": 6105
      }
     ],
     "nuclear_tech": true,
@@ -111,20 +124,33 @@
     "bombs_pending": 0,
     "laugh": 0,
     "aid_pending": 0,
-    "sanctioned_by": []
+    "sanctioned_by": [],
+    "stability": 60,
+    "average_life_prev": null,
+    "rating_score": 0,
+    "rating": "C",
+    "rating_weight": 3,
+    "cities_lost": 0,
+    "cities_lost_this_round": 0,
+    "powers_lost": 0,
+    "in_transition": false,
+    "traits": [
+     "financial_center",
+     "electoral_cycle"
+    ]
    },
    {
     "id": "france",
     "name": "Франция",
-    "budget": 472,
+    "budget": 412,
     "cities": [
      {
       "id": "paris",
       "name": "Париж",
-      "development": 280,
+      "development": 215,
       "shield": true,
       "destroyed": false,
-      "life_level": 11220
+      "life_level": 9900
      },
      {
       "id": "marseille",
@@ -151,41 +177,54 @@
       "life_level": 0
      }
     ],
-    "nuclear_tech": false,
-    "bombs": 0,
+    "nuclear_tech": true,
+    "bombs": 2,
     "bombs_pending": 0,
     "laugh": 0,
     "aid_pending": 0,
-    "sanctioned_by": []
+    "sanctioned_by": [],
+    "stability": 60,
+    "average_life_prev": null,
+    "rating_score": 0,
+    "rating": "C",
+    "rating_weight": 3,
+    "cities_lost": 3,
+    "cities_lost_this_round": 0,
+    "powers_lost": 0,
+    "in_transition": false,
+    "traits": [
+     "diplomatic_tradition",
+     "eco_agenda"
+    ]
    },
    {
     "id": "iran",
     "name": "Иран",
-    "budget": 984,
+    "budget": 1127,
     "cities": [
      {
       "id": "tehran",
       "name": "Тегеран",
-      "development": 115,
-      "shield": false,
+      "development": 160,
+      "shield": true,
       "destroyed": false,
-      "life_level": 5775
+      "life_level": 8085
      },
      {
       "id": "shiraz",
       "name": "Шираз",
       "development": 120,
-      "shield": false,
+      "shield": true,
       "destroyed": false,
-      "life_level": 5940
+      "life_level": 6765
      },
      {
       "id": "isfahan",
       "name": "Исфахан",
-      "development": 220,
+      "development": 130,
       "shield": true,
       "destroyed": false,
-      "life_level": 9240
+      "life_level": 7095
      },
      {
       "id": "yazd",
@@ -193,7 +232,7 @@
       "development": 145,
       "shield": false,
       "destroyed": false,
-      "life_level": 6765
+      "life_level": 7590
      }
     ],
     "nuclear_tech": false,
@@ -201,12 +240,25 @@
     "bombs_pending": 0,
     "laugh": 0,
     "aid_pending": 0,
-    "sanctioned_by": []
+    "sanctioned_by": [],
+    "stability": 60,
+    "average_life_prev": null,
+    "rating_score": 0,
+    "rating": "C",
+    "rating_weight": 3,
+    "cities_lost": 0,
+    "cities_lost_this_round": 0,
+    "powers_lost": 0,
+    "in_transition": false,
+    "traits": [
+     "sanctions_experience",
+     "capital_limits"
+    ]
    },
    {
     "id": "dprk",
     "name": "КНДР",
-    "budget": 394,
+    "budget": 426,
     "cities": [
      {
       "id": "pyongyang",
@@ -227,10 +279,10 @@
      {
       "id": "nampo",
       "name": "Нампхо",
-      "development": 155,
+      "development": 200,
       "shield": false,
       "destroyed": false,
-      "life_level": 7095
+      "life_level": 9405
      },
      {
       "id": "kaesong",
@@ -246,10 +298,23 @@
     "bombs_pending": 0,
     "laugh": 0,
     "aid_pending": 0,
-    "sanctioned_by": []
+    "sanctioned_by": [],
+    "stability": 70,
+    "average_life_prev": null,
+    "rating_score": 0,
+    "rating": "C",
+    "rating_weight": 3,
+    "cities_lost": 3,
+    "cities_lost_this_round": 0,
+    "powers_lost": 0,
+    "in_transition": false,
+    "traits": [
+     "mobilization_economy",
+     "isolation"
+    ]
    }
   ],
   "modules": {},
-  "state_schema_version": 1
+  "state_schema_version": 2
  }
 }

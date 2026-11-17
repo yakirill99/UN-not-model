@@ -1,5 +1,6 @@
 import type { Schemas } from '../api/client'
 import { lifeLevel, percent } from './format'
+import { Icon } from '../ui/Icon'
 
 type OwnCity = Schemas['OwnCityView']
 
@@ -25,11 +26,19 @@ export default function CityList({ cities }: { cities: OwnCity[] }) {
           <tr key={city.id} className={city.destroyed ? 'destroyed' : undefined}>
             <td>
               {city.name}
-              {city.destroyed && <span className="bad"> · разрушен</span>}
+              {city.destroyed && <span className="bad">, разрушен</span>}
             </td>
             <td>{city.destroyed ? '—' : percent(city.development)}</td>
             <td>{city.destroyed ? '—' : lifeLevel(city.life_level)}</td>
-            <td>{city.shield ? <span title="Противоракетный щит">🛡</span> : ''}</td>
+            <td>
+              {city.shield ? (
+                <span title="Ядерный щит">
+                  <Icon name="shield" size={16} />
+                </span>
+              ) : (
+                ''
+              )}
+            </td>
           </tr>
         ))}
       </tbody>

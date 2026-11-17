@@ -16,8 +16,11 @@ export default function NewGamePage() {
   const { join } = useSession()
   const navigate = useNavigate()
   const [title, setTitle] = useState('')
+  const [rules, setRules] = useState<'v1.0' | 'v2.0'>('v1.0')
   const [scenario, setScenario] = useState<'smolny' | 'equal'>('smolny')
   const [seed, setSeed] = useState(1)
+  // The host's call at game start: nuclear technology opens with round 1, 2 or 3.
+  const [techFrom, setTechFrom] = useState(1)
   const [bots, setBots] = useState<Record<string, string>>(DEFAULT_BOTS)
   const [created, setCreated] = useState<GameInfo | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -29,12 +32,13 @@ export default function NewGamePage() {
     setError(null)
     const { data, error: err } = await api.POST('/api/games', {
       body: {
-        rules: 'v1.0',
+        rules,
         title,
         scenario,
         seed,
         mode: 'live',
         bots: COUNTRIES.filter((c) => bots[c]).map((c) => ({ country_id: c, bot: bots[c] })),
+        overrides: { params: { tech_from_round: techFrom } },
       },
     })
     setBusy(false)
@@ -91,6 +95,21 @@ export default function NewGamePage() {
           />
         </label>
         <label>
+          Правила
+          <select value={rules} onChange={(e) => setRules(e.target.value as 'v1.0' | 'v2.0')}>
+            <option value="v1.0">Правила 1.0 — базовые</option>
+            <option value="v2.0">Правила 2.0 — устойчивость, рейтинг, климат</option>
+          </select>
+        </label>
+        {rules === 'v2.0' && (
+          <p className="muted">
+            Вторая редакция: политическая устойчивость и смена власти, социальная программа,
+            инвестиционный рейтинг и частный капитал, климатические пороги, харизма вместо
+            коэффициента смеха, убывающая отдача инвестиций. Резолюции ООН и события — в следующих
+            обновлениях.
+          </p>
+        )}
+        <label>
           Сценарий
           <select
             value={scenario}
@@ -98,6 +117,14 @@ export default function NewGamePage() {
           >
             <option value="smolny">Смольный (как в 2026 году)</option>
             <option value="equal">Равные условия</option>
+          </select>
+        </label>
+        <label>
+          Изучать ядерную технологию с раунда
+          <select value={techFrom} onChange={(e) => setTechFrom(Number(e.target.value))}>
+            <option value={1}>с 1 раунда</option>
+            <option value={2}>со 2 раунда</option>
+            <option value={3}>с 3 раунда</option>
           </select>
         </label>
         <label>

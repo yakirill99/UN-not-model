@@ -66,11 +66,23 @@ def legal_actions(state: GameState, country_id: str, rules: RuleSet) -> ActionSp
                 o.max_per_target = spec.max_per_city_per_round
             case "eco_program":
                 pass
+            case "social_program":
+                o.max_count = spec.max_per_round
             case "nuclear_tech":
                 if me.nuclear_tech:
                     o.available, o.reason = False, "already_owned"
+                elif state.round < rules.params.tech_from_round:
+                    # Host's call at game start («галка при старте»): the tech
+                    # opens with round 1, 2 or 3 — early nuclear racing is off.
+                    o.available, o.reason = False, "tech_not_yet"
             case "bomb":
                 o.max_count = spec.max_per_round
+                # Feedback #10: the host may lift the cap in the final round —
+                # «чтобы всё могло поменяться в последний момент».
+                if rules.params.last_round.unlimited_bombs and state.round == rules.params.rounds:
+                    o.max_count = None
+                # v2 trait (GAME_RULES_2.md 9): mobilization economy — cheaper bombs.
+                o.cost = rules.cost("bomb", me)
                 if not me.nuclear_tech:
                     o.available, o.reason = False, "requires_nuclear_tech"
             case "strike":
@@ -79,6 +91,12 @@ def legal_actions(state: GameState, country_id: str, rules: RuleSet) -> ActionSp
                 o.max_count = _min(spec.max_per_round, me.bombs)
                 if me.bombs == 0:
                     o.available, o.reason = False, "no_bombs"
+                # v2 (GAME_RULES_2.md 4): no recognised government in the transition
+                # round; in a crisis the army refuses to follow the order.
+                if me.in_transition:
+                    o.available, o.reason = False, "no_government"
+                elif me.stability < rules.params.stability.crisis_below:
+                    o.available, o.reason = False, "army_refuses"
             case "shield":
                 o.targets = [c.id for c in me.alive_cities if not c.shield]
                 o.max_per_target = 1
@@ -123,6 +141,13 @@ def validate(orders: CountryOrders, space: ActionSpace) -> list[OrderError]:
     check_available("invest", bool(orders.invest))
     check_targets("invest", orders.invest)
     check_available("eco_program", orders.eco_programs > 0)
+    social = a.get("social_program")  # v2 only: absent from the v1 rules file
+    if social is not None:
+        check_available("social_program", orders.social_program)
+    elif orders.social_program:
+        # A crafted order for an action the rules do not define: reject it with a
+        # reason instead of letting the engine drop it at resolution time.
+        errors.append(OrderError(action="social_program", reason="unsupported_by_engine"))
     check_available("nuclear_tech", orders.nuclear_tech)
     check_available("bomb", orders.bombs > 0)
     if a["bomb"].max_count is not None and orders.bombs > a["bomb"].max_count:
@@ -143,6 +168,7 @@ def validate(orders: CountryOrders, space: ActionSpace) -> list[OrderError]:
     total = (
         len(orders.invest) * a["invest"].cost
         + orders.eco_programs * a["eco_program"].cost
+        + (social.cost if social is not None and orders.social_program else 0)
         + (a["nuclear_tech"].cost if orders.nuclear_tech else 0)
         + orders.bombs * a["bomb"].cost
         + len(orders.shields) * a["shield"].cost

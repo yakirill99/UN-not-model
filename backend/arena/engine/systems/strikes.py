@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from arena.engine.events import CityDestroyed, EcologyChanged, Event, NuclearStrike, OrderRejected
 from arena.engine.orders import OrderBook
-from arena.engine.state import City, GameState
+from arena.engine.state import City, Country, GameState
 from arena.engine.systems.base import BaseSystem, RoundContext, register
 
 
@@ -34,7 +34,7 @@ class StrikesSystem(BaseSystem):
             per_city: dict[str, int] = {}
             launched = 0
             for city_id in ctx.approved[attacker.id].strikes:
-                reason = self._check(state, attacker.id, own, city_id, launched, per_city)
+                reason = self._check(state, attacker, own, city_id, launched, per_city)
                 if reason is None and attacker.bombs <= 0:
                     reason = "no_bombs"
                 if reason is not None:
@@ -62,6 +62,8 @@ class StrikesSystem(BaseSystem):
                 events.append(
                     CityDestroyed(round=ctx.round, actor=owner.id, target=city_id, cause="nuclear")
                 )
+                owner.cities_lost += 1
+                owner.cities_lost_this_round += 1
             if eco:
                 state.ecology += eco
                 events.append(
@@ -78,7 +80,7 @@ class StrikesSystem(BaseSystem):
     def _check(
         self,
         state: GameState,
-        attacker_id: str,
+        attacker: Country,
         own: set[str],
         city_id: str,
         launched: int,
@@ -94,6 +96,13 @@ class StrikesSystem(BaseSystem):
             return "unknown_city"
         if city.destroyed:  # cities are not mutated until all strikes are validated
             return "city_destroyed"
+        # v2 (GAME_RULES_2.md 4): a fallen government is not recognised yet, and a
+        # country in crisis cannot rely on the army. Inert in v1: stability starts
+        # at 60 and no country is in transition.
+        if attacker.in_transition:
+            return "no_government"
+        if attacker.stability < self.rules.params.stability.crisis_below:
+            return "army_refuses"
         if spec.max_per_round is not None and launched >= spec.max_per_round:
             return "limit_exceeded"
         per_city[city_id] = per_city.get(city_id, 0) + 1

@@ -6,7 +6,8 @@
  * (see feed.ts): the host knows who struck, the screen must not say it.
  */
 import { useMemo, useState } from 'react'
-import { DeedsChart, EcologyChart, Legend, LifeChart } from './Charts'
+import { Icon } from '../ui/Icon'
+import { DeedsChart, EcologyChart, LifeChart, StandingsLegend } from './Charts'
 import {
   deeds,
   ecologyLine,
@@ -21,21 +22,15 @@ import { feed, filterKinds, KINDS, type Kind } from './feed'
 
 export default function Dashboard({ log }: { log: GameLog }) {
   const [round, setRound] = useState<number | null>(null)
-  const [kinds, setKinds] = useState<Set<Kind>>(new Set())
+  // Both filters are switches, not stacks («режим переключения между фильтрами,
+  // а не наложение»): one round and one kind selected at a time, null = all.
+  const [kind, setKind] = useState<Kind | null>(null)
 
   const played = rounds(log)
   const label = names(log)
   const events = useMemo(() => eventsOfRound(log, round), [log, round])
-  const entries = useMemo(() => filterKinds(feed(events, label), kinds), [events, label, kinds])
+  const entries = useMemo(() => filterKinds(feed(events, label), kind), [events, label, kind])
   const slices = useMemo(() => deeds(events), [events])
-
-  function toggle(kind: Kind) {
-    setKinds((prev) => {
-      const next = new Set(prev)
-      if (!next.delete(kind)) next.add(kind)
-      return next
-    })
-  }
 
   if (played.length === 0) {
     return (
@@ -52,7 +47,7 @@ export default function Dashboard({ log }: { log: GameLog }) {
       <section className="card stack">
         <h3>Уровень жизни стран</h3>
         <LifeChart series={lifeLines(log)} />
-        <Legend series={standings(log)} />
+        <StandingsLegend series={standings(log)} />
       </section>
 
       <section className="card stack">
@@ -91,13 +86,22 @@ export default function Dashboard({ log }: { log: GameLog }) {
           ))}
         </div>
 
-        <div className="chips">
+        <div className="chips" role="group" aria-label="Фильтр по типу событий">
+          <button
+            type="button"
+            className={kind == null ? 'chip on' : 'chip'}
+            aria-pressed={kind == null}
+            onClick={() => setKind(null)}
+          >
+            Все
+          </button>
           {KINDS.map((k) => (
             <button
               key={k.id}
               type="button"
-              className={kinds.has(k.id) ? 'chip on' : 'chip'}
-              onClick={() => toggle(k.id)}
+              className={kind === k.id ? 'chip on' : 'chip'}
+              aria-pressed={kind === k.id}
+              onClick={() => setKind(k.id)}
             >
               {k.label}
             </button>
@@ -107,12 +111,14 @@ export default function Dashboard({ log }: { log: GameLog }) {
         {slices.length > 0 && <DeedsChart slices={slices} />}
 
         {entries.length === 0 ? (
-          <p className="muted">Под эти фильтры ничего не попало.</p>
+          <p className="muted">Под этот фильтр ничего не попало.</p>
         ) : (
           <ul className="feed">
             {entries.map((e) => (
               <li key={e.key}>
-                <span className="feed-icon">{e.icon}</span>
+                <span className="feed-icon" aria-hidden="true">
+                  <Icon name={e.icon} size={18} />
+                </span>
                 <span className="feed-round">{e.round}</span>
                 {e.text}
               </li>

@@ -25,7 +25,7 @@ describe('Dashboard', () => {
     show()
     expect(screen.getByRole('heading', { name: 'Уровень жизни стран' })).toBeTruthy()
     expect(screen.getByRole('img', { name: 'Уровень жизни стран' })).toBeTruthy()
-    const legend = screen.getAllByRole('list')[0]
+    const legend = screen.getByRole('list', { name: 'Итоги раунда' })
     expect(within(legend).getAllByRole('listitem')[0].textContent).toBe('Россия60.0 %')
   })
 

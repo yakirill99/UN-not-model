@@ -199,7 +199,9 @@ describe('describeGroup · merged wording', () => {
       ev('ecology_changed', { cause: 'eco_program', delta: 10, ecology_after: 80 }),
       ev('ecology_changed', { cause: 'eco_program', delta: 5, ecology_after: 85 }),
     ])
-    expect(describeGroup(group, NAMES)).toBe('Экология +15 → 85 % (eco_program, 2 события)')
+    expect(describeGroup(group, NAMES)).toBe(
+      'Экология +15 → 85 % (экологическая программа, 2 события)',
+    )
   })
 
   it('lists the cities under shields', () => {

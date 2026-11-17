@@ -1,9 +1,13 @@
 /**
  * The territory of our state as a true honeycomb: a grid of identical cells,
  * packed edge to edge — «чтобы они друг с другом соприкасались». A city claims
- * a contiguous blob of cells; the number of cells follows the city's weight —
- * «размер складывался из объёма уровня жизни и развития». A destroyed city
- * keeps one small red cell instead of vanishing.
+ * one contiguous wedge of the honeycomb; the number of cells follows the
+ * city's weight — «размер складывался из объёма уровня жизни и развития». The
+ * biggest city grows from the centre, the others claim the adjacent cells —
+ * and because claims are consecutive runs of one angular sweep, the blobs
+ * never interleave («ромбы наслоены друг на друга» was the verdict on the
+ * previous packer, whose blobs mixed into one field). A destroyed city keeps
+ * one small red cell instead of vanishing.
  *
  * Pure geometry — no dependencies, deterministic output: same weights, same
  * picture, on every machine and every reload.
@@ -18,7 +22,7 @@ export type Hex = { cx: number; cy: number; r: number }
  */
 export type Cell = Hex & { edges: [number, number, number, number][] }
 
-/** One city's territory: its cells plus the centroid the label sits on. */
+/** One city's territory: its cells plus the centre the label sits on. */
 export type Cluster = { cells: Cell[]; cx: number; cy: number }
 
 const SQRT3 = Math.sqrt(3)
@@ -40,15 +44,15 @@ function cellCentre(q: number, row: number): { x: number; y: number } {
   return { x: 1.5 * q, y: SQRT3 * (row + q / 2) }
 }
 
-/** The six axial neighbours of a cell. */
-const NEIGHBOURS: [number, number][] = [
-  [1, 0],
-  [1, -1],
-  [0, -1],
-  [-1, 0],
-  [-1, 1],
-  [0, 1],
-]
+/** Cube-distance from the origin: the ring a cell sits on. */
+function ringOf(q: number, row: number): number {
+  return Math.max(Math.abs(q), Math.abs(row), Math.abs(q + row))
+}
+
+/** Cells within complete rings 0..R: 1 + 3R(R+1). */
+function cellsWithin(rings: number): number {
+  return 1 + 3 * rings * (rings + 1)
+}
 
 /** Cells per city, proportional to weight: a destroyed (zero) city gets one. */
 function cellsPerCity(weights: number[], total: number): number[] {
@@ -73,13 +77,14 @@ function cellsPerCity(weights: number[], total: number): number[] {
 
 /**
  * Lay the weights out as a honeycomb of identical cells inside the box.
- * Returns one cluster per value, in the same order. The biggest weight grows
- * from the centre; every next cell joins its own city's frontier, so each
- * cluster is contiguous and the clusters touch edge to edge.
+ * Returns one cluster per value, in the same order.
  *
- * The cell count follows the city count (`perCity` cells per city, by
- * default): few cities — a bold honeycomb, many — fine grain. `maxCells`
- * caps the DOM size on absurd scenarios.
+ * The honeycomb is grown ring by ring from the centre; the cells are read in
+ * one angular sweep (ring by ring, each ring from angle −π to +π) and dealt
+ * out as consecutive runs to the cities in weight order. The biggest city gets
+ * the first run — the centre — and every next city claims the adjacent cells:
+ * every cluster is contiguous, the clusters never interleave and sit edge to
+ * edge, «рядом друг с другом».
  */
 export function hexClusters(
   weights: number[],
@@ -88,70 +93,43 @@ export function hexClusters(
 ): Cluster[] {
   if (weights.length === 0) return []
 
-  const perCity = opts.perCity ?? 14
+  const perCity = opts.perCity ?? 6
   const maxCells = opts.maxCells ?? 400
-  const total = Math.max(weights.length, Math.min(maxCells, weights.length * perCity))
+  const desired = Math.max(weights.length, Math.min(maxCells, weights.length * perCity))
+  // Whole rings only: a truncated outer ring would read as a bitten-off edge.
+  // The smallest full-ring honeycomb that fits the desired grain.
+  let rings = 0
+  while (cellsWithin(rings) < desired) rings++
+  const total = cellsWithin(rings)
 
   const ks = cellsPerCity(weights, total)
 
-  // Greedy flood: cities in weight order, each cell from the city's own
-  // frontier, closest to the centre first — a compact connected blob per city.
+  // The sweep: every cell of the honeycomb, ring by ring, each ring sorted by
+  // the angle of its centre. Consecutive cells of the sweep always touch, so a
+  // run of them is a contiguous blob and two runs are neighbouring territories.
+  const sweep: { q: number; row: number }[] = []
+  for (let ring = 0; ring <= rings; ring++) {
+    const cells: { q: number; row: number; angle: number }[] = []
+    for (let q = -ring; q <= ring; q++) {
+      for (let row = -ring; row <= ring; row++) {
+        if (ringOf(q, row) !== ring) continue
+        const { x, y } = cellCentre(q, row)
+        cells.push({ q, row, angle: Math.atan2(y, x) })
+      }
+    }
+    cells.sort((a, b) => a.angle - b.angle || a.q - b.q)
+    sweep.push(...cells.map((c) => ({ q: c.q, row: c.row })))
+  }
+
+  // Deal the cells out: cities in weight order take consecutive runs.
   const owner = new Map<string, number>()
-  const frontier = weights.map(() => new Map<string, [number, number]>())
-  const key = (q: number, row: number) => `${q},${row}`
-
-  const addFrontier = (city: number, q: number, row: number) => {
-    for (const [dq, dr] of NEIGHBOURS) {
-      const nq = q + dq
-      const nr = row + dr
-      const k = key(nq, nr)
-      if (!owner.has(k) && !frontier[city].has(k)) frontier[city].set(k, [nq, nr])
-    }
-  }
-
-  const takeCell = (city: number): [number, number] => {
-    let best: [number, number] | null = null
-    let bestDist = Number.POSITIVE_INFINITY
-    let bestAngle = 0
-    for (const qr of frontier[city].values()) {
-      const { x, y } = cellCentre(qr[0], qr[1])
-      const dist = Math.hypot(x, y)
-      const angle = Math.atan2(y, x)
-      if (dist < bestDist - 1e-9 || (Math.abs(dist - bestDist) <= 1e-9 && angle < bestAngle)) {
-        best = qr
-        bestDist = dist
-        bestAngle = angle
-      }
-    }
-    if (best) return best
-    // Frontier empty (a city the others fully surround — only for tiny maps):
-    // take the free cell closest to the centre, wherever it is.
-    let free: [number, number] | null = null
-    let freeDist = Number.POSITIVE_INFINITY
-    for (let ring = 0; ring < 64 && free == null; ring++) {
-      for (let q = -ring; q <= ring && free == null; q++) {
-        for (let row = -ring; row <= ring && free == null; row++) {
-          if (Math.max(Math.abs(q), Math.abs(row), Math.abs(q + row)) !== ring) continue
-          if (owner.has(key(q, row))) continue
-          const d = Math.hypot(cellCentre(q, row).x, cellCentre(q, row).y)
-          if (d < freeDist) {
-            free = [q, row]
-            freeDist = d
-          }
-        }
-      }
-    }
-    return free ?? [0, 0]
-  }
-
-  const order = weights.map((w, i) => ({ w, i })).sort((a, b) => b.w - a.w || a.i - b.i)
   const cells: { cx: number; cy: number; q: number; row: number }[][] = weights.map(() => [])
+  let cursor = 0
+  const order = weights.map((w, i) => ({ w, i })).sort((a, b) => b.w - a.w || a.i - b.i)
   for (const { i } of order) {
     for (let n = 0; n < ks[i]; n++) {
-      const [q, row] = takeCell(i)
-      owner.set(key(q, row), i)
-      frontier[i].delete(key(q, row))
-      addFrontier(i, q, row)
+      const { q, row } = sweep[cursor++]
+      owner.set(`${q},${row}`, i)
       const { x, y } = cellCentre(q, row)
       cells[i].push({ cx: x, cy: y, q, row })
     }
@@ -187,7 +165,7 @@ export function hexClusters(
     for (const [dq, dr] of NEIGHBOURS) {
       const nq = q + dq
       const nr = row + dr
-      const other = owner.get(key(nq, nr))
+      const other = owner.get(`${nq},${nr}`)
       if (other === city) continue
       const n = cellCentre(nq, nr)
       const mx = (px(c.x) + px(n.x)) / 2
@@ -211,8 +189,20 @@ export function hexClusters(
       r: scale,
       edges: bordersOf(i, c.q, c.row),
     }))
-    const cx = blob.reduce((s, c) => s + c.cx, 0) / blob.length
-    const cy = blob.reduce((s, c) => s + c.cy, 0) / blob.length
+    // The label sits on the blob's bounding-box centre — for a whole-city map
+    // that is the centre of the card, and for a wedge it is inside the wedge.
+    const cx = (Math.min(...blob.map((c) => c.cx)) + Math.max(...blob.map((c) => c.cx))) / 2
+    const cy = (Math.min(...blob.map((c) => c.cy)) + Math.max(...blob.map((c) => c.cy))) / 2
     return { cells: blob, cx, cy }
   })
 }
+
+/** The six axial neighbours of a cell. */
+const NEIGHBOURS: [number, number][] = [
+  [1, 0],
+  [1, -1],
+  [0, -1],
+  [-1, 0],
+  [-1, 1],
+  [0, 1],
+]

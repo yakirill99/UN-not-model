@@ -35,6 +35,10 @@ function groupKey(e: AnyEvent): string | null {
       return `sanction|${e.actor ?? ''}|${e.target ?? ''}`
     case 'ecology_changed':
       return `eco|${e.cause}`
+    // Payments of one action fold into one line: six investments are one
+    // story about spending 900$, not six lines of «Потрачено 150$».
+    case 'budget_spent':
+      return `spent|${e.action}`
     // Shields over several cities of one country: one line, cities listed.
     case 'shield_built':
       return `shield|${e.actor ?? ''}`

@@ -43,6 +43,10 @@ export default function PlayPage() {
 
   const [banner, setBanner] = useState<number | null>(null)
   const seenRound = useRef<number | null>(null)
+  // The previous round's city life levels: the «Участники» tab colours each
+  // city chip by its change (grew green, fell red). Empty until the round moves.
+  const [prevLife, setPrevLife] = useState<Map<string, number>>(new Map())
+  const lastObs = useRef<Observation | null>(null)
 
   const load = useCallback(async () => {
     if (!gameId) return
@@ -62,6 +66,16 @@ export default function PlayPage() {
     const next = observation.data.round
     if (seenRound.current != null && next !== seenRound.current) setBanner(next)
     seenRound.current = next
+    // The round moved: the observation we held until now IS the previous
+    // round's world — snapshot its city life levels for the change colours.
+    const prev = lastObs.current
+    if (prev && prev.round !== next) {
+      const map = new Map<string, number>()
+      for (const c of prev.me.cities) map.set(c.id, c.life_level)
+      for (const o of prev.others) for (const c of o.cities) map.set(c.id, c.life_level)
+      setPrevLife(map)
+    }
+    lastObs.current = observation.data
     // The action space and the status are absent between rounds — the card stays usable.
     setSpace(actions.data ?? null)
     setStatus(round.data ?? null)
@@ -202,7 +216,7 @@ export default function PlayPage() {
               aria-labelledby="tab-others"
               hidden={tab !== 'others'}
             >
-              <Others others={obs.others} me={obs.me} />
+              <Others others={obs.others} me={obs.me} prevLife={prevLife} />
             </div>
 
             <div

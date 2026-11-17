@@ -16,6 +16,23 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 STATE_SCHEMA_VERSION = 2  # 2: added the v2 country fields (stability, rating, ...); 1: MVP state
 
+# Traits (GAME_RULES_2.md 9): every country carries one bonus and one limit. The
+# ids are fixed here so a scenario typo is a load error, not a silent no-op.
+# raw_dependency and diplomatic_tradition ride along already: their engines (the
+# event deck, the resolutions) arrive with the next v2 steps.
+TRAIT_IDS = {
+    "resource_power",  # RU bonus: +income every round (params.traits.resource_income)
+    "raw_dependency",  # RU limit: crisis/shock events hit double (event deck, reserved)
+    "financial_center",  # US bonus: +1 share weight in the private pool
+    "electoral_cycle",  # US limit: stability dynamics react faster (0.75, not 0.5)
+    "diplomatic_tradition",  # FR bonus: two resolutions per round (resolutions, reserved)
+    "eco_agenda",  # FR limit: stability drains while ecology is below the unstable line
+    "sanctions_experience",  # IR bonus: sanctions bite half as hard
+    "capital_limits",  # IR limit: rating capped at B
+    "mobilization_economy",  # KP bonus: cheap bombs; sanctions never touch stability; starts at 70
+    "isolation",  # KP limit: rating is always E
+}
+
 
 class ArenaModel(BaseModel):
     """Base for all engine models: unknown fields are an error, not silently dropped."""
@@ -59,6 +76,14 @@ class Country(ArenaModel):
     in_transition: bool = Field(
         default=False, description="New government: strikes (and votes) are refused this round"
     )
+    traits: list[str] = Field(
+        default_factory=list, description="v2 trait ids (GAME_RULES_2.md 9); see TRAIT_IDS"
+    )
+
+    def has(self, trait: str) -> bool:
+        """Whether the country carries a trait. The scenario loader rejects
+        unknown ids, so a typo fails at load time, not as a silent no-op."""
+        return trait in self.traits
 
     @model_validator(mode="after")
     def _unique_city_ids(self) -> Country:

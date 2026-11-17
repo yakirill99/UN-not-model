@@ -34,7 +34,12 @@ class CapitalSystem(BaseSystem):
         rng = self.rng(ctx)
         # Sorted by id: the same seed always draws the same jitter for the same country.
         for country in sorted(state.countries, key=lambda c: c.id):
-            share = pool * country.rating_weight / total_weight
+            # v2 trait (GAME_RULES_2.md 9): «Финансовый центр» — the financial
+            # market earns the USA one extra weight unit in the pool.
+            weight = country.rating_weight
+            if self.rules.is_v2() and country.has("financial_center"):
+                weight += 1
+            share = pool * weight / total_weight
             jitter = 1.0 + float(rng.uniform(-p.jitter_percent, p.jitter_percent)) / 100
             amount = round(share * jitter)
             if amount <= 0:

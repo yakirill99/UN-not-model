@@ -75,7 +75,11 @@
     "cities_lost": 3,
     "cities_lost_this_round": 0,
     "powers_lost": 0,
-    "in_transition": false
+    "in_transition": false,
+    "traits": [
+     "resource_power",
+     "raw_dependency"
+    ]
    },
    {
     "id": "usa",
@@ -129,7 +133,11 @@
     "cities_lost": 1,
     "cities_lost_this_round": 0,
     "powers_lost": 0,
-    "in_transition": false
+    "in_transition": false,
+    "traits": [
+     "financial_center",
+     "electoral_cycle"
+    ]
    },
    {
     "id": "france",
@@ -183,7 +191,11 @@
     "cities_lost": 1,
     "cities_lost_this_round": 0,
     "powers_lost": 0,
-    "in_transition": false
+    "in_transition": false,
+    "traits": [
+     "diplomatic_tradition",
+     "eco_agenda"
+    ]
    },
    {
     "id": "iran",
@@ -237,7 +249,11 @@
     "cities_lost": 0,
     "cities_lost_this_round": 0,
     "powers_lost": 0,
-    "in_transition": false
+    "in_transition": false,
+    "traits": [
+     "sanctions_experience",
+     "capital_limits"
+    ]
    },
    {
     "id": "dprk",
@@ -283,7 +299,7 @@
     "laugh": 0,
     "aid_pending": 0,
     "sanctioned_by": [],
-    "stability": 60,
+    "stability": 70,
     "average_life_prev": null,
     "rating_score": 0,
     "rating": "C",
@@ -291,7 +307,11 @@
     "cities_lost": 0,
     "cities_lost_this_round": 0,
     "powers_lost": 0,
-    "in_transition": false
+    "in_transition": false,
+    "traits": [
+     "mobilization_economy",
+     "isolation"
+    ]
    }
   ],
   "modules": {},

@@ -50,6 +50,10 @@ class IncomeSystem(BaseSystem):
             gross = sum(self.city_income(c, state.ecology) for c in country.cities)
             percent = self.income_percent(country, state.ecology)
             amount = max(0, (gross * (100 + percent)) // 100)
+            # v2 trait (GAME_RULES_2.md 9): «Ресурсная держава» — Russia sells
+            # resources whatever happens, a flat bonus on top of the city income.
+            if self.rules.is_v2() and country.has("resource_power"):
+                amount += self.rules.params.traits.resource_income
             country.budget += amount
             events.append(
                 IncomeCredited(

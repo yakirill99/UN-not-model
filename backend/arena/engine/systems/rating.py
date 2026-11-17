@@ -42,6 +42,22 @@ class RatingSystem(BaseSystem):
                 if score / 100 >= band.min:
                     level, weight = band.level, band.weight
                     break
+            chosen = next(b for b in bands if b.level == level)
+            # v2 traits (GAME_RULES_2.md 9): «Ограниченный доступ к капиталу» caps
+            # Iran at B, «Изоляция» pins North Korea to E whatever the score says.
+            if self.rules.is_v2() and country.has("capital_limits"):
+                cap = next(
+                    (b for b in bands if b.level == self.rules.params.traits.capital_cap),
+                    bands[-1],
+                )
+                if bands.index(chosen) < bands.index(cap):
+                    chosen = cap
+            if self.rules.is_v2() and country.has("isolation"):
+                chosen = next(
+                    (b for b in bands if b.level == self.rules.params.traits.floor_level),
+                    bands[-1],
+                )
+            level, weight = chosen.level, chosen.weight
             country.rating_score = round_half_away(score, 100)
             country.rating = level
             country.rating_weight = weight

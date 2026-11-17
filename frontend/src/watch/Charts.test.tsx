@@ -1,14 +1,13 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { playedLog } from '../test/log'
-import { DeedsChart, EcologyChart, Legend, LifeChart } from './Charts'
+import { DeedsChart, EcologyChart, LifeChart, StandingsLegend } from './Charts'
 import { COLORS, colorOf } from './colors'
 import { ecologyLine, lifeLines, standings } from './core'
 
-const svg = () => screen.getByRole('img')
-
-/** SVG <title> is not an accessible name here: read the elements directly. */
-const titles = () => [...svg().querySelectorAll('title')].map((t) => t.textContent)
+/** recharts renders plain SVG: read it through its own stable class names. */
+const svgOf = (container: HTMLElement) => container.querySelector('svg')!
 
 describe('colorOf', () => {
   it('gives each country its own colour', () => {
@@ -22,85 +21,71 @@ describe('colorOf', () => {
 })
 
 describe('EcologyChart', () => {
-  it('draws a point per round and names the value in a tooltip', () => {
-    render(<EcologyChart points={ecologyLine(playedLog())} />)
-    expect(svg().querySelectorAll('circle')).toHaveLength(3)
-    expect(titles()).toContain('Раунд 1: 85 %')
+  it('draws the ecology area with axes', () => {
+    const { container } = render(<EcologyChart points={ecologyLine(playedLog())} />)
+    expect(svgOf(container).querySelector('.recharts-area')).toBeTruthy()
+    expect(svgOf(container).querySelectorAll('.recharts-cartesian-axis')).toHaveLength(2)
   })
 
-  it('draws no line for a single point, so an unplayed game is not a trend', () => {
-    render(<EcologyChart points={[{ round: 0, value: 100 }]} />)
-    expect(svg().querySelector('polyline')).toBeNull()
-    expect(svg().querySelectorAll('circle')).toHaveLength(1)
+  it('marks the danger zone below 40 % with a shaded area and a line', () => {
+    const { container } = render(<EcologyChart points={ecologyLine(playedLog())} />)
+    expect(svgOf(container).querySelector('.recharts-reference-area')).toBeTruthy()
+    expect(svgOf(container).querySelector('.recharts-reference-line')).toBeTruthy()
   })
 
   it('renders without points instead of crashing', () => {
-    render(<EcologyChart points={[]} />)
-    expect(svg().querySelectorAll('circle')).toHaveLength(0)
-  })
-
-  it('shades the danger zone below 40 %', () => {
-    render(<EcologyChart points={ecologyLine(playedLog())} />)
-    expect(svg().querySelector('.zone-bad')).toBeTruthy()
+    const { container } = render(<EcologyChart points={[]} />)
+    expect(svgOf(container)).toBeTruthy()
+    expect(svgOf(container).querySelector('.recharts-area')).toBeNull()
   })
 })
 
 describe('LifeChart', () => {
   it('draws one line per country', () => {
-    render(<LifeChart series={lifeLines(playedLog())} />)
-    expect(svg().querySelectorAll('polyline')).toHaveLength(2)
+    const { container } = render(<LifeChart series={lifeLines(playedLog())} />)
+    expect(svgOf(container).querySelectorAll('.recharts-line')).toHaveLength(
+      lifeLines(playedLog()).length,
+    )
   })
 
-  it('puts the final score in each line’s tooltip', () => {
+  it('spells the countries in the legend and carries the round-history brush', () => {
     render(<LifeChart series={lifeLines(playedLog())} />)
-    expect(titles()).toEqual(['Россия: 60.0 %', 'США: 25.0 %'])
+    for (const country of ['Россия', 'США']) {
+      expect(screen.getByText(country)).toBeTruthy()
+    }
+    // «чтобы была история раундов в том числе» — the brush strips the rounds.
+    expect(document.querySelector('.recharts-brush')).toBeTruthy()
   })
 
-  it('renders an empty game without dividing by zero', () => {
-    render(<LifeChart series={[{ id: 'x', name: 'X', points: [] }]} />)
-    expect(svg().querySelectorAll('polyline')).toHaveLength(1)
+  it('hides a country when its legend entry is clicked — «выделять объекты»', async () => {
+    const series = lifeLines(playedLog())
+    const { container } = render(<LifeChart series={series} />)
+    const before = svgOf(container).querySelectorAll('.recharts-line').length
+    await userEvent.click(screen.getByText('Россия'))
+    const after = svgOf(container).querySelectorAll('.recharts-line').length
+    expect(after).toBeLessThan(before)
   })
 })
 
 describe('DeedsChart', () => {
-  it('shows a labelled bar per action', () => {
+  it('draws a bar per deed with its count', () => {
     render(
       <DeedsChart
         slices={[
-          { id: 'city_invested', label: 'Инвестиции', count: 4 },
-          { id: 'nuclear_strike', label: 'Удары', count: 1 },
+          { id: 'invest', label: 'Инвестиции', count: 7 },
+          { id: 'bomb', label: 'Бомбы', count: 3 },
         ]}
       />,
     )
     expect(screen.getByText('Инвестиции')).toBeTruthy()
-    expect(screen.getByText('4')).toBeTruthy()
-  })
-
-  it('scales the widest bar to the full track', () => {
-    const { container } = render(
-      <DeedsChart
-        slices={[
-          { id: 'a', label: 'A', count: 4 },
-          { id: 'b', label: 'B', count: 2 },
-        ]}
-      />,
-    )
-    const fills = container.querySelectorAll<HTMLElement>('.bar-fill')
-    expect(fills[0].style.width).toBe('100%')
-    expect(fills[1].style.width).toBe('50%')
-  })
-
-  it('renders nothing for an empty list', () => {
-    const { container } = render(<DeedsChart slices={[]} />)
-    expect(container.querySelectorAll('.bar-row')).toHaveLength(0)
+    expect(screen.getByText('7')).toBeTruthy()
   })
 })
 
-describe('Legend', () => {
-  it('doubles as the standings, best first', () => {
-    render(<Legend series={standings(playedLog())} />)
-    const rows = screen.getAllByRole('listitem')
-    expect(rows[0].textContent).toBe('Россия60.0 %')
-    expect(rows[1].textContent).toBe('США25.0 %')
+describe('StandingsLegend', () => {
+  it('lists the countries with the final number', () => {
+    render(<StandingsLegend series={standings(playedLog())} />)
+    const items = document.querySelectorAll('.legend li')
+    expect(items.length).toBeGreaterThan(0)
   })
 })

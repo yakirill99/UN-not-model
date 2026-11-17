@@ -9,7 +9,7 @@ from pathlib import Path
 
 from pydantic import Field, model_validator
 
-from arena.engine.state import ArenaModel, Country, GameState
+from arena.engine.state import TRAIT_IDS, ArenaModel, Country, GameState
 
 
 class ScenarioError(ValueError):
@@ -27,6 +27,15 @@ class Scenario(ArenaModel):
         # GameState enforces the same invariants; validating here gives the error
         # the scenario's file name instead of a state dump.
         GameState(round=1, ecology=self.ecology, countries=self.countries)
+        return self
+
+    @model_validator(mode="after")
+    def _known_traits(self) -> Scenario:
+        # A trait id the engine does not know would silently do nothing — a typo
+        # must fail at load, not hide in the balance.
+        unknown = {t for c in self.countries for t in c.traits} - TRAIT_IDS
+        if unknown:
+            raise ValueError(f"unknown trait ids: {sorted(unknown)}; known: {sorted(TRAIT_IDS)}")
         return self
 
     def initial_state(self) -> GameState:

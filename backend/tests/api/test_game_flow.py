@@ -178,9 +178,7 @@ async def test_rules_v2_game_coexists_with_v1(client: AsyncClient) -> None:
     assert social["available"] is True and social["cost"] == 150
 
     # A v2 order with the social program validates and resolves the round.
-    r = await client.put(
-        f"/api/games/{gid}/orders", json={"social_program": True}, headers=U
-    )
+    r = await client.put(f"/api/games/{gid}/orders", json={"social_program": True}, headers=U)
     assert r.status_code == 204, r.text
     host = await _join(client, v2["host_code"])
     r = await client.post(f"/api/games/{gid}/rounds/1/resolve", headers=_bearer(host["token"]))

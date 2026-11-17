@@ -411,6 +411,18 @@ label.row.inline input[type='checkbox'] {
 .icon {
   vertical-align: -0.28em;
 }
+/* The nation flag next to its caption must sit on the SAME line level —
+   «иконка флага и подпись не на одном уровне»: flex centers them exactly. */
+.other .row strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.icon.flag {
+  vertical-align: middle;
+  border-radius: 2px;
+  display: block;
+}
 .icon-fallback {
   font-size: 0.95em;
 }
@@ -500,6 +512,11 @@ label.row.inline input[type='checkbox'] {
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
+  /* City boxes must read as chips, not a bullet list — «убери точки во всех
+     боксах городов». */
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 .chip {
   background: transparent;
@@ -508,7 +525,20 @@ label.row.inline input[type='checkbox'] {
   padding: 0.2rem 0.7rem;
   font-size: 0.85rem;
   color: var(--muted);
-  cursor: pointer;
+}
+/* The change colouring of the «Участники» city chips: grew — green, fell — red. */
+.chip.up {
+  color: var(--ok);
+  border-color: color-mix(in srgb, var(--ok) 45%, transparent);
+}
+.chip.down {
+  color: var(--bad);
+  border-color: color-mix(in srgb, var(--bad) 45%, transparent);
+}
+.chip .delta {
+  margin-left: 0.3rem;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
 }
 .chip.on {
   border-color: color-mix(in srgb, var(--fg) 55%, transparent);
@@ -596,7 +626,10 @@ label.row.inline input[type='checkbox'] {
    scrolling. The track holds its content twice; the animation shifts by
    exactly one half, so the loop is seamless. It crawls slowly to the RIGHT —
    «надписи должны ехать медленно вправо, чтобы была ротация новостей».
-   Hover pauses, reduced-motion readers get a plain scrollable line. */
+   Hover pauses. NOTE: the crawl runs even when the OS asks for reduced
+   motion — the ticker IS the news channel, and a frozen strip with a
+   scrollbar was reported as a bug («строка с новостями не двигается»);
+   the movement is slow, pausable and the only motion on this strip. */
 .ticker {
   overflow: hidden;
   background: var(--card);
@@ -607,6 +640,7 @@ label.row.inline input[type='checkbox'] {
 .ticker-track {
   display: inline-flex;
   white-space: nowrap;
+  will-change: transform;
   animation: ticker-move 55s linear infinite;
 }
 .ticker:hover .ticker-track {
@@ -632,14 +666,6 @@ label.row.inline input[type='checkbox'] {
   }
   to {
     transform: translateX(0);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .ticker-track {
-    animation: none;
-  }
-  .ticker {
-    overflow-x: auto;
   }
 }
 

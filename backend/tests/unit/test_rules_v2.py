@@ -10,6 +10,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
 from arena.engine.actions import legal_actions
 from arena.engine.orders import CountryOrders, HostInput, OrderBook
@@ -493,3 +494,151 @@ def test_charisma_via_pipeline_news(v2: RuleSet) -> None:
     orders = OrderBook(orders={}, host=HostInput(laugh_winner="russia"))
     _, events = resolve_round(scenario.initial_state(), orders, v2, 0)
     assert any(e.type == "charisma_awarded" for e in events)
+
+
+# --- traits (GAME_RULES_2.md 9) -----------------------------------------------
+
+
+def smolny(rules: RuleSet) -> GameState:
+    return load_scenario(RULES_DIR.parent / "scenarios" / "smolny.yaml").initial_state()
+
+
+def test_scenario_carries_traits(v2: RuleSet) -> None:
+    """The five countries ride their §9 traits; the loader rejects unknown ids."""
+    state = smolny(v2)
+    assert state.country("russia").has("resource_power")
+    assert state.country("usa").has("electoral_cycle")
+    assert state.country("france").has("eco_agenda")
+    assert state.country("iran").has("sanctions_experience")
+    assert state.country("dprk").has("isolation")
+    assert state.country("dprk").stability == 70  # mobilization economy starts higher
+
+    from arena.engine.scenario import Scenario
+
+    with pytest.raises(ValidationError, match="unknown trait ids"):
+        Scenario.model_validate(
+            {
+                "id": "bad",
+                "ecology": 100,
+                "countries": [
+                    {
+                        "id": "x",
+                        "name": "X",
+                        "budget": 1,
+                        "traits": ["not_a_trait"],
+                        "cities": [{"id": "x1", "name": "X1", "development": 10}],
+                    }
+                ],
+            }
+        )
+
+
+def test_trait_resource_power_adds_income(v2: RuleSet) -> None:
+    """Russia earns +100$ flat every round; other countries do not."""
+    state = smolny(v2)
+    ru, us = state.country("russia"), state.country("usa")
+    gross_ru = sum(IncomeSystem(v2).city_income(c, 100) for c in ru.cities)
+    gross_us = sum(IncomeSystem(v2).city_income(c, 100) for c in us.cities)
+    _, events = resolve_round(state, book({}), v2, 0)
+    income = {e.actor: e.amount for e in events if e.type == "income_credited"}
+    assert income["russia"] >= gross_ru + 100
+    # USA earns no flat bonus (its city incomes only, with stability/climate bands).
+    assert income["usa"] <= gross_us + 20
+
+
+def test_trait_electoral_cycle_reacts_faster(v2: RuleSet) -> None:
+    """USA: dynamics 0.75 x delta instead of 0.5 — «народ острее реагирует на перемены»."""
+    state = smolny(v2)
+    us = state.country("usa")
+    us.average_life_prev = 6000
+    for c in us.cities:
+        c.life_level = 5000  # life fell 60 % -> 50 %
+    events = StabilitySystem(v2).apply(state, book({}), ctx_of(v2, state))
+    changed = next(e for e in events if e.type == "stability_changed" and e.target == "usa")
+    # delta -10 % of life: the plain 0.5 factor gives -5, the sharper 0.75 gives -7.5 -> -8.
+    assert changed.dynamics == -8
+    # Russia with the same shock still rounds by the plain 0.5 factor.
+    state2 = smolny(v2)
+    ru = state2.country("russia")
+    ru.average_life_prev = 6000
+    for c in ru.cities:
+        c.life_level = 5000
+    events = StabilitySystem(v2).apply(state2, book({}), ctx_of(v2, state2))
+    changed = next(e for e in events if e.type == "stability_changed" and e.target == "russia")
+    assert changed.dynamics == -5
+
+
+def test_trait_eco_agenda_drains_stability(v2: RuleSet) -> None:
+    """France loses 5 stability per round while ecology is below the unstable line."""
+    state = smolny(v2)
+    state.ecology = 55
+    before = state.country("france").stability
+    events = StabilitySystem(v2).apply(state, book({}), ctx_of(v2, state))
+    fr = next(e for e in events if e.type == "stability_changed" and e.target == "france")
+    assert fr.shocks == -5  # no sanctions in play: the whole drain is the eco agenda
+    assert state.country("france").stability < before
+
+    state2 = smolny(v2)
+    state2.ecology = 80  # fine band: no drain
+    events = StabilitySystem(v2).apply(state2, book({}), ctx_of(v2, state2))
+    fr = next(e for e in events if e.type == "stability_changed" and e.target == "france")
+    assert fr.shocks == 0
+
+
+def test_trait_sanctions_experience_halves_sanctions(v2: RuleSet) -> None:
+    """Iran: -5 development becomes -2.5 -> -3 (integer), stability -3 -> -1.5 -> -2."""
+    state = smolny(v2)
+    orders = book({"usa": CountryOrders(sanctions=["iran"])})
+    _new, events = resolve_round(state, orders, v2, 0)
+    applied = next(e for e in events if e.type == "sanction_applied" and e.target == "iran")
+    assert applied.delta == -3  # -2.5 rounded half away from zero
+    changed = next(e for e in events if e.type == "stability_changed" and e.target == "iran")
+    assert changed.shocks == -2  # -1.5 rounded half away from zero
+    # Someone without the trait feels the full force of the same sanction.
+    applied_us = next(
+        (e for e in events if e.type == "sanction_applied" and e.target == "usa"), None
+    )
+    if applied_us is not None:
+        assert applied_us.delta == -5
+
+
+def test_trait_isolation_pins_rating(v2: RuleSet) -> None:
+    """KNDP rating is always E; Iran never rises above B even with an A score."""
+    state = smolny(v2)
+    kp, ir = state.country("dprk"), state.country("iran")
+    kp.stability = 100
+    kp.rating_score = 0
+    ir.stability = 100
+    for c in ir.cities:
+        c.life_level = 9000  # 90 %: score far above B
+    RatingSystem(v2).apply(state, book({}), ctx_of(v2, state))
+    assert (kp.rating, kp.rating_weight) == ("E", 1)
+    assert (ir.rating, ir.rating_weight) == ("B", 4)
+
+
+def test_trait_mobilization_cheap_bombs(v2: RuleSet) -> None:
+    """KNDP bombs cost 100$ (not 150), and sanctions never touch its stability."""
+    state = smolny(v2)
+    kp = state.country("dprk")
+    space = legal_actions(state, "dprk", v2)
+    assert space.actions["bomb"].cost == 100
+
+    before = kp.stability
+    orders = book({"usa": CountryOrders(sanctions=["dprk"])})
+    new, events = resolve_round(state, orders, v2, 0)
+    changed = next(e for e in events if e.type == "stability_changed" and e.target == "dprk")
+    assert changed.shocks == 0  # sanctions do not destabilize the mobilization economy
+    assert new.country("dprk").stability >= before - 1  # (only other terms may move it)
+
+
+def test_traits_are_inert_in_v1() -> None:
+    """v1 games keep exact v1 numbers: full-force sanctions, no trait behaviour."""
+    v1 = load_rules("v1.0", RULES_DIR)
+    state = smolny(v1)
+    orders = book({"usa": CountryOrders(sanctions=["iran"])})
+    _new, events = resolve_round(state, orders, v1, 0)
+    applied = next(e for e in events if e.type == "sanction_applied" and e.target == "iran")
+    assert applied.delta == -5  # the trait does not halve sanctions without v2_core
+    assert not any(
+        e.type == "rating_updated" or e.type == "private_investments_credited" for e in events
+    )

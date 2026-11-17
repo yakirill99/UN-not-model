@@ -23,6 +23,7 @@ from arena.engine.systems.base import BaseSystem, RoundContext, register, round_
 class StabilitySystem(BaseSystem):
     def apply(self, state: GameState, orders: OrderBook, ctx: RoundContext) -> list[Event]:
         p = self.rules.params.stability
+        t = self.rules.params.traits
         events: list[Event] = []
         for country in state.countries:
             approved = ctx.approved[country.id]
@@ -30,11 +31,15 @@ class StabilitySystem(BaseSystem):
             avg = country.average_life_level  # hundredths of a percent
 
             # Динамика: the people react to the change of life, not only to its level
-            # — a fast fall from a high level angers more than stable poverty.
+            # — a fast fall from a high level angers more than stable poverty. The
+            # electoral_cycle trait (USA) makes the reaction sharper (0.75, not 0.5).
+            dynamics_percent = p.dynamics_percent
+            if self.rules.is_v2() and country.has("electoral_cycle"):
+                dynamics_percent = t.electoral_dynamics_percent
             dynamics = 0
             if country.average_life_prev is not None:
                 dynamics = round_half_away(
-                    (avg - country.average_life_prev) * p.dynamics_percent, 10000
+                    (avg - country.average_life_prev) * dynamics_percent, 10000
                 )
 
             # Уровень: how life feels right now.
@@ -47,9 +52,25 @@ class StabilitySystem(BaseSystem):
                 else 0
             )
 
-            # Потрясения: every active sanction, and cities lost this round — the
-            # first loss rallies the nation around the flag, the next ones hurt.
-            shocks = len(country.sanctioned_by) * p.sanction_penalty
+            # Потрясения: every active sanction (unless the mobilization economy
+            # shrugs them off, or «Опыт жизни под санкциями» halves them), and
+            # cities lost this round — the first loss rallies the nation around
+            # the flag, the next ones hurt. The eco_agenda trait (France) drains
+            # stability while the world is in the unstable band.
+            shocks = 0
+            if not (self.rules.is_v2() and country.has("mobilization_economy")):
+                sanction_penalty = p.sanction_penalty
+                if self.rules.is_v2() and country.has("sanctions_experience"):
+                    sanction_penalty = round_half_away(
+                        sanction_penalty * t.sanction_resist_percent, 100
+                    )
+                shocks += len(country.sanctioned_by) * sanction_penalty
+            if (
+                self.rules.is_v2()
+                and country.has("eco_agenda")
+                and state.ecology < self.rules.params.climate.unstable_below
+            ):
+                shocks += self.rules.params.traits.eco_agenda_penalty
             prior_lost = country.cities_lost - country.cities_lost_this_round
             for i in range(country.cities_lost_this_round):
                 shocks += p.first_city_loss if prior_lost + i == 0 else p.city_loss

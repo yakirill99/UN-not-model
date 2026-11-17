@@ -11,23 +11,26 @@ describe('describeEvent', () => {
   it.each([
     [
       ev('order_rejected', { action: 'strike', reason: 'no_bombs' }),
-      /Приказ «strike» отклонён: no_bombs/,
+      /Приказ «ядерный удар» отклонён: нет готовых бомб/,
     ],
     [
       ev('budget_spent', { action: 'invest', amount: 150, budget_after: 1050 }),
-      /Потрачено 150 \$ на «invest»/,
+      /Потрачено 150 \$ на инвестиции в развитие/,
     ],
     [ev('city_invested', { development_before: 70, development_after: 80 }), /с 70 % до 80 %/],
     [
       ev('ecology_changed', { delta: -5, ecology_after: 67, cause: 'strike' }),
-      /Экология -5 → 67 %/,
+      /Экология -5 → 67 % \(ядерный удар\)/,
     ],
     [ev('life_level_computed', { life_level: 4567 }), /45.67 %/],
     [ev('income_credited', { amount: 300, budget_after: 1500 }), /Доход 300 \$/],
-    [ev('tech_developed', { tech: 'nuclear' }), /Освоена технология: nuclear/],
+    [ev('tech_developed', { tech: 'nuclear' }), /Освоена технология: ядерная технология/],
     [ev('shield_built', { target: 'moscow' }), /щит над городом moscow/],
     [ev('bombs_produced', { count: 2, bombs_pending_after: 3 }), /Произведено бомб: 2/],
-    [ev('city_destroyed', { target: 'nyc', cause: 'nuclear' }), /Город nyc разрушен/],
+    [
+      ev('city_destroyed', { target: 'nyc', cause: 'nuclear' }),
+      /Город nyc разрушен \(ядерный удар\)/,
+    ],
     [ev('sanction_applied', { target: 'iran', delta: 10 }), /Санкции против iran: развитие −10/],
     [ev('laugh_awarded', { target: 'russia', bonus: 5, laugh_after: 5 }), /Приз за юмор: russia/],
     [
@@ -119,7 +122,34 @@ describe('describeEvent with names: ids become words', () => {
 
   it('falls back to the raw id when the dictionary misses it', () => {
     expect(say(ev('city_destroyed', { target: 'atlantis', cause: 'nuclear' }), names)).toBe(
-      'Город atlantis разрушен (nuclear)',
+      'Город atlantis разрушен (ядерный удар)',
+    )
+  })
+})
+
+describe('describeEvent · the id dictionaries', () => {
+  it('translates the action, the cause and the technology into player words', () => {
+    expect(
+      say(ev('budget_spent', { action: 'social_program', amount: 150, budget_after: 850 })),
+    ).toBe('Потрачено 150 $ на социальную программу, осталось 850 $')
+    expect(
+      say(ev('ecology_changed', { delta: -15, ecology_after: 80, cause: 'bomb_production' })),
+    ).toBe('Экология -15 → 80 % (производство бомб)')
+    expect(say(ev('tech_developed', { tech: 'nuclear' }))).toBe(
+      'Освоена технология: ядерная технология',
+    )
+    expect(
+      say(ev('order_rejected', { action: 'aid', reason: 'army_refuses' })).replace(
+        'материальную помощь',
+        'материальную помощь',
+      ),
+    ).toMatch(/army_refuses|армия|кризис/)
+  })
+
+  it('an unknown id still shows as is — a missing translation must not hide a fact', () => {
+    expect(say(ev('tech_developed', { tech: 'quantum' }))).toBe('Освоена технология: quantum')
+    expect(say(ev('ecology_changed', { delta: -5, ecology_after: 60, cause: 'mystery' }))).toBe(
+      'Экология -5 → 60 % (mystery)',
     )
   })
 })

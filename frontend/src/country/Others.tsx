@@ -20,9 +20,25 @@ type Row = { id: string; name: string; life: number; me: boolean }
  * «Вы», so the room reads the gap to the leader without counting. While the
  * whole field is level (round one, all 0.00 %) no places are shown:
  * «все первые» — это не рейтинг, а отсутствие рейтинга.
+ *
+ * `prevLife` carries the same cities' life of the previous round — the city
+ * chips colour themselves by the change: grew green, fell red («добавь
+ * цветовую гамму, что и как изменилось»). No previous round — no colours.
  */
-export default function Others({ others, me }: { others: Foreign[]; me?: Me | null }) {
+export default function Others({
+  others,
+  me,
+  prevLife,
+}: {
+  others: Foreign[]
+  me?: Me | null
+  prevLife?: Map<string, number>
+}) {
   if (others.length === 0) return null
+  const deltaOf = (cityId: string, life: number): number | null => {
+    const prev = prevLife?.get(cityId)
+    return prev == null ? null : life - prev
+  }
 
   // The ranking pool holds what the player can see: their own country plus the others.
   const pool: Row[] = [
@@ -89,22 +105,35 @@ export default function Others({ others, me }: { others: Foreign[]; me?: Me | nu
                 {country.rating != null && ` · рейтинг ${country.rating}`}
               </span>
             </div>
-            {/* Cities of foreign countries (#7): life level per city, ruins marked. */}
+            {/* Cities of foreign countries (#7): life level per city, ruins marked.
+                The chip is green when life grew since the last round, red when it fell. */}
             <ul className="chips city-chips">
-              {country.cities.map((city) => (
-                <li
-                  key={city.id}
-                  className={city.destroyed ? 'chip gone' : 'chip'}
-                  title={
-                    city.destroyed
-                      ? 'Город разрушен'
-                      : `Уровень жизни: ${lifeLevel(city.life_level)}`
-                  }
-                >
-                  {city.destroyed && <Icon name="destroyed" size={12} />} {city.name}
-                  {city.destroyed ? ' — разрушен' : ` · ${lifeLevel(city.life_level)}`}
-                </li>
-              ))}
+              {country.cities.map((city) => {
+                const delta = deltaOf(city.id, city.life_level)
+                const tone = delta == null || delta === 0 ? '' : delta > 0 ? ' up' : ' down'
+                const arrow =
+                  delta == null || delta === 0
+                    ? ''
+                    : `${delta > 0 ? '▲' : '▼'} ${(delta / 100).toFixed(2)}`
+                return (
+                  <li
+                    key={city.id}
+                    className={(city.destroyed ? 'chip gone' : 'chip') + tone}
+                    title={
+                      city.destroyed
+                        ? 'Город разрушен'
+                        : `Уровень жизни: ${lifeLevel(city.life_level)}` +
+                          (delta != null
+                            ? ` (в прошлом раунде ${lifeLevel(city.life_level - delta)})`
+                            : '')
+                    }
+                  >
+                    {city.destroyed && <Icon name="destroyed" size={12} />} {city.name}
+                    {city.destroyed ? ' — разрушен' : ` · ${lifeLevel(city.life_level)}`}
+                    {arrow && <span className="delta">{arrow}</span>}
+                  </li>
+                )
+              })}
             </ul>
           </div>
         )

@@ -90,13 +90,19 @@ describe('hexClusters', () => {
     expect(dead.cells.some((dc) => alive.cells.some((ac) => NEAR(dc, ac)))).toBe(true)
   })
 
-  it('uses the box: a seven-city field spans most of the card', () => {
+  it('uses the box: a seven-city field fills the card, centred', () => {
     const clusters = hexClusters([100, 90, 80, 70, 60, 50, 40], BOX)
     const all = clusters.flatMap((c) => c.cells)
     const minX = Math.min(...all.map((c) => c.cx - c.r))
     const maxX = Math.max(...all.map((c) => c.cx + c.r))
-    // The clump is height-limited here, but it still covers most of the width.
-    expect(maxX - minX).toBeGreaterThan(BOX.w * 0.58)
+    const minY = Math.min(...all.map((c) => c.cy - (c.r * Math.sqrt(3)) / 2))
+    const maxY = Math.max(...all.map((c) => c.cy + (c.r * Math.sqrt(3)) / 2))
+    // A honeycomb is near-round: it fills the box by height and centres itself
+    // in the width — the card reads as a full territory, not a corner patch.
+    expect(maxX - minX).toBeGreaterThan(BOX.w * 0.5)
+    expect(maxY - minY).toBeGreaterThan(BOX.h * 0.85)
+    expect(Math.abs((minX + maxX) / 2 - BOX.w / 2)).toBeLessThan(2)
+    expect(Math.abs((minY + maxY) / 2 - BOX.h / 2)).toBeLessThan(2)
   })
 
   it('marks the sides facing another city as border edges ON the shared face', () => {
@@ -127,9 +133,52 @@ describe('hexClusters', () => {
     expect(JSON.stringify(a)).toBe(JSON.stringify(b))
   })
 
+  it('never interleaves: the strongest city owns the centre, the rest sit beside it', () => {
+    // «Ромбы наслоены друг на друга» — the previous packer let blobs mix into
+    // one field. Chunked claims grow outward: the biggest blob must be the one
+    // closest to the middle of the box, and no cluster may sit inside another.
+    const clusters = hexClusters([500, 300, 200, 100], BOX)
+    const centre = { x: BOX.w / 2, y: BOX.h / 2 }
+    const distOf = (c: (typeof clusters)[number]) => Math.hypot(c.cx - centre.x, c.cy - centre.y)
+    const [big] = clusters
+    expect(distOf(big)).toBeLessThan(Math.min(...clusters.slice(1).map(distOf)))
+    // And the blobs read as neighbours: each cluster touches at least one other.
+    const near = (a: (typeof clusters)[number], b: (typeof clusters)[number]) =>
+      a.cells.some((ca) => b.cells.some((cb) => NEAR(ca, cb)))
+    for (const cluster of clusters) {
+      expect(clusters.some((other) => other !== cluster && near(cluster, other))).toBe(true)
+    }
+  })
+
+  it('the equal field packs as adjacent blocks, not interleaved confetti', () => {
+    // Round one: every life is 0.00 %, the weights are equal — the four cities
+    // must still read as four compact regions, cities next to each other.
+    const clusters = hexClusters([0, 0, 0, 0], BOX)
+    expect(clusters).toHaveLength(4)
+    for (const cluster of clusters) {
+      expect(cluster.cells.length).toBeGreaterThanOrEqual(2)
+      // Flood-fill contiguity, same as the main test above.
+      const seen = new Set([0])
+      const queue = [0]
+      while (queue.length > 0) {
+        const i = queue.pop()!
+        for (let j = 0; j < cluster.cells.length; j++) {
+          if (!seen.has(j) && NEAR(cluster.cells[i], cluster.cells[j])) {
+            seen.add(j)
+            queue.push(j)
+          }
+        }
+      }
+      expect(seen.size).toBe(cluster.cells.length)
+    }
+  })
+
   it('handles the equal field: identical cities share the card fairly', () => {
     const clusters = hexClusters([50, 50, 50], BOX)
-    expect(new Set(clusters.map((c) => c.cells.length))).toHaveProperty('size', 1)
+    const counts = clusters.map((c) => c.cells.length)
+    // Whole rings do not always divide by the city count: the shares differ by
+    // at most one cell, and every cell is the same size.
+    expect(Math.max(...counts) - Math.min(...counts)).toBeLessThanOrEqual(1)
     expect(new Set(clusters.map((c) => c.cells[0].r.toFixed(6)))).toHaveProperty('size', 1)
   })
 })

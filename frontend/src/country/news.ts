@@ -2,8 +2,44 @@ import type { Schemas } from '../api/client'
 import { money, percent } from './format'
 import { plural, times, type Group } from './merge'
 import { nameOf, type Names } from './names'
+import { REASONS } from '../orders/core'
 
 export type AnyEvent = NonNullable<Schemas['Observation']['news']>[number]
+
+/**
+ * Raw engine ids must never reach the player («в новостях вылезают строки
+ * кода, а не нормальные надписи»): actions, ecology causes and technologies
+ * carry ids like `invest` / `bomb_production` / `nuclear` — these dictionaries
+ * are the words the rules' ui titles use. An unknown id still shows as is: a
+ * missing translation must not hide a fact.
+ */
+const ACTION_WORDS: Record<string, string> = {
+  invest: 'инвестиции в развитие',
+  eco_program: 'экологическую программу',
+  nuclear_tech: 'разработку ядерной технологии',
+  bomb: 'производство бомб',
+  strike: 'ядерный удар',
+  shield: 'ядерный щит',
+  sanction: 'санкции',
+  aid: 'материальную помощь',
+  social_program: 'социальную программу',
+}
+
+const CAUSE_WORDS: Record<string, string> = {
+  eco_program: 'экологическая программа',
+  nuclear_tech: 'разработка ядерной технологии',
+  bomb_production: 'производство бомб',
+  strike: 'ядерный удар',
+  nuclear: 'ядерный удар',
+}
+
+const TECH_WORDS: Record<string, string> = {
+  nuclear: 'ядерная технология',
+}
+
+function word(dict: Record<string, string>, id: string): string {
+  return dict[id] ?? id
+}
 
 /**
  * Round events, in the player's words. The engine already filtered out what this
@@ -19,13 +55,13 @@ export type AnyEvent = NonNullable<Schemas['Observation']['news']>[number]
 export function describeEvent(event: AnyEvent, names: Names = {}): string {
   switch (event.type) {
     case 'order_rejected':
-      return `Приказ «${event.action}» отклонён: ${event.reason}`
+      return `Приказ «${word(ACTION_WORDS, event.action)}» отклонён: ${REASONS[event.reason] ?? event.reason}`
     case 'budget_spent':
-      return `Потрачено ${money(event.amount)} на «${event.action}», осталось ${money(event.budget_after)}`
+      return `Потрачено ${money(event.amount)} на ${word(ACTION_WORDS, event.action)}, осталось ${money(event.budget_after)}`
     case 'city_invested':
       return `Развитие города выросло с ${percent(event.development_before)} до ${percent(event.development_after)}`
     case 'ecology_changed':
-      return `Экология ${event.delta >= 0 ? '+' : ''}${event.delta} → ${percent(event.ecology_after)} (${event.cause})`
+      return `Экология ${event.delta >= 0 ? '+' : ''}${event.delta} → ${percent(event.ecology_after)} (${word(CAUSE_WORDS, event.cause)})`
     case 'life_level_computed':
       return `Пересчитан уровень жизни: ${(event.life_level / 100).toFixed(2)} %`
     case 'income_credited':
@@ -35,7 +71,7 @@ export function describeEvent(event: AnyEvent, names: Names = {}): string {
         ? `Помощь ${money(event.amount)}: ${nameOf(names, event.actor)} → ${nameOf(names, event.target)}`
         : `Получена помощь ${money(event.amount)}`
     case 'tech_developed':
-      return `Освоена технология: ${event.tech}`
+      return `Освоена технология: ${word(TECH_WORDS, event.tech)}`
     case 'shield_built':
       return `Построен щит над городом ${nameOf(names, event.target)}`
     case 'bombs_produced':
@@ -43,7 +79,7 @@ export function describeEvent(event: AnyEvent, names: Names = {}): string {
     case 'nuclear_strike':
       return describeStrike(event, names)
     case 'city_destroyed':
-      return `Город ${nameOf(names, event.target)} разрушен (${event.cause})`
+      return `Город ${nameOf(names, event.target)} разрушен (${word(CAUSE_WORDS, event.cause)})`
     case 'sanction_applied': {
       // The victim always learns who hit them (section 11); the actor key may
       // still be missing in tests and replays — then the old impersonal line.
@@ -175,7 +211,19 @@ export function describeGroup(group: Group, names: Names = {}): string {
       const after = (
         group.events[group.events.length - 1] as Extract<AnyEvent, { type: 'ecology_changed' }>
       ).ecology_after
-      return `Экология ${delta >= 0 ? '+' : ''}${delta} → ${percent(after)} (${first.cause}, ${plural(group.events.length, 'событие', 'события', 'событий')})`
+      return `Экология ${delta >= 0 ? '+' : ''}${delta} → ${percent(after)} (${word(CAUSE_WORDS, first.cause)}, ${plural(group.events.length, 'событие', 'события', 'событий')})`
+    }
+    case 'budget_spent': {
+      // Six investments are six payments of one story: the total spent, the
+      // budget as it ended up — «складывай одинаковые эффекты новости».
+      const sum = (group.events as Extract<AnyEvent, { type: 'budget_spent' }>[]).reduce(
+        (s, e) => s + e.amount,
+        0,
+      )
+      const left = (
+        group.events[group.events.length - 1] as Extract<AnyEvent, { type: 'budget_spent' }>
+      ).budget_after
+      return `Потрачено ${money(sum)} на ${word(ACTION_WORDS, first.action)}, осталось ${money(left)}${times(group.events.length)}`
     }
     case 'shield_built': {
       const cities = [

@@ -5,6 +5,7 @@ title: "Немодель ООН в Смольном (исторический с
 ecology: 100
 countries:
   - id: russia
+    traits: [resource_power, raw_dependency]  # Ресурсная держава / Сырьевая зависимость (события — след. этап)
     name: Россия
     budget: 1445
     cities:
@@ -13,6 +14,7 @@ countries:
       - {id: ekaterinburg, name: Екатеринбург, development: 200}
       - {id: rostov, name: Ростов-на-Дону, development: 90}
   - id: usa
+    traits: [financial_center, electoral_cycle]  # Финансовый центр / Избирательный цикл
     name: США
     budget: 1520
     cities:
@@ -21,6 +23,7 @@ countries:
       - {id: los_angeles, name: Лос-Анджелес, development: 65}
       - {id: chicago, name: Чикаго, development: 55}
   - id: france
+    traits: [diplomatic_tradition, eco_agenda]  # Дипломатическая традиция (резолюции — след. этап) / Экологическая повестка
     name: Франция
     budget: 985
     cities:
@@ -29,6 +32,7 @@ countries:
       - {id: nice, name: Ницца, development: 80}
       - {id: toulouse, name: Тулуза, development: 110}
   - id: iran
+    traits: [sanctions_experience, capital_limits]  # Опыт жизни под санкциями / Ограниченный доступ к капиталу
     name: Иран
     budget: 1055
     cities:
@@ -38,6 +42,8 @@ countries:
       - {id: isfahan, name: Исфахан, development: 65}
       - {id: yazd, name: Йезд, development: 65}
   - id: dprk
+    traits: [mobilization_economy, isolation]  # Мобилизационная экономика / Изоляция
+    stability: 70  # старт с устойчивостью 70 (GAME_RULES_2.md 9)
     name: КНДР
     budget: 865
     # Started with the technology: in year 1 the DPRK produced a bomb without ordering

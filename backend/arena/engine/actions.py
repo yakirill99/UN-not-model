@@ -77,6 +77,8 @@ def legal_actions(state: GameState, country_id: str, rules: RuleSet) -> ActionSp
                 # «чтобы всё могло поменяться в последний момент».
                 if rules.params.last_round.unlimited_bombs and state.round == rules.params.rounds:
                     o.max_count = None
+                # v2 trait (GAME_RULES_2.md 9): mobilization economy — cheaper bombs.
+                o.cost = rules.cost("bomb", me)
                 if not me.nuclear_tech:
                     o.available, o.reason = False, "requires_nuclear_tech"
             case "strike":

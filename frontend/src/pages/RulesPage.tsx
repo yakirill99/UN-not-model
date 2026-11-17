@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router'
 import rules from '../rules/rules.json'
 
 /** One action from the generated rules.json — optional keys vary per action. */
@@ -30,6 +31,7 @@ const BOOK = rules.actions as unknown as Record<string, RuleAction>
  * cannot drift from the game (regenerate: `uv run python scripts/gen_rules_json.py`).
  */
 export default function RulesPage() {
+  const navigate = useNavigate()
   const order = [
     'invest',
     'eco_program',
@@ -54,6 +56,14 @@ export default function RulesPage() {
             Версия {rules.version} · {rules.rounds} раундов · источник: rules/v1.0.yaml
           </p>
         </div>
+        {/* «После вкладки "правила" нужна вкладка "назад"»: back to wherever the
+            reader came from — the play page, the host panel or the front door. */}
+        <button
+          className="ghost"
+          onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}
+        >
+          ← Назад
+        </button>
       </header>
 
       <section className="card stack">

@@ -21,7 +21,7 @@ from typing import Any, Literal
 import yaml
 from pydantic import Field, model_validator
 
-from arena.engine.state import ArenaModel
+from arena.engine.state import ArenaModel, Country
 
 TargetKind = Literal["own_city", "foreign_city", "own_country", "foreign_country"]
 Timing = Literal["same_round", "next_round"]
@@ -133,6 +133,28 @@ class StabilityLevel(ArenaModel):
     income_percent: int
 
 
+class TraitsParams(ArenaModel):
+    """The numbers of the country traits (GAME_RULES_2.md 9). The trait IDS live
+    in state.py (TRAIT_IDS) and ride on the scenario's countries; a trait only
+    has an effect in games whose rules carry the ``v2_core`` module."""
+
+    resource_income: int = Field(default=100, description="resource_power: flat income bonus")
+    electoral_dynamics_percent: int = Field(
+        default=75, description="electoral_cycle: dynamics factor, percent of the life change"
+    )
+    eco_agenda_penalty: int = Field(
+        default=-5, description="eco_agenda: stability lost per round in the unstable band"
+    )
+    sanction_resist_percent: int = Field(
+        default=50, description="sanctions_experience: percent of the sanction effect left"
+    )
+    mobilization_bomb_cost: int = Field(
+        default=100, description="mobilization_economy: the price of one bomb"
+    )
+    capital_cap: str = Field(default="B", description="capital_limits: the best rating available")
+    floor_level: str = Field(default="E", description="isolation: the only rating available")
+
+
 class StabilityParams(ArenaModel):
     """Political stability (GAME_RULES_2.md 4): the numbers of the round formula."""
 
@@ -182,6 +204,7 @@ class Params(ArenaModel):
     rating: RatingParams = Field(default_factory=RatingParams)
     private_pool: PrivatePoolParams = Field(default_factory=PrivatePoolParams)
     stability: StabilityParams = Field(default_factory=StabilityParams)
+    traits: TraitsParams = Field(default_factory=TraitsParams)
     charisma_bonus: int = Field(
         default=5, ge=0, description="Stability points of the charisma winner"
     )
@@ -253,13 +276,20 @@ class RuleSet(ArenaModel):
     def major(self) -> int:
         return int(self.version.split(".")[0])
 
+    def is_v2(self) -> bool:
+        """Whether the second-edition mechanics are switched on for these rules."""
+        return "v2_core" in self.modules
+
     def action(self, action_id: str) -> ActionSpec:
         try:
             return self.actions[action_id]
         except KeyError:
             raise RulesError(f"rules {self.version} have no action {action_id!r}") from None
 
-    def cost(self, action_id: str) -> int:
+    def cost(self, action_id: str, payer: Country | None = None) -> int:
+        """The price one unit costs; traits may discount it (GAME_RULES_2.md 9)."""
+        if payer is not None and self.is_v2() and payer.has("mobilization_economy"):
+            return self.params.traits.mobilization_bomb_cost
         return self.action(action_id).cost
 
     def effect(self, action_id: str, key: str) -> int:

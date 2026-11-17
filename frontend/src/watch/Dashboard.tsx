@@ -7,7 +7,7 @@
  */
 import { useMemo, useState } from 'react'
 import { Icon } from '../ui/Icon'
-import { DeedsChart, EcologyChart, Legend, LifeChart } from './Charts'
+import { DeedsChart, EcologyChart, LifeChart, StandingsLegend } from './Charts'
 import {
   deeds,
   ecologyLine,
@@ -47,7 +47,7 @@ export default function Dashboard({ log }: { log: GameLog }) {
       <section className="card stack">
         <h3>Уровень жизни стран</h3>
         <LifeChart series={lifeLines(log)} />
-        <Legend series={standings(log)} />
+        <StandingsLegend series={standings(log)} />
       </section>
 
       <section className="card stack">

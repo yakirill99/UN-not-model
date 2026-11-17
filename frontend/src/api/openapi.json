@@ -971,6 +971,14 @@
             "minimum": 0.0,
             "title": "Stability",
             "type": "integer"
+          },
+          "traits": {
+            "description": "v2 trait ids (GAME_RULES_2.md 9); see TRAIT_IDS",
+            "items": {
+              "type": "string"
+            },
+            "title": "Traits",
+            "type": "array"
           }
         },
         "required": [
@@ -2297,6 +2305,9 @@
           },
           "stability": {
             "$ref": "#/components/schemas/StabilityParams"
+          },
+          "traits": {
+            "$ref": "#/components/schemas/TraitsParams"
           }
         },
         "required": [
@@ -3352,6 +3363,56 @@
           "tech"
         ],
         "title": "TechDeveloped",
+        "type": "object"
+      },
+      "TraitsParams": {
+        "additionalProperties": false,
+        "description": "The numbers of the country traits (GAME_RULES_2.md 9). The trait IDS live\nin state.py (TRAIT_IDS) and ride on the scenario's countries; a trait only\nhas an effect in games whose rules carry the ``v2_core`` module.",
+        "properties": {
+          "capital_cap": {
+            "default": "B",
+            "description": "capital_limits: the best rating available",
+            "title": "Capital Cap",
+            "type": "string"
+          },
+          "eco_agenda_penalty": {
+            "default": -5,
+            "description": "eco_agenda: stability lost per round in the unstable band",
+            "title": "Eco Agenda Penalty",
+            "type": "integer"
+          },
+          "electoral_dynamics_percent": {
+            "default": 75,
+            "description": "electoral_cycle: dynamics factor, percent of the life change",
+            "title": "Electoral Dynamics Percent",
+            "type": "integer"
+          },
+          "floor_level": {
+            "default": "E",
+            "description": "isolation: the only rating available",
+            "title": "Floor Level",
+            "type": "string"
+          },
+          "mobilization_bomb_cost": {
+            "default": 100,
+            "description": "mobilization_economy: the price of one bomb",
+            "title": "Mobilization Bomb Cost",
+            "type": "integer"
+          },
+          "resource_income": {
+            "default": 100,
+            "description": "resource_power: flat income bonus",
+            "title": "Resource Income",
+            "type": "integer"
+          },
+          "sanction_resist_percent": {
+            "default": 50,
+            "description": "sanctions_experience: percent of the sanction effect left",
+            "title": "Sanction Resist Percent",
+            "type": "integer"
+          }
+        },
+        "title": "TraitsParams",
         "type": "object"
       },
       "UiSpec": {

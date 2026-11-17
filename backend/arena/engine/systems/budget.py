@@ -184,7 +184,8 @@ class BudgetSystem(BaseSystem):
                 allowed = o.bombs if limit is None else min(o.bombs, limit)
                 if allowed < o.bombs:
                     reject("bomb", None, "limit_exceeded", limit=limit or 0, requested=o.bombs)
-                units += [Unit("bomb", None, rules.cost("bomb"))] * allowed
+                # v2 trait (GAME_RULES_2.md 9): mobilization economy — cheaper bombs.
+                units += [Unit("bomb", None, rules.cost("bomb", country))] * allowed
 
         known = {c.id for c in state.countries}
         min_aid = rules.action("aid").min_amount or 1
